@@ -1,0 +1,116 @@
+'use client';
+
+import { useState, useEffect } from 'react';
+import Link from 'next/link';
+import { usePathname, useParams } from 'next/navigation';
+import { loadAllDeals } from '@/lib/dealsStore';
+import { loadProductionCards } from '@/lib/productionCards';
+
+function useMemberKpi(memberId: string) {
+  const [kpi, setKpi] = useState<{ revenue: number; revenueTarget: number; gross: number; grossTarget: number; meetings: number; newDeals: number; tasks: number; urgent: number }>({ revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0 });
+  useEffect(() => {
+    const deals = loadAllDeals();
+    const cards = loadProductionCards();
+    const memberNames: Record<string, string> = { kashiwagi: '柏樹 久美子', inukai: '犬飼 智之', izumi: '和泉 阿委璃', ono: '小野 崇', ichioka: '市岡 陸' };
+    const name = memberNames[memberId] ?? '';
+    const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
+    const myDeals = deals.filter((d) => d.assignee === name);
+    const myOrdered = myDeals.filter((d) => orderedStages.includes(d.stage));
+    const rev = myOrdered.reduce((s, d) => s + d.amount, 0);
+    const gross = Math.round(rev * 0.457);
+    const meetings = myDeals.filter((d) => d.stage === 'meeting').length;
+    const newDeals = myDeals.filter((d) => d.stage === 'lead').length;
+    const myTasks = cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === memberId && t.status !== 'done');
+    const urgent = myTasks.filter((t) => t.dueDate && t.dueDate < '2026-04-05').length;
+    setKpi({ revenue: Math.round(rev / 10000), revenueTarget: 0, gross: Math.round(gross / 10000), grossTarget: 0, meetings, newDeals, tasks: myTasks.length, urgent });
+  }, [memberId]);
+  return kpi;
+}
+
+export default function MemberLayout({ children }: { children: React.ReactNode }) {
+  const params = useParams();
+  const memberId = params.memberId as string;
+  const pathname = usePathname();
+
+  const MEMBERS: Record<string, { name: string; company: string }> = {
+    kashiwagi: { name: '柏樹 久美子', company: 'トライポット株式会社' },
+    inukai: { name: '犬飼 智之', company: 'トライポット株式会社' },
+    izumi: { name: '和泉 阿委璃', company: 'トライポット株式会社' },
+    ono: { name: '小野 崇', company: 'トライポット株式会社' },
+  };
+
+  const member = MEMBERS[memberId] ?? { name: memberId, company: '' };
+  const kpi = useMemberKpi(memberId);
+
+  const tabs = [
+    { href: `/home/${memberId}`, label: 'ダッシュボード', exact: true },
+    { href: `/home/${memberId}/attack`, label: 'アタック' },
+    { href: `/home/${memberId}/deals`, label: '案件管理' },
+    { href: `/home/${memberId}/production`, label: '制作マイタスク' },
+  ];
+
+  const isActive = (href: string, exact?: boolean) => {
+    if (exact) return pathname === href;
+    return pathname.startsWith(href);
+  };
+
+  const revPct = kpi.revenueTarget > 0 ? Math.round((kpi.revenue / kpi.revenueTarget) * 100) : 0;
+  const grossPct = kpi.grossTarget > 0 ? Math.round((kpi.gross / kpi.grossTarget) * 100) : 0;
+
+  return (
+    <div>
+      <div className="px-4 pt-4 pb-2">
+        <p className="text-sm font-semibold text-gray-900">{member.name}</p>
+        <p className="text-xs text-gray-500">{member.company}</p>
+      </div>
+
+      <div className="flex items-center justify-between border-b border-gray-200 px-4 gap-4 flex-wrap">
+        <div className="flex">
+          {tabs.map(tab => (
+            <Link
+              key={tab.href}
+              href={tab.href}
+              className={`py-2.5 px-4 text-sm font-semibold border-b-2 transition-colors ${
+                isActive(tab.href, tab.exact)
+                  ? 'text-gray-900 border-blue-600'
+                  : 'text-gray-600 border-transparent hover:text-gray-700'
+              }`}
+            >
+              {tab.label}
+            </Link>
+          ))}
+        </div>
+
+        {kpi && (
+          <div className="hidden md:flex items-center gap-5 py-1.5 ml-auto">
+            <div className="text-right">
+              <p className="text-[9px] font-semibold text-gray-500 uppercase tracking-widest leading-none">今月売上</p>
+              <p className="text-base font-semibold text-gray-900 tabular-nums leading-tight mt-0.5">¥{kpi.revenue}<span className="text-xs text-gray-500 ml-0.5">万</span></p>
+              <p className="text-[9px] text-gray-500 tabular-nums leading-none">{revPct}%</p>
+            </div>
+            <div className="w-px h-9 bg-gray-200" />
+            <div className="text-right">
+              <p className="text-[9px] font-semibold text-gray-500 uppercase tracking-widest leading-none">今月粗利</p>
+              <p className="text-base font-semibold text-gray-900 tabular-nums leading-tight mt-0.5">¥{kpi.gross}<span className="text-xs text-gray-500 ml-0.5">万</span></p>
+              <p className="text-[9px] text-gray-500 tabular-nums leading-none">{grossPct}%</p>
+            </div>
+            <div className="w-px h-9 bg-gray-200" />
+            <div className="text-right">
+              <p className="text-[9px] font-semibold text-gray-500 uppercase tracking-widest leading-none">商談</p>
+              <p className="text-base font-semibold text-gray-900 tabular-nums leading-tight mt-0.5">{kpi.meetings}</p>
+              <p className="text-[9px] text-gray-500 leading-none">新規 {kpi.newDeals}</p>
+            </div>
+            <div className="w-px h-9 bg-gray-200" />
+            <div className="text-right">
+              <p className="text-[9px] font-semibold text-gray-500 uppercase tracking-widest leading-none">残タスク</p>
+              <p className={`text-base font-semibold tabular-nums leading-tight mt-0.5 ${kpi.urgent > 0 ? 'text-red-600' : 'text-gray-900'}`}>{kpi.tasks}</p>
+              <p className="text-[9px] text-gray-500 leading-none">至急 {kpi.urgent}</p>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {children}
+    </div>
+  );
+}
