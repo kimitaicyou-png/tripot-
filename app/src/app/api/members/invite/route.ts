@@ -8,9 +8,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'email と name は必須です' }, { status: 400 });
   }
 
-  const loginUrl = process.env.NEXTAUTH_URL ?? process.env.VERCEL_URL
-    ? `https://${process.env.VERCEL_URL}/login`
-    : 'http://localhost:3100/login';
+  const baseUrl = process.env.NEXTAUTH_URL
+    ?? (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+    ?? 'http://localhost:3100';
+  const loginUrl = `${baseUrl}/login`;
 
   const subject = `【トライポット】${inviterName}さんからの招待`;
   const body_text = `${name}さん
