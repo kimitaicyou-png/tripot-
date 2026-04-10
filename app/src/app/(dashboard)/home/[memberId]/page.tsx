@@ -503,7 +503,15 @@ export default function MemberDashboardPage() {
   });
 
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
-  const memberNames: Record<string, string> = { kashiwagi: '柏樹 久美子', inukai: '犬飼 智之', izumi: '和泉 阿委璃', ono: '小野 崇', ichioka: '市岡 陸' };
+  const [apiMembers, setApiMembers] = useState<Array<{ id: string; name: string }>>([]);
+  useEffect(() => {
+    fetch('/api/members').then((r) => r.json()).then((d) => setApiMembers(d.members ?? [])).catch(() => {});
+  }, []);
+  const memberNames: Record<string, string> = Object.fromEntries(
+    apiMembers.length > 0
+      ? apiMembers.map((m) => [m.id, m.name])
+      : [['toki', '土岐 公人'], ['ono', '小野 隆士']]
+  );
   const myName = memberNames[memberId] ?? '';
   const myDeals = liveDeals.filter((d: { assignee: string }) => d.assignee === myName);
   const myOrdered = myDeals.filter((d: { stage: string }) => orderedStages.includes(d.stage));
@@ -866,7 +874,7 @@ export default function MemberDashboardPage() {
                   <span className="text-xs font-semibold text-purple-600 bg-purple-50 px-3 py-1 rounded-full">あなた {groupRank}位 / {GROUP_RANKING_LIVE.length}人</span>
                 )}
               </div>
-              <p className="text-xs text-gray-500 mt-0.5">コアリスHDグループ12社・今月売上</p>
+              <p className="text-xs text-gray-500 mt-0.5">コアリスHDグループ・今月売上（将来他社連携予定）</p>
             </div>
             <div className="divide-y divide-gray-100">
               {GROUP_RANKING_LIVE.map((m, i) => {
