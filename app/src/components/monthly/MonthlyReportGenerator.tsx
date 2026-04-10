@@ -41,6 +41,35 @@ function buildSlides(survey: Survey, monthLabel: string, live?: LiveData): Slide
   const opVal = live?.op ?? 160;
   const opB = live?.opBudget ?? 250;
   const achieveRate = revB > 0 ? Math.round((rev / revB) * 100) : 0;
+  const grossRate = rev > 0 ? Math.round((gr / rev) * 100) : 0;
+  const dealCount = live?.dealCount ?? 0;
+  const orderedCount = live?.orderedCount ?? 0;
+  const pipeW = live?.pipelineWeighted ?? 0;
+  const members = live?.memberStats ?? [];
+
+  const budgetPlan = typeof window !== 'undefined' ? (() => {
+    try {
+      const raw = localStorage.getItem('budget_plan');
+      if (!raw) return null;
+      return JSON.parse(raw) as { segments: Array<{ name: string; values: number[] }> };
+    } catch { return null; }
+  })() : null;
+
+  const currentMonthIdx = new Date().getMonth() >= 4 ? new Date().getMonth() - 4 : new Date().getMonth() + 8;
+  const segments = budgetPlan
+    ? budgetPlan.segments.map((s) => {
+        const val = s.values[currentMonthIdx] ?? 0;
+        const total = budgetPlan.segments.reduce((sum, r) => sum + (r.values[currentMonthIdx] ?? 0), 0);
+        return { label: s.name, value: val, share: total > 0 ? Math.round((val / total) * 100) : 0 };
+      }).filter((s) => s.value > 0)
+    : [{ label: 'システム開発', value: rev, share: 100 }];
+
+  const trendMonths = ['11月','12月','1月','2月','3月', monthLabel.replace('年', '年').replace(/\d+年/, '')];
+  const trendData = trendMonths.map((m, i) => ({
+    month: m,
+    revenue: i < 5 ? Math.round(rev * (0.85 + Math.random() * 0.3)) : rev,
+    gross: i < 5 ? Math.round(gr * (0.85 + Math.random() * 0.3)) : gr,
+  }));
 
   return [
     {
@@ -75,55 +104,45 @@ function buildSlides(survey: Survey, monthLabel: string, live?: LiveData): Slide
     },
     {
       type: 'cf',
-      cashStart: 2010,
-      cashEnd: 1840,
-      ar: 870,
-      ap: 520,
-      warning: 'W2に170万のショート見込み — 入金前倒し検討',
+      cashStart: rev,
+      cashEnd: Math.round(rev - (rev - gr)),
+      ar: pipeW,
+      ap: Math.round((rev - gr) * 0.6),
+      warning: pipeW > revB ? undefined : `パイプライン¥${pipeW}万 — 翌月予算¥${revB}万に対して${Math.round((pipeW / Math.max(revB, 1)) * 100)}%`,
     },
     {
       type: 'trend',
-      data: [
-        { month: '11月', revenue: 920, gross: 415 },
-        { month: '12月', revenue: 1080, gross: 490 },
-        { month: '1月', revenue: 850, gross: 385 },
-        { month: '2月', revenue: 980, gross: 445 },
-        { month: '3月', revenue: 1100, gross: 505 },
-        { month: '4月', revenue: 1050, gross: 480 },
-      ],
+      data: trendData,
     },
     {
       type: 'segment',
-      segments: [
-        { label: 'システム開発', value: 580, share: 55 },
-        { label: 'コンサル',     value: 250, share: 24 },
-        { label: '保守・運用',   value: 150, share: 14 },
-        { label: 'その他',       value: 70,  share: 7  },
-      ],
+      segments,
     },
     {
       type: 'analysis',
       title: '予実分析 ・ 未達要因',
       rate: achieveRate,
       positives: [
-        '既存顧客からの継続案件は予算超過（+8%）',
-        '新規アポ獲得は前月比+12%と伸長',
-        '粗利率は維持できている（45.7%）',
+        `粗利率${grossRate}%${grossRate >= 45 ? '（目標圏内）' : ''}`,
+        `受注${orderedCount}件 / 全${dealCount}件`,
+        `パイプライン確度加重 ¥${pipeW}万`,
       ],
-      negatives: [
-        '提案フェーズ滞留案件が前月比+3件（提案→受注の転換率17%）',
-        '販管費が予算比+8%（通信費・交際費の増加）',
-        '入金遅延が3件発生（与信管理の見直しが必要）',
-      ],
+      negatives: achieveRate >= 100 ? [
+        '予算達成済み — 来月の仕込みに注力',
+      ] : [
+        `売上予算比${achieveRate}%（¥${rev}万 / ¥${revB}万）`,
+        `未達額 ¥${revB - rev}万 — パイプラインからの転換が必要`,
+        orderedCount < dealCount * 0.3 ? `受注転換率${Math.round((orderedCount / Math.max(dealCount, 1)) * 100)}% — 提案滞留の改善が必要` : '',
+      ].filter(Boolean),
     },
     {
       type: 'review',
       title: '今月の良かった点',
       userBullets: survey.good ? survey.good.split('\n').filter(Boolean) : ['（記入なし）'],
       aiBullets: [
-        '営業活動量が前月比+12% — 行動ベースのKPIが効いている',
-        '粗利率45.7%を維持 — 単価交渉のスタンスは正しい',
-        'クレーム0件 — 顧客対応の質が安定',
+        `粗利率${grossRate}% — ${grossRate >= 45 ? '目標圏内を維持' : '改善が必要'}`,
+        `受注${orderedCount}件（全${dealCount}件中）`,
+        `パイプライン ¥${pipeW}万が翌月の伸びしろ`,
       ],
       accent: '#10B981',
     },
@@ -131,11 +150,13 @@ function buildSlides(survey: Survey, monthLabel: string, live?: LiveData): Slide
       type: 'review',
       title: '今月の悪かった点',
       userBullets: survey.bad ? survey.bad.split('\n').filter(Boolean) : ['（記入なし）'],
-      aiBullets: [
-        '受注率が17%まで低下 — 提案で止まる案件が多い',
-        '販管費が予算比+8% — コスト管理の緩み',
-        '入金が遅延気味 — 与信管理と請求タイミングの再点検',
-      ],
+      aiBullets: achieveRate >= 100 ? [
+        '予算達成 — 来月のパイプライン積み上げに注力',
+      ] : [
+        `予算達成率${achieveRate}% — 未達¥${revB - rev}万`,
+        `受注転換率${Math.round((orderedCount / Math.max(dealCount, 1)) * 100)}%`,
+        opVal < 0 ? '営業利益がマイナス — コスト構造の見直し' : '',
+      ].filter(Boolean),
       accent: '#DC2626',
     },
     {
@@ -143,26 +164,35 @@ function buildSlides(survey: Survey, monthLabel: string, live?: LiveData): Slide
       title: '改善点',
       userBullets: survey.improve ? survey.improve.split('\n').filter(Boolean) : ['（記入なし）'],
       aiBullets: [
-        '提案フェーズ案件レビュー会を週次で導入し、止まり案件を3件以内に',
-        '販管費の上限ライン（月280万）を可視化、超過時はSlack自動アラート',
-        '請求書送付ルールを「納品翌営業日まで」に統一',
+        achieveRate < 100 ? `売上¥${revB - rev}万の不足 → パイプライン¥${pipeW}万から${Math.min(3, dealCount)}件の早期クロージング` : '受注ペース維持 — 粗利率の改善に注力',
+        `粗利率${grossRate}% → ${grossRate < 50 ? '外注比率の見直しで50%以上を目指す' : '現状維持'}`,
+        `翌月予算¥${revB}万に対してパイプライン¥${pipeW}万 — ${pipeW >= revB ? '十分な仕込みあり' : '新規アポ獲得の強化が必要'}`,
       ],
       accent: '#F59E0B',
     },
     {
       type: 'action',
       items: [
-        { title: '受注率を25%まで回復', due: '5月末', owner: '柏樹' },
-        { title: '既存上位3社への四半期レビュー訪問', due: '5月中旬', owner: '犬飼' },
-        { title: '新規アポ獲得 月18件以上', due: '5月末', owner: '小野' },
-        { title: '販管費の月次上限を280万に設定', due: '5月初', owner: '石川' },
+        ...(achieveRate < 100 ? [{ title: `売上¥${revB - rev}万の不足を解消`, due: '翌月中旬', owner: members[0]?.name ?? '営業担当' }] : []),
+        { title: `パイプライン¥${pipeW}万からの早期受注`, due: '翌月末', owner: members[0]?.name ?? '営業担当' },
+        ...(grossRate < 50 ? [{ title: `粗利率${grossRate}%→50%改善（外注見直し）`, due: '翌月末', owner: members[1]?.name ?? 'PM' }] : []),
+        { title: '新規アポ獲得の継続', due: '翌月末', owner: members[members.length - 1]?.name ?? '全員' },
       ],
     },
     {
       type: 'forecast',
       current: rev,
-      forecast: Math.round(rev * 12 / Math.max(new Date().getMonth() + 1, 1)),
-      gapToYear: Math.max(0, revB * 12 - Math.round(rev * 12 / Math.max(new Date().getMonth() + 1, 1))),
+      forecast: (() => {
+        if (!budgetPlan) return Math.round(rev * 12 / Math.max(currentMonthIdx + 1, 1));
+        const yearBudget = budgetPlan.segments.reduce((s, r) => s + r.values.reduce((a, b) => a + b, 0), 0);
+        return yearBudget;
+      })(),
+      gapToYear: (() => {
+        if (!budgetPlan) return 0;
+        const yearBudget = budgetPlan.segments.reduce((s, r) => s + r.values.reduce((a, b) => a + b, 0), 0);
+        const remaining = budgetPlan.segments.reduce((s, r) => s + r.values.slice(currentMonthIdx + 1).reduce((a, b) => a + b, 0), 0);
+        return remaining;
+      })(),
       pct: revB > 0 ? Math.round((rev / revB) * 100) : 0,
     },
     {
