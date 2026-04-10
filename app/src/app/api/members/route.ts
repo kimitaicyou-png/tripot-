@@ -25,12 +25,16 @@ function saveMembers(members: AllowedUser[]): void {
   try { writeFileSync(SRC_PATH, json, 'utf-8'); } catch {}
 }
 
-async function getCallerRole(req: NextRequest): Promise<{ role: UserRole | null; memberId: string | null }> {
-  const session = await auth();
-  if (!session?.user?.email) return { role: null, memberId: null };
-  const members = loadMembers();
-  const me = members.find((m) => m.email === session.user!.email);
-  return { role: me?.role ?? null, memberId: me?.id ?? null };
+async function getCallerRole(): Promise<{ role: UserRole | null; memberId: string | null }> {
+  try {
+    const session = await auth();
+    if (!session?.user?.email) return { role: null, memberId: null };
+    const members = loadMembers();
+    const me = members.find((m) => m.email === session.user!.email);
+    return { role: me?.role ?? null, memberId: me?.id ?? null };
+  } catch {
+    return { role: null, memberId: null };
+  }
 }
 
 export async function GET() {
@@ -39,7 +43,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
-  const { role, memberId } = await getCallerRole(req);
+  const { role, memberId } = await getCallerRole();
   if (role !== 'owner') {
     return NextResponse.json({ error: 'owner権限が必要です' }, { status: 403 });
   }
@@ -75,7 +79,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
-  const { role } = await getCallerRole(req);
+  const { role } = await getCallerRole();
   if (role !== 'owner') {
     return NextResponse.json({ error: 'owner権限が必要です' }, { status: 403 });
   }
@@ -100,7 +104,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
-  const { role } = await getCallerRole(req);
+  const { role } = await getCallerRole();
   if (role !== 'owner') {
     return NextResponse.json({ error: 'owner権限が必要です' }, { status: 403 });
   }
