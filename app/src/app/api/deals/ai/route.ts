@@ -264,6 +264,39 @@ ${allNeeds?.length > 0 ? `【抽出済みニーズ】\n${(allNeeds as string[]).
       return NextResponse.json({ text });
     }
 
+    if (action === 'generate-monthly-report') {
+      const { monthLabel, survey, kpiSummary } = body;
+      const raw = await callText(
+        `あなたはIT企業の経営企画担当です。月次報告会のスライドデータをJSON配列で出力します。隊長（COO）の経営哲学: 「行動を追え、数字は後からついてくる」「未達OK、未決定NG」「粗利→営業利益→売上の順で見る」`,
+        `${monthLabel}の月次報告会スライドを生成してください。
+
+【KPIサマリー】
+${kpiSummary}
+
+【振り返りアンケート】
+良かった点: ${survey?.good || '（記入なし）'}
+悪かった点: ${survey?.bad || '（記入なし）'}
+改善点: ${survey?.improve || '（記入なし）'}
+来月の一手: ${survey?.next || '（記入なし）'}
+
+以下のJSON配列で出力（説明文不要）。各スライドは指定のtype必須:
+[
+  {"type":"pl","revenue":数値万,"revenueBudget":数値万,"gross":数値万,"grossBudget":数値万,"op":数値万,"opBudget":数値万},
+  {"type":"analysis","title":"予実分析","rate":達成率%,"positives":["良い点1","良い点2"],"negatives":["悪い点1","悪い点2"]},
+  {"type":"review_good","bullets":["AIが分析した良い点1","良い点2","良い点3"]},
+  {"type":"review_bad","bullets":["AIが分析した悪い点1","悪い点2"]},
+  {"type":"review_improve","bullets":["改善提案1","改善提案2","改善提案3"]},
+  {"type":"action","items":[{"title":"アクション","due":"期日","owner":"担当者"}]},
+  {"type":"forecast","current":累計万,"forecast":年間着地見込万,"pct":達成率%}
+]
+
+KPIデータに基づいて具体的な数字を入れてください。AIコメントは隊長の哲学に沿った内容にしてください。`,
+        4000
+      );
+      const slides = extractJson<unknown[]>(raw);
+      return NextResponse.json({ slides: slides ?? [], raw });
+    }
+
     return NextResponse.json({ error: 'unknown action' }, { status: 400 });
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : 'unknown error';

@@ -796,13 +796,76 @@ export default function MonthlyReportGenerator({ onClose, monthLabel }: { onClos
   const [survey, setSurvey] = useState<Survey>({ good: '', bad: '', improve: '', next: '' });
   const [slides, setSlides] = useState<Slide[]>([]);
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setStep('generating');
-    setTimeout(() => {
+    try {
+      const deals = typeof window !== 'undefined'
+        ? (() => { try { const r = localStorage.getItem('tripot_deals_all'); return r ? JSON.parse(r) : []; } catch { return []; } })()
+        : [];
+      const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
+      const ordered = deals.filter((d: { stage: string }) => orderedStages.includes(d.stage));
+      const totalRevenue = ordered.reduce((s: number, d: { amount: number }) => s + d.amount, 0);
+      const kpiSummary = `総案件数: ${deals.length}件\n受注済: ${ordered.length}件\n総売上: ¥${Math.round(totalRevenue / 10000)}万\n粗利率: 約46%`;
+
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-monthly-report',
+          monthLabel,
+          survey,
+          kpiSummary,
+        }),
+      });
+      const data = await res.json();
+      if (data.slides && data.slides.length > 0) {
+        const aiSlides = data.slides;
+        const merged = mergeAiSlides(survey, monthLabel, aiSlides);
+        setSlides(merged);
+      } else {
+        setSlides(buildSlides(survey, monthLabel));
+      }
+    } catch {
       setSlides(buildSlides(survey, monthLabel));
-      setStep('present');
-    }, 1800);
+    }
+    setStep('present');
   };
+
+  function mergeAiSlides(s: Survey, ml: string, aiData: Record<string, unknown>[]): Slide[] {
+    const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+    const base = buildSlides(s, ml);
+    for (const ai of aiData) {
+      if (ai.type === 'pl' && typeof ai.revenue === 'number') {
+        const idx = base.findIndex((sl) => sl.type === 'pl');
+        if (idx !== -1) base[idx] = { type: 'pl', revenue: ai.revenue as number, revenueBudget: (ai.revenueBudget as number) ?? 1200, gross: (ai.gross as number) ?? 480, grossBudget: (ai.grossBudget as number) ?? 600, op: (ai.op as number) ?? 160, opBudget: (ai.opBudget as number) ?? 250 };
+      }
+      if (ai.type === 'analysis' && ai.positives) {
+        const idx = base.findIndex((sl) => sl.type === 'analysis');
+        if (idx !== -1) base[idx] = { type: 'analysis', title: (ai.title as string) ?? '予実分析', rate: (ai.rate as number) ?? 88, positives: ai.positives as string[], negatives: (ai.negatives as string[]) ?? [] };
+      }
+      if (ai.type === 'review_good' && ai.bullets) {
+        const idx = base.findIndex((sl) => sl.type === 'review' && 'accent' in sl && sl.accent === '#10B981');
+        if (idx !== -1) { const sl = base[idx]; if (sl.type === 'review') sl.aiBullets = ai.bullets as string[]; }
+      }
+      if (ai.type === 'review_bad' && ai.bullets) {
+        const idx = base.findIndex((sl) => sl.type === 'review' && 'accent' in sl && sl.accent === '#DC2626');
+        if (idx !== -1) { const sl = base[idx]; if (sl.type === 'review') sl.aiBullets = ai.bullets as string[]; }
+      }
+      if (ai.type === 'review_improve' && ai.bullets) {
+        const idx = base.findIndex((sl) => sl.type === 'review' && 'accent' in sl && sl.accent === '#F59E0B');
+        if (idx !== -1) { const sl = base[idx]; if (sl.type === 'review') sl.aiBullets = ai.bullets as string[]; }
+      }
+      if (ai.type === 'action' && ai.items) {
+        const idx = base.findIndex((sl) => sl.type === 'action');
+        if (idx !== -1) base[idx] = { type: 'action', items: ai.items as { title: string; due: string; owner: string }[] };
+      }
+      if (ai.type === 'forecast' && typeof ai.current === 'number') {
+        const idx = base.findIndex((sl) => sl.type === 'forecast');
+        if (idx !== -1) base[idx] = { type: 'forecast', current: ai.current as number, forecast: (ai.forecast as number) ?? 11800, gapToYear: (ai as Record<string, number>).gapToYear ?? 200, pct: (ai.pct as number) ?? 92 };
+      }
+    }
+    return base;
+  }
 
   if (step === 'present' && slides.length > 0) {
     return <PresentationView slides={slides} onClose={onClose} />;

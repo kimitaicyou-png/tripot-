@@ -657,11 +657,34 @@ function CashShortActionBoard() {
 }
 
 function CfTab() {
-  const [invoices, setInvoices] = usePersistedState<InvoiceStatus[]>('monthly_invoices', MOCK_INVOICES);
+  const [deals] = useState(() => loadAllDeals());
+  const invoiceStages = ['invoiced', 'accounting', 'paid', 'delivered', 'acceptance'];
+  const defaultInvoices: InvoiceStatus[] = deals
+    .filter((d) => invoiceStages.includes(d.stage) && d.amount > 0)
+    .map((d) => {
+      const dueDate = d.paymentDue ?? new Date(Date.now() + 30 * 86400000).toISOString().slice(0, 10);
+      const isOverdue = d.stage !== 'paid' && dueDate < new Date().toISOString().slice(0, 10);
+      const daysOverdue = isOverdue ? Math.floor((Date.now() - new Date(dueDate).getTime()) / 86400000) : 0;
+      return {
+        id: `inv-${d.id}`,
+        dealName: d.dealName,
+        clientName: d.clientName,
+        invoiceNo: `INV-${d.id.replace('deal-', '')}`,
+        amount: d.amount,
+        issuedDate: d.invoiceDate ?? new Date().toISOString().slice(0, 10),
+        sentDate: d.stage === 'paid' || d.stage === 'accounting' ? d.invoiceDate : undefined,
+        sentMethod: d.stage === 'paid' || d.stage === 'accounting' ? 'email' as const : undefined,
+        dueDate,
+        paidDate: d.stage === 'paid' ? d.paidDate : undefined,
+        status: d.stage === 'paid' ? 'paid' as const : isOverdue ? 'overdue' as const : (d.stage === 'invoiced' || d.stage === 'accounting') ? 'sent' as const : 'draft' as const,
+        daysOverdue: daysOverdue > 0 ? daysOverdue : undefined,
+      };
+    });
+  const fallbackInvoices = defaultInvoices.length > 0 ? defaultInvoices : MOCK_INVOICES;
+  const [invoices, setInvoices] = usePersistedState<InvoiceStatus[]>('monthly_invoices', fallbackInvoices);
   const [showReconciliation, setShowReconciliation] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
   const [showInvoiceTracker, setShowInvoiceTracker] = useState(false);
-  const [deals] = useState(() => loadAllDeals());
 
   const invoicedDeals = deals.filter((d) => d.stage === 'invoiced' || d.stage === 'accounting');
   const paidDeals = deals.filter((d) => d.stage === 'paid');

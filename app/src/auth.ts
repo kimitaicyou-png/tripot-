@@ -65,20 +65,16 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       if (!isLoggedIn) return false;
 
-      const user = auth?.user as unknown as Record<string, unknown> | undefined;
-      const role = user?.role as UserRole | undefined;
-      const memberId = user?.memberId as string | undefined;
+      const email = auth?.user?.email;
+      const matched = email ? findUser(email) : undefined;
+      const role = matched?.role as UserRole | undefined;
+      const memberId = matched?.id;
 
-      if (pathname.startsWith('/budget') && role && !hasMinRole(role, 'manager')) {
+      const restrictedForMember = ['/budget', '/monthly', '/weekly'];
+      if (role && !hasMinRole(role, 'manager') && restrictedForMember.some((p) => pathname.startsWith(p))) {
         return Response.redirect(new URL(`/home/${memberId ?? 'kashiwagi'}`, request.nextUrl));
       }
-      if (pathname.startsWith('/monthly') && role && !hasMinRole(role, 'manager')) {
-        return Response.redirect(new URL(`/home/${memberId ?? 'kashiwagi'}`, request.nextUrl));
-      }
-      if (pathname.startsWith('/weekly') && role && !hasMinRole(role, 'manager')) {
-        return Response.redirect(new URL(`/home/${memberId ?? 'kashiwagi'}`, request.nextUrl));
-      }
-      if (pathname.startsWith('/settings') && role !== 'owner') {
+      if (pathname.startsWith('/settings') && role && role !== 'owner') {
         return Response.redirect(new URL(`/home/${memberId ?? 'kashiwagi'}`, request.nextUrl));
       }
       if (pathname.startsWith('/home/') && role === 'member') {

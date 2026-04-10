@@ -207,6 +207,56 @@ export function ProfitAnalysis({ data: initialData }: Props) {
   );
 }
 
+export function buildProfitByType(deals: Array<{ dealName: string; amount: number; stage: string; probability: number; industry: string }>): ProfitByType[] {
+  const typeMap: Record<string, { deals: typeof deals }> = {};
+  const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
+  const allStages = [...orderedStages, 'lead', 'meeting', 'proposal', 'estimate_sent', 'negotiation', 'lost'];
+
+  for (const d of deals) {
+    const type = guessType(d.dealName, d.industry);
+    if (!typeMap[type]) typeMap[type] = { deals: [] };
+    typeMap[type].deals.push(d);
+  }
+
+  return Object.entries(typeMap).map(([type, { deals: typed }]) => {
+    const ordered = typed.filter((d) => orderedStages.includes(d.stage));
+    const lost = typed.filter((d) => d.stage === 'lost');
+    const totalRevenue = ordered.reduce((s, d) => s + d.amount, 0);
+    const costRate = type.includes('保守') ? 0.45 : type.includes('LP') ? 0.4 : type.includes('コンサル') ? 0.42 : 0.54;
+    const totalCost = Math.round(totalRevenue * costRate);
+    const avgGrossMargin = totalRevenue > 0 ? Math.round(((totalRevenue - totalCost) / totalRevenue) * 100) : 0;
+    const winRate = typed.length > 0 ? Math.round(((typed.length - lost.length) / typed.length) * 100) : 0;
+    return {
+      type,
+      dealCount: typed.length,
+      totalRevenue,
+      totalCost,
+      avgGrossMargin,
+      avgDuration: type.includes('LP') ? 21 : type.includes('保守') ? 365 : type.includes('アプリ') ? 150 : 90,
+      winRate,
+    };
+  }).filter((d) => d.dealCount > 0);
+}
+
+function guessType(name: string, industry: string): string {
+  const n = name.toLowerCase();
+  if (n.includes('lp') || n.includes('ランディング')) return 'LP制作';
+  if (n.includes('保守') || n.includes('運用') || n.includes('サポート')) return '保守・運用';
+  if (n.includes('アプリ') || n.includes('app')) return 'スマホアプリ';
+  if (n.includes('コンサル') || n.includes('dx') || n.includes('支援')) return 'コンサル';
+  if (n.includes('web') || n.includes('システム') || n.includes('開発')) return 'Webシステム';
+  if (industry === '製造業') return 'Webシステム';
+  return 'Webシステム';
+}
+
 export function ProfitAnalysisDemo() {
-  return <ProfitAnalysis data={[]} />;
+  const [deals] = useState(() => {
+    if (typeof window === 'undefined') return [];
+    try {
+      const raw = localStorage.getItem('tripot_deals_all');
+      return raw ? JSON.parse(raw) : [];
+    } catch { return []; }
+  });
+  const data = buildProfitByType(deals);
+  return data.length > 0 ? <ProfitAnalysis data={data} /> : <ProfitAnalysis data={MOCK_DATA} />;
 }
