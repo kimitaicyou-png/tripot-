@@ -138,18 +138,31 @@ export default function MonthlyDetailPage() {
   const cogs = Math.round(totalRevenue * cogsRate);
   const grossProfit = totalRevenue - cogs;
 
-  const savedTarget = (() => {
-    if (typeof window === 'undefined') return { revenueTarget: 12000000, grossProfitTarget: 5520000 };
+  const currentMonthIdx = new Date().getMonth() >= 4 ? new Date().getMonth() - 4 : new Date().getMonth() + 8;
+  const budgetPlan = (() => {
+    if (typeof window === 'undefined') return null;
     try {
-      const raw = localStorage.getItem('tripot_settings_target');
-      if (raw) return JSON.parse(raw) as { revenueTarget: number; grossProfitTarget: number };
-    } catch {}
-    return { revenueTarget: 12000000, grossProfitTarget: 5520000 };
+      const raw = localStorage.getItem('budget_plan');
+      return raw ? JSON.parse(raw) as {
+        segments: Array<{ values: number[] }>;
+        cogs: Array<{ values: number[] }>;
+        labor: Array<{ values: number[] }>;
+        admin: Array<{ values: number[] }>;
+      } : null;
+    } catch { return null; }
   })();
-  const revenueTarget = savedTarget.revenueTarget;
-  const grossTarget = savedTarget.grossProfitTarget;
-  const cogsTarget = revenueTarget - grossTarget;
-  const sgaActual = 0;
+  const revenueTarget = budgetPlan
+    ? budgetPlan.segments.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
+    : 12000000;
+  const budgetCogs = budgetPlan
+    ? budgetPlan.cogs.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
+    : Math.round(revenueTarget * 0.54);
+  const grossTarget = revenueTarget - budgetCogs;
+  const cogsTarget = budgetCogs;
+  const sgaActual = budgetPlan
+    ? (budgetPlan.labor.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) +
+       budgetPlan.admin.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0)) * 10000
+    : 0;
 
   const pl = {
     revenue: { target: revenueTarget, actual: totalRevenue },

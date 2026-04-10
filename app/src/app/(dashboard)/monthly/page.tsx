@@ -47,20 +47,35 @@ function useLiveFinancials() {
   const prodCost = prodCards.reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
   const cogs = prodCost > 0 ? prodCost : Math.round(totalRevenue * 0.54);
   const grossProfit = totalRevenue - cogs;
-  const sga = 0;
+  const currentMonthIdx = new Date().getMonth() >= 4 ? new Date().getMonth() - 4 : new Date().getMonth() + 8;
+  const budgetPlan = (() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('budget_plan');
+      return raw ? JSON.parse(raw) as {
+        segments: Array<{ values: number[] }>;
+        cogs: Array<{ values: number[] }>;
+        labor: Array<{ values: number[] }>;
+        admin: Array<{ values: number[] }>;
+      } : null;
+    } catch { return null; }
+  })();
+
+  const budgetRevenue = budgetPlan
+    ? budgetPlan.segments.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
+    : 12000000;
+  const budgetCogs = budgetPlan
+    ? budgetPlan.cogs.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
+    : Math.round(budgetRevenue * 0.54);
+  const budgetGross = budgetRevenue - budgetCogs;
+  const budgetSga = budgetPlan
+    ? (budgetPlan.labor.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) +
+       budgetPlan.admin.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0)) * 10000
+    : 0;
+  const budgetOp = budgetGross - budgetSga;
+  const sga = budgetSga;
   const operatingProfit = grossProfit - sga;
   const ordinaryProfit = operatingProfit;
-  const savedTarget = (() => {
-    if (typeof window === 'undefined') return { revenueTarget: 12000000, grossProfitTarget: 5520000 };
-    try {
-      const raw = localStorage.getItem('tripot_settings_target');
-      if (raw) return JSON.parse(raw) as { revenueTarget: number; grossProfitTarget: number };
-    } catch {}
-    return { revenueTarget: 12000000, grossProfitTarget: 5520000 };
-  })();
-  const budgetRevenue = savedTarget.revenueTarget;
-  const budgetGross = savedTarget.grossProfitTarget;
-  const budgetOp = Math.round(budgetGross * 0.45);
 
   const r = (v: number) => Math.round(v / 10000);
 
@@ -85,7 +100,7 @@ function useLiveFinancials() {
     grossProfit: r(m.grossProfit),
   }));
 
-  return { PL_ROWS, SHOT_RUNNING, MEMBER_STATS: MEMBER_STATS_LIVE, kpi, deals, prodCards, totalRevenue, grossProfit, budgetRevenue, budgetGross, budgetOp, sga };
+  return { PL_ROWS, SHOT_RUNNING, MEMBER_STATS: MEMBER_STATS_LIVE, kpi, deals, prodCards, totalRevenue, grossProfit, budgetRevenue, budgetGross, budgetOp, sga, budgetSga };
 }
 
 
@@ -1144,8 +1159,8 @@ export default function MonthlyPage() {
   const rh = (v: number) => Math.round(v / 10000);
   const headerGrossActual = rh(headerLive.grossProfit);
   const headerOpActual = rh(headerLive.grossProfit - 0);
-  const grossRate = achieveRate(rh(5520000), headerGrossActual);
-  const opRate = achieveRate(rh(2020000), headerOpActual);
+  const grossRate = achieveRate(rh(headerLive.budgetGross), headerGrossActual);
+  const opRate = achieveRate(rh(headerLive.budgetOp), headerOpActual);
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 pb-8">
