@@ -344,7 +344,7 @@ function MemberManagement() {
         )}
 
         {showInvite && (
-          <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 space-y-3">
+          <div className="px-5 py-4 bg-white border-b border-gray-100 space-y-3">
             <div className="grid grid-cols-2 gap-3">
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">名前</label>
