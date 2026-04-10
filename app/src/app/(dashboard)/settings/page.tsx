@@ -257,33 +257,23 @@ export default function SettingsPage() {
         </div>
 
         <div className="mt-8">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">チーム管理</p>
-          <div className="space-y-2">
-            <Link
-              href="/team"
-              className="flex items-center justify-between bg-white rounded-2xl shadow-sm px-5 py-4 hover:shadow-sm transition-shadow active:scale-[0.98]"
-            >
-              <div>
-                <p className="text-sm font-semibold text-gray-900">メンバー管理</p>
-                <p className="text-xs text-gray-500 mt-0.5">社内メンバーの追加・編集</p>
-              </div>
-              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </Link>
-            <Link
-              href="/resources"
-              className="flex items-center justify-between bg-white rounded-2xl shadow-sm px-5 py-4 hover:shadow-sm transition-shadow active:scale-[0.98]"
-            >
-              <div>
-                <p className="text-sm font-semibold text-gray-900">外注先管理</p>
-                <p className="text-xs text-gray-500 mt-0.5">協力会社・フリーランスの管理</p>
-              </div>
-              <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </Link>
-          </div>
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-3">メンバー管理（招待制）</p>
+          <MemberManagement />
+        </div>
+
+        <div className="mt-4">
+          <Link
+            href="/resources"
+            className="flex items-center justify-between bg-white rounded-2xl shadow-sm px-5 py-4 hover:shadow-sm transition-shadow active:scale-[0.98]"
+          >
+            <div>
+              <p className="text-sm font-semibold text-gray-900">外注先管理</p>
+              <p className="text-xs text-gray-500 mt-0.5">協力会社・フリーランスの管理</p>
+            </div>
+            <svg className="w-4 h-4 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+            </svg>
+          </Link>
         </div>
 
         <div className="bg-white border border-gray-200 rounded-2xl shadow-sm p-5 space-y-3">
@@ -318,6 +308,196 @@ export default function SettingsPage() {
             >全データリセット</button>
           </div>
         </div>
+      </div>
+    </div>
+  );
+}
+
+type MemberRecord = {
+  id: string;
+  email: string;
+  name: string;
+  role: 'owner' | 'manager' | 'member';
+  invitedBy: string | null;
+  invitedAt: string;
+};
+
+const ROLE_LABEL: Record<string, string> = { owner: 'オーナー', manager: 'マネージャー', member: 'メンバー' };
+const ROLE_BADGE: Record<string, string> = {
+  owner: 'bg-blue-50 text-blue-700 border-blue-200',
+  manager: 'bg-gray-100 text-gray-700 border-gray-200',
+  member: 'bg-gray-50 text-gray-500 border-gray-200',
+};
+
+function MemberManagement() {
+  const [members, setMembers] = useState<MemberRecord[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [showInvite, setShowInvite] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteName, setInviteName] = useState('');
+  const [inviteRole, setInviteRole] = useState<'manager' | 'member'>('member');
+  const [inviting, setInviting] = useState(false);
+  const [msg, setMsg] = useState<string | null>(null);
+
+  const fetchMembers = async () => {
+    try {
+      const res = await fetch('/api/members');
+      const data = await res.json();
+      setMembers(data.members ?? []);
+    } catch {}
+    setLoading(false);
+  };
+
+  useEffect(() => { fetchMembers(); }, []);
+
+  const handleInvite = async () => {
+    if (!inviteEmail || !inviteName) return;
+    setInviting(true);
+    try {
+      const res = await fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail, name: inviteName, role: inviteRole }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMsg(`${inviteName}さんを招待しました`);
+        setInviteEmail('');
+        setInviteName('');
+        setShowInvite(false);
+        fetchMembers();
+      } else {
+        setMsg(data.error ?? '招待に失敗しました');
+      }
+    } catch {
+      setMsg('招待に失敗しました');
+    }
+    setInviting(false);
+    setTimeout(() => setMsg(null), 3000);
+  };
+
+  const handleRoleChange = async (id: string, role: string) => {
+    try {
+      await fetch('/api/members', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, role }),
+      });
+      fetchMembers();
+    } catch {}
+  };
+
+  const handleRemove = async (id: string, name: string) => {
+    if (!confirm(`${name}さんをチームから外しますか？`)) return;
+    try {
+      await fetch(`/api/members?id=${id}`, { method: 'DELETE' });
+      fetchMembers();
+    } catch {}
+  };
+
+  if (loading) return <div className="bg-white border border-gray-200 rounded-2xl p-5 text-sm text-gray-500">読み込み中...</div>;
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-2xl overflow-hidden">
+      <div className="px-5 py-4 border-b border-gray-100">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-sm font-semibold text-gray-900">チームメンバー</p>
+            <p className="text-xs text-gray-500 mt-0.5">Gmailアドレスで招待。招待されたアカウントのみログイン可能</p>
+          </div>
+          <button
+            onClick={() => setShowInvite(!showInvite)}
+            className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg active:scale-[0.98] transition-all"
+          >
+            + 招待
+          </button>
+        </div>
+      </div>
+
+      {msg && (
+        <div className="px-5 py-2 bg-blue-50 border-b border-blue-100 text-xs font-semibold text-blue-700">{msg}</div>
+      )}
+
+      {showInvite && (
+        <div className="px-5 py-4 bg-gray-50 border-b border-gray-100 space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">名前</label>
+              <input
+                type="text" value={inviteName} onChange={(e) => setInviteName(e.target.value)}
+                placeholder="山田 太郎"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="block text-xs font-medium text-gray-700 mb-1">権限</label>
+              <select
+                value={inviteRole} onChange={(e) => setInviteRole(e.target.value as 'manager' | 'member')}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white"
+              >
+                <option value="member">メンバー</option>
+                <option value="manager">マネージャー</option>
+              </select>
+            </div>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">Gmailアドレス</label>
+            <input
+              type="email" value={inviteEmail} onChange={(e) => setInviteEmail(e.target.value)}
+              placeholder="example@gmail.com"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none"
+            />
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={handleInvite} disabled={inviting || !inviteEmail || !inviteName}
+              className="flex-1 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 active:scale-[0.98] transition-all"
+            >
+              {inviting ? '招待中...' : '招待する'}
+            </button>
+            <button
+              onClick={() => setShowInvite(false)}
+              className="px-4 py-2.5 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-medium hover:bg-gray-50 active:scale-[0.98] transition-all"
+            >
+              キャンセル
+            </button>
+          </div>
+        </div>
+      )}
+
+      <div className="divide-y divide-gray-100">
+        {members.map((m) => (
+          <div key={m.id} className="px-5 py-3 flex items-center justify-between">
+            <div className="flex items-center gap-3 min-w-0">
+              <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600 shrink-0">
+                {m.name.charAt(0)}
+              </div>
+              <div className="min-w-0">
+                <p className="text-sm font-semibold text-gray-900 truncate">{m.name}</p>
+                <p className="text-xs text-gray-500 truncate">{m.email || '（メール未設定）'}</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2 shrink-0">
+              <select
+                value={m.role}
+                onChange={(e) => handleRoleChange(m.id, e.target.value)}
+                className={`text-xs font-semibold px-2 py-1 rounded border ${ROLE_BADGE[m.role]} bg-white focus:outline-none`}
+              >
+                <option value="owner">オーナー</option>
+                <option value="manager">マネージャー</option>
+                <option value="member">メンバー</option>
+              </select>
+              {m.role !== 'owner' && (
+                <button
+                  onClick={() => handleRemove(m.id, m.name)}
+                  className="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors"
+                >
+                  外す
+                </button>
+              )}
+            </div>
+          </div>
+        ))}
       </div>
     </div>
   );

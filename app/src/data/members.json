@@ -1,0 +1,4 @@
+[
+  { "id": "toki", "email": "k.toki@jtravel.group", "name": "土岐 公人", "role": "owner", "invitedBy": null, "invitedAt": "2026-04-09" },
+  { "id": "ono", "email": "", "name": "小野 崇", "role": "owner", "invitedBy": "toki", "invitedAt": "2026-04-09" }
+]

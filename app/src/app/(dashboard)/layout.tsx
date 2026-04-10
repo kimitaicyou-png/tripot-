@@ -195,22 +195,42 @@ const APPROVAL_COUNT = 0;
 
 
 function AddMemberModal({ onClose }: { onClose: () => void }) {
-  const [toast, setToast] = useState(false);
+  const [toast, setToast] = useState<string | null>(null);
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [role, setRole] = useState<'manager' | 'member'>('member');
+  const [submitting, setSubmitting] = useState(false);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setToast(true);
-    setTimeout(() => {
-      setToast(false);
-      onClose();
-    }, 1500);
+    if (!name || !email) return;
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/members', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, role }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setToast(`${name}さんを招待しました`);
+        setTimeout(() => { setToast(null); onClose(); }, 1500);
+      } else {
+        setToast(data.error ?? '招待に失敗しました');
+        setTimeout(() => setToast(null), 3000);
+      }
+    } catch {
+      setToast('招待に失敗しました');
+      setTimeout(() => setToast(null), 3000);
+    }
+    setSubmitting(false);
   };
 
   return (
-    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-      <div className="bg-white rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto">
+    <div className="fixed inset-0 bg-black/50 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4" onClick={onClose}>
+      <div className="bg-white rounded-t-2xl sm:rounded-xl w-full sm:max-w-md max-h-[85vh] overflow-y-auto" onClick={(e) => e.stopPropagation()}>
         <div className="sticky top-0 bg-white border-b border-gray-200 px-5 py-4 flex items-center justify-between">
-          <h2 className="text-base font-semibold text-gray-900">メンバーを追加</h2>
+          <h2 className="text-base font-semibold text-gray-900">メンバーを招待</h2>
           <button onClick={onClose} className="text-gray-500 hover:text-gray-600 p-1">
             <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
               <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -222,70 +242,36 @@ function AddMemberModal({ onClose }: { onClose: () => void }) {
             <label className="block text-sm font-semibold text-gray-700 mb-1">
               名前 <span className="text-red-600">*</span>
             </label>
-            <input
-              type="text"
-              required
+            <input type="text" required value={name} onChange={(e) => setName(e.target.value)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-              placeholder="山田 太郎"
-            />
+              placeholder="山田 太郎" />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">メールアドレス</label>
-            <input
-              type="email"
+            <label className="block text-sm font-semibold text-gray-700 mb-1">
+              Gmailアドレス <span className="text-red-600">*</span>
+            </label>
+            <input type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
               className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-              placeholder="yamada@example.com"
-            />
+              placeholder="example@gmail.com" />
+            <p className="text-xs text-gray-500 mt-1">このGmailでログインできるようになります</p>
           </div>
           <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">役職</label>
-            <input
-              type="text"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-              placeholder="例: 営業、デザイナー"
-            />
+            <label className="block text-sm font-semibold text-gray-700 mb-1">権限</label>
+            <select value={role} onChange={(e) => setRole(e.target.value as 'manager' | 'member')}
+              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white">
+              <option value="member">メンバー（個人ダッシュボードのみ）</option>
+              <option value="manager">マネージャー（週次・月次も閲覧可）</option>
+            </select>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">内線</label>
-              <input
-                type="text"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                placeholder="101"
-              />
-            </div>
-            <div>
-              <label className="block text-sm font-semibold text-gray-700 mb-1">携帯</label>
-              <input
-                type="tel"
-                className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-                placeholder="090-0000-0000"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">入社日</label>
-            <input
-              type="date"
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none"
-            />
-          </div>
-          <div>
-            <label className="block text-sm font-semibold text-gray-700 mb-1">一言メモ</label>
-            <textarea
-              rows={2}
-              className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm focus:ring-2 focus:ring-blue-600 focus:outline-none resize-none"
-              placeholder="特記事項"
-            />
-          </div>
-          <button type="submit" className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors active:scale-[0.98]">
-            追加する
+          <button type="submit" disabled={submitting || !name || !email}
+            className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 disabled:opacity-40 transition-colors active:scale-[0.98]">
+            {submitting ? '招待中...' : '招待する'}
           </button>
         </form>
       </div>
       {toast && (
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 bg-gray-900 text-white text-sm font-semibold px-5 py-3 rounded-lg shadow-sm z-[60]">
-          メンバーを追加しました
+          {toast}
         </div>
       )}
     </div>

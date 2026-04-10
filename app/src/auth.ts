@@ -1,29 +1,43 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 
 export type UserRole = 'owner' | 'manager' | 'member';
 
-type AllowedUser = {
+export type AllowedUser = {
   id: string;
   email: string;
+  name: string;
   role: UserRole;
+  invitedBy: string | null;
+  invitedAt: string;
 };
 
-const ALLOWED_USERS: AllowedUser[] = [
-  { id: 'toki',      email: 'k.toki@jtravel.group',         role: 'owner' },
-  { id: 'ono',       email: 'ono@tripot.example.com',       role: 'owner' },
-  { id: 'kashiwagi', email: 'kashiwagi@tripot.example.com', role: 'manager' },
-  { id: 'inukai',    email: 'inukai@tripot.example.com',    role: 'manager' },
-  { id: 'izumi',     email: 'izumi@tripot.example.com',     role: 'member' },
-  { id: 'ichioka',   email: 'ichioka@tripot.example.com',   role: 'member' },
-];
+function loadMembers(): AllowedUser[] {
+  try {
+    const tmpPath = '/tmp/tripot_members.json';
+    try {
+      const tmp = readFileSync(tmpPath, 'utf-8');
+      return JSON.parse(tmp) as AllowedUser[];
+    } catch {}
+    const filePath = join(process.cwd(), 'src/data/members.json');
+    const raw = readFileSync(filePath, 'utf-8');
+    return JSON.parse(raw) as AllowedUser[];
+  } catch {
+    return [
+      { id: 'toki', email: 'k.toki@jtravel.group', name: '土岐 公人', role: 'owner', invitedBy: null, invitedAt: '2026-04-09' },
+    ];
+  }
+}
 
 export function findUser(email: string): AllowedUser | undefined {
-  return ALLOWED_USERS.find((u) => u.email === email);
+  const members = loadMembers();
+  return members.find((u) => u.email === email);
 }
 
 export function getAllUsers(): AllowedUser[] {
-  return ALLOWED_USERS;
+  return loadMembers();
 }
 
 const ROLE_LEVEL: Record<UserRole, number> = { owner: 3, manager: 2, member: 1 };
