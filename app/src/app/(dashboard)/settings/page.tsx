@@ -283,9 +283,36 @@ function MemberManagement() {
       });
       setEditingId(null);
       fetchMembers();
-      setMsg('更新しました');
-      setTimeout(() => setMsg(null), 2000);
+      if (editEmail) {
+        setMsg('保存しました。招待メールを送信しますか？');
+        setPendingInvite({ email: editEmail, name: editName });
+      } else {
+        setMsg('更新しました');
+      }
+      setTimeout(() => { if (!pendingInvite) setMsg(null); }, 3000);
     } catch {}
+  };
+
+  const [pendingInvite, setPendingInvite] = useState<{ email: string; name: string } | null>(null);
+
+  const sendInvite = async (email: string, name: string) => {
+    try {
+      const inviterName = (await fetch('/api/auth/session').then((r) => r.json()))?.user?.name ?? 'オーナー';
+      const res = await fetch('/api/members/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, inviterName }),
+      });
+      const data = await res.json();
+      if (data.gmailUrl) {
+        window.open(data.gmailUrl, '_blank');
+        setMsg(`${name}さんへの招待メールをGmailで開きました`);
+      }
+    } catch {
+      setMsg('招待メールの送信に失敗しました');
+    }
+    setPendingInvite(null);
+    setTimeout(() => setMsg(null), 3000);
   };
 
   const fetchMembers = async () => {
@@ -310,19 +337,20 @@ function MemberManagement() {
       });
       const data = await res.json();
       if (res.ok) {
-        setMsg(`${inviteName}さんを招待しました`);
+        await sendInvite(inviteEmail, inviteName);
         setInviteEmail('');
         setInviteName('');
         setShowInvite(false);
         fetchMembers();
       } else {
         setMsg(data.error ?? '招待に失敗しました');
+        setTimeout(() => setMsg(null), 3000);
       }
     } catch {
       setMsg('招待に失敗しました');
+      setTimeout(() => setMsg(null), 3000);
     }
     setInviting(false);
-    setTimeout(() => setMsg(null), 3000);
   };
 
   const handleRoleChange = async (id: string, role: string) => {
@@ -363,7 +391,15 @@ function MemberManagement() {
         </div>
 
         {msg && (
-          <div className="px-5 py-2 bg-blue-50 border-b border-blue-100 text-xs font-semibold text-blue-700">{msg}</div>
+          <div className="px-5 py-2 bg-blue-50 border-b border-blue-100 flex items-center justify-between">
+            <span className="text-xs font-semibold text-blue-700">{msg}</span>
+            {pendingInvite && (
+              <button onClick={() => sendInvite(pendingInvite.email, pendingInvite.name)}
+                className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded active:scale-[0.98] transition-all">
+                招待メールを送る
+              </button>
+            )}
+          </div>
         )}
 
         {showInvite && (
@@ -433,6 +469,10 @@ function MemberManagement() {
                     </div>
                   </button>
                   <div className="flex items-center gap-2 shrink-0">
+                    {m.email && (
+                      <button onClick={() => sendInvite(m.email, m.name)}
+                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">招待を送る</button>
+                    )}
                     <select value={m.role} onChange={(e) => handleRoleChange(m.id, e.target.value)}
                       className={`text-xs font-semibold px-2 py-1 rounded border ${ROLE_BADGE[m.role]} bg-white focus:outline-none`}>
                       <option value="owner">オーナー</option>
