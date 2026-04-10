@@ -119,10 +119,20 @@ function MeetingTabContent({ deal, meetings }: { deal: Deal; meetings: CommRecor
         }),
       });
       const data = await res.json();
-      setMinutesResult(data.minutes || `# 議事録: ${deal.dealName}\n\n${voiceText}`);
+      const minutes = data.minutes || `# 議事録: ${deal.dealName}\n\n${voiceText}`;
+      setMinutesResult(minutes);
+      try {
+        const existing = JSON.parse(localStorage.getItem(`coaris_minutes_${deal.id}`) || '[]') as string[];
+        localStorage.setItem(`coaris_minutes_${deal.id}`, JSON.stringify([minutes, ...existing].slice(0, 10)));
+      } catch {}
       if (data.needs && data.needs.length > 0) {
         setExtractedNeeds(data.needs);
         setShowNeedsExtracted(true);
+        try {
+          const existing = JSON.parse(localStorage.getItem(`coaris_needs_${deal.id}`) || '[]') as string[];
+          const merged = [...new Set([...data.needs, ...existing])];
+          localStorage.setItem(`coaris_needs_${deal.id}`, JSON.stringify(merged));
+        } catch {}
       }
     } catch {
       setMinutesResult(`# 議事録: ${deal.dealName}\n**日時:** ${new Date().toLocaleDateString('ja-JP')}\n\n## 内容\n${voiceText}`);
