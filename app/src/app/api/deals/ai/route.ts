@@ -55,8 +55,8 @@ export async function POST(req: NextRequest) {
         ? `市場調査も含めてください。${industry}業界の市場規模・成長率・主要トレンド・競合情報を調べて反映してください。`
         : '';
       const raw = await callText(
-        `あなたは${industry}業界のシステム提案のプロフェッショナルです。提案書のスライドデータをJSON配列で出力します。`,
-        `${clientName}向け「${dealName}」の提案書を起承転結の構成で12〜15枚のスライドとして作成してください。
+        `あなたは${industry}業界のシステム提案のプロフェッショナルです。提案書のスライドデータをJSON配列で出力します。出力はJSON配列のみ。説明文・前置き・マークダウン不要。`,
+        `${clientName}向け「${dealName}」の提案書を12〜15枚のスライドとして作成してください。
 ${researchNote}
 
 担当: ${assignee}
@@ -65,26 +65,31 @@ ${researchNote}
 ${dealContext ? `【顧客コンテキスト】\n${dealContext}` : ''}
 ${userPrompt ? `【追加指示】\n${userPrompt}` : ''}
 
-出力フォーマット（JSON配列のみ、説明文不要）:
+【重要ルール】
+1. 表紙(cover)のtitleは案件名「${dealName}」にすること。「起」「承」などの文字は入れない
+2. 表紙のbulletsは必ず「${clientName} 御中」「トライポット株式会社」「担当: ${assignee}」「2026年4月」の4つ
+3. 各スライドのbulletsは4〜6個。具体的な数字・データ・根拠を含めること
+4. 顧客のニーズや課題が提供されている場合、必ずそれに応える内容にすること
+5. 費用スライドには具体的な金額を入れること
+
+出力フォーマット:
 [
-  {"type":"cover","title":"提案タイトル","bullets":["顧客名 御中","トライポット株式会社","担当: ${assignee}","2026年4月"]},
-  {"type":"problem","title":"スライドタイトル","bullets":["ポイント1","ポイント2","ポイント3"]},
-  ...
+  {"type":"cover","title":"${dealName}","bullets":["${clientName} 御中","トライポット株式会社","担当: ${assignee}","2026年4月"]},
+  {"type":"problem","title":"${industry}業界の現状と課題","bullets":["課題1","課題2","課題3","課題4"]},
+  {"type":"problem","title":"${clientName}が抱える課題","bullets":["具体的な課題1","課題2","課題3"]},
+  {"type":"solution","title":"サービス概要","bullets":["提案内容1","提案内容2","提案内容3","提案内容4"]},
+  {"type":"effect","title":"導入効果","bullets":["効果1（数値付き）","効果2","効果3","効果4"]},
+  {"type":"tech","title":"技術構成","bullets":["技術1","技術2","技術3"]},
+  {"type":"tech","title":"競合優位性","bullets":["優位性1","優位性2","優位性3"]},
+  {"type":"schedule","title":"開発スケジュール","bullets":["Phase 1: ...（2週間）","Phase 2: ...","Phase 3: ...","Phase 4: ..."]},
+  {"type":"team","title":"プロジェクト体制","bullets":["PM: ${assignee}","エンジニア: TBD","QA: TBD"]},
+  {"type":"cases","title":"投資対効果","bullets":["ROI: ...","工数削減: ...","品質向上: ..."]},
+  {"type":"cost","title":"費用概要","bullets":["総額: ¥...","支払条件: ...","月額運用: ..."]},
+  {"type":"next","title":"ビジョン","bullets":["1年後の姿","3年後の姿","業界でのポジション"]},
+  {"type":"next","title":"ネクストステップ","bullets":["1. 本提案のご検討","2. 詳細要件の擦り合わせ","3. 正式見積書","4. ご発注・キックオフ"]}
 ]
 
-type は以下から選択:
-- cover: 表紙（1枚）
-- problem: 課題・市場（起に該当、2-3枚）
-- solution: 解決策（承）
-- effect: 効果・メリット（承）
-- tech: 技術・競合優位性（承）
-- schedule: スケジュール（転）
-- team: 体制・獲得プラン（転）
-- cases: 事例・KPI（転）
-- cost: 費用（転）
-- next: ビジョン・ネクストステップ（結、1-2枚）
-
-各スライドのbulletsは3〜5個。具体的な数字・データを含めること。`,
+typeの選択肢: cover, problem, solution, effect, tech, schedule, team, cases, cost, next`,
         4000
       );
       const slides = extractJson<Array<{ type: string; title: string; bullets: string[] }>>(raw);
