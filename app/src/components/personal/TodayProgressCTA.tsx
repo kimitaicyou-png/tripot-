@@ -2,9 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { type Deal, MOCK_DEALS_INIT } from '@/components/deals';
-
-const DEALS_OVERRIDE_KEY = 'coaris_deals_override';
+import { type Deal } from '@/components/deals';
+import { loadAllDeals, updateDeal } from '@/lib/dealsStore';
 
 type StageOption = 'no_change' | 'meeting' | 'proposal' | 'negotiation' | 'ordered';
 
@@ -15,29 +14,6 @@ const STAGE_OPTIONS: { value: StageOption; label: string }[] = [
   { value: 'negotiation', label: 'negotiation（交渉中）' },
   { value: 'ordered', label: 'ordered（受注）' },
 ];
-
-function loadDeals(): Deal[] {
-  if (typeof window === 'undefined') return MOCK_DEALS_INIT;
-  try {
-    const raw = localStorage.getItem(DEALS_OVERRIDE_KEY);
-    if (!raw) return MOCK_DEALS_INIT;
-    const overrides = JSON.parse(raw) as Record<string, Partial<Deal>>;
-    return MOCK_DEALS_INIT.map((d) => (overrides[d.id] ? { ...d, ...overrides[d.id] } : d));
-  } catch {
-    return MOCK_DEALS_INIT;
-  }
-}
-
-function saveStageOverride(dealId: string, patch: Partial<Deal>) {
-  if (typeof window === 'undefined') return;
-  try {
-    const raw = localStorage.getItem(DEALS_OVERRIDE_KEY);
-    const overrides: Record<string, Partial<Deal>> = raw ? JSON.parse(raw) : {};
-    overrides[dealId] = { ...(overrides[dealId] ?? {}), ...patch };
-    localStorage.setItem(DEALS_OVERRIDE_KEY, JSON.stringify(overrides));
-  } catch {
-  }
-}
 
 type ModalType = 'revenue' | 'meeting' | null;
 
@@ -56,7 +32,7 @@ export function TodayProgressCTA() {
   const [meetingStage, setMeetingStage] = useState<StageOption>('no_change');
 
   useEffect(() => {
-    setDeals(loadDeals());
+    setDeals(loadAllDeals());
   }, []);
 
   const showToast = (msg: string) => {
@@ -78,7 +54,7 @@ export function TodayProgressCTA() {
       amount,
       lastDate: new Date().toISOString().slice(0, 10),
     };
-    saveStageOverride(deal.id, patch);
+    updateDeal(deal.id, patch);
     setDeals((prev) => prev.map((d) => d.id === deal.id ? { ...d, ...patch } : d));
     setModal(null);
     setSelectedDealId('');
@@ -94,7 +70,7 @@ export function TodayProgressCTA() {
       lastDate: new Date().toISOString().slice(0, 10),
       ...(meetingStage !== 'no_change' ? { stage: meetingStage } : {}),
     };
-    saveStageOverride(deal.id, patch);
+    updateDeal(deal.id, patch);
     setDeals((prev) => prev.map((d) => d.id === deal.id ? { ...d, ...patch } : d));
     setModal(null);
     setSelectedDealId('');
