@@ -607,8 +607,12 @@ function NextMonthForecast({ live }: { live: ReturnType<typeof useLiveFinancials
     ? budgetPlan.segments.reduce((s, r) => s + (r.values[nextMonthIdx] ?? 0), 0) * 10000
     : 0;
 
+  const backlogStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting'];
+  const backlog = live.deals
+    .filter((d) => backlogStages.includes(d.stage) && d.stage !== 'paid')
+    .reduce((s, d) => s + d.amount, 0);
   const running = live.deals.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
-  const forecast = live.kpi.totalRevenue + live.kpi.pipelineWeighted + running;
+  const forecast = backlog + live.kpi.pipelineWeighted + running;
   const gap = forecast - nextBudget;
   const achieveRate = nextBudget > 0 ? Math.round((forecast / nextBudget) * 100) : 0;
 
@@ -626,8 +630,8 @@ function NextMonthForecast({ live }: { live: ReturnType<typeof useLiveFinancials
           </div>
         )}
         <div className="flex items-center justify-between text-sm">
-          <span className="font-semibold text-gray-500">確定受注残</span>
-          <span className="font-semibold text-gray-900 tabular-nums">{formatYen(live.kpi.totalRevenue)}</span>
+          <span className="font-semibold text-gray-500">確定受注残（未入金）</span>
+          <span className="font-semibold text-gray-900 tabular-nums">{formatYen(backlog)}</span>
         </div>
         <div className="flex items-center justify-between text-sm">
           <span className="font-semibold text-gray-500">パイプライン（確度加重）</span>
