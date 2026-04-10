@@ -264,6 +264,29 @@ function MemberManagement() {
   const [inviteRole, setInviteRole] = useState<'manager' | 'member'>('member');
   const [inviting, setInviting] = useState(false);
   const [msg, setMsg] = useState<string | null>(null);
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editEmail, setEditEmail] = useState('');
+  const [editName, setEditName] = useState('');
+
+  const startEdit = (m: MemberRecord) => {
+    setEditingId(m.id);
+    setEditEmail(m.email);
+    setEditName(m.name);
+  };
+
+  const saveEdit = async (id: string) => {
+    try {
+      await fetch('/api/members', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, email: editEmail, name: editName }),
+      });
+      setEditingId(null);
+      fetchMembers();
+      setMsg('更新しました');
+      setTimeout(() => setMsg(null), 2000);
+    } catch {}
+  };
 
   const fetchMembers = async () => {
     try {
@@ -380,28 +403,49 @@ function MemberManagement() {
 
         <div className="divide-y divide-gray-100">
           {members.map((m) => (
-            <div key={m.id} className="px-5 py-3 flex items-center justify-between">
-              <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600 shrink-0">
-                  {m.name.charAt(0)}
+            <div key={m.id} className="px-5 py-3">
+              {editingId === m.id ? (
+                <div className="space-y-2">
+                  <div className="grid grid-cols-2 gap-2">
+                    <input type="text" value={editName} onChange={(e) => setEditName(e.target.value)}
+                      className="px-2 py-1.5 border border-gray-200 rounded text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none" placeholder="名前" />
+                    <input type="email" value={editEmail} onChange={(e) => setEditEmail(e.target.value)}
+                      className="px-2 py-1.5 border border-gray-200 rounded text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none" placeholder="Gmail" />
+                  </div>
+                  <div className="flex gap-2">
+                    <button onClick={() => saveEdit(m.id)}
+                      className="px-3 py-1.5 bg-blue-600 text-white rounded text-xs font-semibold hover:bg-blue-700 active:scale-[0.98]">保存</button>
+                    <button onClick={() => setEditingId(null)}
+                      className="px-3 py-1.5 bg-white border border-gray-200 text-gray-700 rounded text-xs font-medium hover:bg-gray-50 active:scale-[0.98]">キャンセル</button>
+                  </div>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-gray-900 truncate">{m.name}</p>
-                  <p className="text-xs text-gray-500 truncate">{m.email || '（メール未設定）'}</p>
+              ) : (
+                <div className="flex items-center justify-between">
+                  <button onClick={() => startEdit(m)} className="flex items-center gap-3 min-w-0 text-left hover:bg-gray-50 rounded-lg -mx-2 px-2 py-1 transition-colors">
+                    <div className="w-8 h-8 rounded-full bg-gray-200 flex items-center justify-center text-xs font-semibold text-gray-600 shrink-0">
+                      {m.name.charAt(0)}
+                    </div>
+                    <div className="min-w-0">
+                      <p className="text-sm font-semibold text-gray-900 truncate">{m.name}</p>
+                      <p className={`text-xs truncate ${m.email ? 'text-gray-500' : 'text-red-500 font-semibold'}`}>
+                        {m.email || '← タップしてGmailを設定'}
+                      </p>
+                    </div>
+                  </button>
+                  <div className="flex items-center gap-2 shrink-0">
+                    <select value={m.role} onChange={(e) => handleRoleChange(m.id, e.target.value)}
+                      className={`text-xs font-semibold px-2 py-1 rounded border ${ROLE_BADGE[m.role]} bg-white focus:outline-none`}>
+                      <option value="owner">オーナー</option>
+                      <option value="manager">マネージャー</option>
+                      <option value="member">メンバー</option>
+                    </select>
+                    {m.role !== 'owner' && (
+                      <button onClick={() => handleRemove(m.id, m.name)}
+                        className="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors">外す</button>
+                    )}
+                  </div>
                 </div>
-              </div>
-              <div className="flex items-center gap-2 shrink-0">
-                <select value={m.role} onChange={(e) => handleRoleChange(m.id, e.target.value)}
-                  className={`text-xs font-semibold px-2 py-1 rounded border ${ROLE_BADGE[m.role]} bg-white focus:outline-none`}>
-                  <option value="owner">オーナー</option>
-                  <option value="manager">マネージャー</option>
-                  <option value="member">メンバー</option>
-                </select>
-                {m.role !== 'owner' && (
-                  <button onClick={() => handleRemove(m.id, m.name)}
-                    className="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors">外す</button>
-                )}
-              </div>
+              )}
             </div>
           ))}
         </div>
