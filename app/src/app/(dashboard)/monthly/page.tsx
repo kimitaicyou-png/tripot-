@@ -585,26 +585,72 @@ function PlTab() {
         </div>
       </div>
 
-      <div className="bg-white border border-gray-200 rounded-lg p-4">
-        <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-3">翌月見通し</p>
-        <div className="space-y-2">
+      <NextMonthForecast live={live} />
+    </div>
+  );
+}
+
+function NextMonthForecast({ live }: { live: ReturnType<typeof useLiveFinancials> }) {
+  const nextMonthIdx = (() => {
+    const m = new Date().getMonth();
+    const idx = m >= 4 ? m - 4 : m + 8;
+    return (idx + 1) % 12;
+  })();
+  const budgetPlan = (() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('budget_plan');
+      return raw ? JSON.parse(raw) as { segments: Array<{ values: number[] }> } : null;
+    } catch { return null; }
+  })();
+  const nextBudget = budgetPlan
+    ? budgetPlan.segments.reduce((s, r) => s + (r.values[nextMonthIdx] ?? 0), 0) * 10000
+    : 0;
+
+  const running = live.deals.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
+  const forecast = live.kpi.totalRevenue + live.kpi.pipelineWeighted + running;
+  const gap = forecast - nextBudget;
+  const achieveRate = nextBudget > 0 ? Math.round((forecast / nextBudget) * 100) : 0;
+
+  const MONTHS_LABEL = ['5月','6月','7月','8月','9月','10月','11月','12月','1月','2月','3月','4月'];
+  const nextLabel = MONTHS_LABEL[nextMonthIdx] ?? '翌月';
+
+  return (
+    <div className="bg-white border border-gray-200 rounded-lg p-4">
+      <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-3">翌月見通し（{nextLabel}）</p>
+      <div className="space-y-2">
+        {nextBudget > 0 && (
           <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-gray-500">パイプライン（確度加重）</span>
-            <span className="font-semibold text-gray-900 tabular-nums">{formatYen(live.kpi.pipelineWeighted)}</span>
+            <span className="font-semibold text-gray-500">事業計画（{nextLabel}予算）</span>
+            <span className="font-semibold text-blue-600 tabular-nums">{formatYen(nextBudget)}</span>
           </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-gray-500">確定受注残</span>
-            <span className="font-semibold text-gray-900 tabular-nums">{formatYen(live.kpi.totalRevenue)}</span>
-          </div>
-          <div className="flex items-center justify-between text-sm">
-            <span className="font-semibold text-gray-500">ランニング自動計上</span>
-            <span className="font-semibold text-gray-900 tabular-nums">{formatYen(live.deals.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0))}/月</span>
-          </div>
-          <div className="flex items-center justify-between text-sm border-t border-gray-200 pt-2 mt-1">
-            <span className="font-semibold text-gray-900">翌月到達見込み</span>
-            <span className="font-semibold text-gray-900 tabular-nums text-lg">{formatYen(live.kpi.totalRevenue + live.kpi.pipelineWeighted)}</span>
-          </div>
+        )}
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-semibold text-gray-500">確定受注残</span>
+          <span className="font-semibold text-gray-900 tabular-nums">{formatYen(live.kpi.totalRevenue)}</span>
         </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-semibold text-gray-500">パイプライン（確度加重）</span>
+          <span className="font-semibold text-gray-900 tabular-nums">{formatYen(live.kpi.pipelineWeighted)}</span>
+        </div>
+        <div className="flex items-center justify-between text-sm">
+          <span className="font-semibold text-gray-500">ランニング自動計上</span>
+          <span className="font-semibold text-gray-900 tabular-nums">{formatYen(running)}/月</span>
+        </div>
+        <div className="flex items-center justify-between text-sm border-t border-gray-200 pt-2 mt-1">
+          <span className="font-semibold text-gray-900">到達見込み</span>
+          <span className="font-semibold text-gray-900 tabular-nums text-lg">{formatYen(forecast)}</span>
+        </div>
+        {nextBudget > 0 && (
+          <div className={`flex items-center justify-between text-sm px-3 py-2 rounded-lg ${gap >= 0 ? 'bg-blue-50' : 'bg-red-50'}`}>
+            <span className={`font-semibold ${gap >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+              予算比 {achieveRate}%
+            </span>
+            <span className={`font-semibold tabular-nums ${gap >= 0 ? 'text-blue-700' : 'text-red-700'}`}>
+              {gap >= 0 ? '+' : ''}{formatYen(gap)}
+            </span>
+          </div>
+        )}
       </div>
     </div>
   );
