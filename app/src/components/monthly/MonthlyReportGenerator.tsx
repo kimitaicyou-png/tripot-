@@ -32,8 +32,15 @@ const TAICHO_QUOTES = [
   '売上ではなく粗利を見ろ。粗利が出てなければ意味がない。',
 ];
 
-function buildSlides(survey: Survey, monthLabel: string): Slide[] {
+function buildSlides(survey: Survey, monthLabel: string, live?: LiveData): Slide[] {
   const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
+  const rev = live?.revenue ?? 1050;
+  const revB = live?.revenueBudget ?? 1200;
+  const gr = live?.gross ?? 480;
+  const grB = live?.grossBudget ?? 600;
+  const opVal = live?.op ?? 160;
+  const opB = live?.opBudget ?? 250;
+  const achieveRate = revB > 0 ? Math.round((rev / revB) * 100) : 0;
 
   return [
     {
@@ -59,12 +66,12 @@ function buildSlides(survey: Survey, monthLabel: string): Slide[] {
     },
     {
       type: 'pl',
-      revenue: 1050,
-      revenueBudget: 1200,
-      gross: 480,
-      grossBudget: 600,
-      op: 160,
-      opBudget: 250,
+      revenue: rev,
+      revenueBudget: revB,
+      gross: gr,
+      grossBudget: grB,
+      op: opVal,
+      opBudget: opB,
     },
     {
       type: 'cf',
@@ -97,7 +104,7 @@ function buildSlides(survey: Survey, monthLabel: string): Slide[] {
     {
       type: 'analysis',
       title: '予実分析 ・ 未達要因',
-      rate: 88,
+      rate: achieveRate,
       positives: [
         '既存顧客からの継続案件は予算超過（+8%）',
         '新規アポ獲得は前月比+12%と伸長',
@@ -153,10 +160,10 @@ function buildSlides(survey: Survey, monthLabel: string): Slide[] {
     },
     {
       type: 'forecast',
-      current: 5520,
-      forecast: 11800,
-      gapToYear: 200,
-      pct: 92,
+      current: rev,
+      forecast: Math.round(rev * 12 / Math.max(new Date().getMonth() + 1, 1)),
+      gapToYear: Math.max(0, revB * 12 - Math.round(rev * 12 / Math.max(new Date().getMonth() + 1, 1))),
+      pct: revB > 0 ? Math.round((rev / revB) * 100) : 0,
     },
     {
       type: 'philosophy',
@@ -791,7 +798,21 @@ function PresentationView({ slides, onClose }: { slides: Slide[]; onClose: () =>
   );
 }
 
-export default function MonthlyReportGenerator({ onClose, monthLabel }: { onClose: () => void; monthLabel: string }) {
+type LiveData = {
+  revenue: number;
+  revenueBudget: number;
+  gross: number;
+  grossBudget: number;
+  op: number;
+  opBudget: number;
+  dealCount: number;
+  orderedCount: number;
+  pipelineWeighted: number;
+  grossMarginRate: number;
+  memberStats: Array<{ name: string; revenue: number; grossProfit: number }>;
+};
+
+export default function MonthlyReportGenerator({ onClose, monthLabel, liveData }: { onClose: () => void; monthLabel: string; liveData?: LiveData }) {
   const [step, setStep] = useState<'survey' | 'generating' | 'present'>('survey');
   const [survey, setSurvey] = useState<Survey>({ good: '', bad: '', improve: '', next: '' });
   const [slides, setSlides] = useState<Slide[]>([]);
@@ -820,20 +841,19 @@ export default function MonthlyReportGenerator({ onClose, monthLabel }: { onClos
       const data = await res.json();
       if (data.slides && data.slides.length > 0) {
         const aiSlides = data.slides;
-        const merged = mergeAiSlides(survey, monthLabel, aiSlides);
+        const merged = mergeAiSlides(survey, monthLabel, aiSlides, liveData);
         setSlides(merged);
       } else {
-        setSlides(buildSlides(survey, monthLabel));
+        setSlides(buildSlides(survey, monthLabel, liveData));
       }
     } catch {
-      setSlides(buildSlides(survey, monthLabel));
+      setSlides(buildSlides(survey, monthLabel, liveData));
     }
     setStep('present');
   };
 
-  function mergeAiSlides(s: Survey, ml: string, aiData: Record<string, unknown>[]): Slide[] {
-    const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
-    const base = buildSlides(s, ml);
+  function mergeAiSlides(s: Survey, ml: string, aiData: Record<string, unknown>[], ld?: LiveData): Slide[] {
+    const base = buildSlides(s, ml, ld);
     for (const ai of aiData) {
       if (ai.type === 'pl' && typeof ai.revenue === 'number') {
         const idx = base.findIndex((sl) => sl.type === 'pl');

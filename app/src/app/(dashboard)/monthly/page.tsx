@@ -85,7 +85,7 @@ function useLiveFinancials() {
     grossProfit: r(m.grossProfit),
   }));
 
-  return { PL_ROWS, SHOT_RUNNING, MEMBER_STATS: MEMBER_STATS_LIVE, kpi, deals, prodCards, totalRevenue, grossProfit, budgetRevenue };
+  return { PL_ROWS, SHOT_RUNNING, MEMBER_STATS: MEMBER_STATS_LIVE, kpi, deals, prodCards, totalRevenue, grossProfit, budgetRevenue, budgetGross, budgetOp, sga };
 }
 
 
@@ -1303,6 +1303,19 @@ export default function MonthlyPage() {
         <MonthlyReportGenerator
           monthLabel={selectedMonth}
           onClose={() => setShowReportModal(false)}
+          liveData={{
+            revenue: Math.round(headerLive.totalRevenue / 10000),
+            revenueBudget: Math.round(headerLive.budgetRevenue / 10000),
+            gross: Math.round(headerLive.grossProfit / 10000),
+            grossBudget: Math.round(headerLive.budgetGross / 10000),
+            op: Math.round((headerLive.grossProfit - headerLive.sga) / 10000),
+            opBudget: Math.round(headerLive.budgetOp / 10000),
+            dealCount: headerLive.kpi.dealCount,
+            orderedCount: headerLive.kpi.orderedCount,
+            pipelineWeighted: Math.round(headerLive.kpi.pipelineWeighted / 10000),
+            grossMarginRate: headerLive.kpi.grossMarginRate,
+            memberStats: headerLive.kpi.memberStats,
+          }}
         />
       )}
     </div>

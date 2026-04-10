@@ -1,9 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { KPI_SNAPSHOTS, COMPANIES } from '@/lib/mock-data';
 import { formatYen } from '@/lib/format';
+import { loadAllDeals, calcDealKpi } from '@/lib/dealsStore';
 
 
 function Accordion({
@@ -124,35 +124,92 @@ const ROLLING_WEEKS: Record<string, { week: string; income: string; expense: str
 
 export default function MonthlyDetailPage() {
   const [tab, setTab] = useState<'pl' | 'cf'>('pl');
-  const [companyId, setCompanyId] = useState<string>('dotsync');
   const [month, setMonth] = useState<string>('2026-04');
+  const [deals, setDeals] = useState<ReturnType<typeof loadAllDeals>>([]);
+  useEffect(() => { setDeals(loadAllDeals()); }, []);
 
-  const snapshotMap = Object.fromEntries(KPI_SNAPSHOTS.map((s) => [s.companyId, s]));
-  const snapshot = snapshotMap[companyId];
-  const pl = snapshot?.plSummary;
-  const cf = snapshot?.cfSummary;
-  const funnel = snapshot?.funnel;
-  const overdues = OVERDUES[companyId] ?? [];
-  const rollingWeeks = ROLLING_WEEKS[companyId] ?? [];
+  const kpi = calcDealKpi(deals);
+  const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
+  const orderedDeals = deals.filter((d) => orderedStages.includes(d.stage));
+  const shotRevenue = orderedDeals.filter((d) => d.revenueType === 'shot').reduce((s, d) => s + d.amount, 0);
+  const runningRevenue = orderedDeals.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
+  const totalRevenue = shotRevenue + runningRevenue;
+  const cogsRate = 0.54;
+  const cogs = Math.round(totalRevenue * cogsRate);
+  const grossProfit = totalRevenue - cogs;
 
-  if (!pl || !cf || !funnel) {
-    return (
-      <div className="p-6 max-w-7xl mx-auto">
-        <p className="text-gray-500 text-sm">データがありません。</p>
-      </div>
-    );
-  }
+  const savedTarget = (() => {
+    if (typeof window === 'undefined') return { revenueTarget: 12000000, grossProfitTarget: 5520000 };
+    try {
+      const raw = localStorage.getItem('tripot_settings_target');
+      if (raw) return JSON.parse(raw) as { revenueTarget: number; grossProfitTarget: number };
+    } catch {}
+    return { revenueTarget: 12000000, grossProfitTarget: 5520000 };
+  })();
+  const revenueTarget = savedTarget.revenueTarget;
+  const grossTarget = savedTarget.grossProfitTarget;
+  const cogsTarget = revenueTarget - grossTarget;
+  const sgaActual = 0;
 
-  const cogs = pl.revenue.actual - pl.grossProfit.actual;
-  const cogsTarget = pl.revenue.target - pl.grossProfit.target;
-  const breakEvenPoint = pl.sgaExpenses.actual > 0 && pl.grossProfit.actual > 0
-    ? Math.round((pl.sgaExpenses.actual / (pl.grossProfit.actual / pl.revenue.actual)) / 10000)
+  const pl = {
+    revenue: { target: revenueTarget, actual: totalRevenue },
+    grossProfit: { target: grossTarget, actual: grossProfit },
+    sgaExpenses: { target: 0, actual: sgaActual },
+  };
+
+  const invoicedDeals = deals.filter((d) => d.stage === 'invoiced' || d.stage === 'accounting');
+  const paidDeals = deals.filter((d) => d.stage === 'paid');
+  const expectedPayment = invoicedDeals.reduce((s, d) => s + Math.round(d.amount * d.probability / 100), 0);
+  const receivedPayment = paidDeals.reduce((s, d) => s + d.amount, 0);
+  const cf = { expectedPayment, received: receivedPayment };
+
+  const funnel = {
+    appointments: deals.filter((d) => d.stage === 'lead').length,
+    meetings: deals.filter((d) => d.stage === 'meeting').length,
+    proposals: deals.filter((d) => ['proposal', 'estimate_sent'].includes(d.stage)).length,
+    orders: orderedDeals.length,
+    conversionRates: {
+      meeting: deals.filter((d) => d.stage === 'lead').length > 0
+        ? Math.round((deals.filter((d) => d.stage === 'meeting').length / deals.filter((d) => d.stage === 'lead').length) * 100) : 0,
+      proposal: deals.filter((d) => d.stage === 'meeting').length > 0
+        ? Math.round((deals.filter((d) => ['proposal', 'estimate_sent'].includes(d.stage)).length / deals.filter((d) => d.stage === 'meeting').length) * 100) : 0,
+      order: deals.filter((d) => ['proposal', 'estimate_sent'].includes(d.stage)).length > 0
+        ? Math.round((orderedDeals.length / deals.filter((d) => ['proposal', 'estimate_sent'].includes(d.stage)).length) * 100) : 0,
+    },
+  };
+
+  const overdueDealsList = invoicedDeals
+    .filter((d) => d.paymentDue && d.paymentDue < new Date().toISOString().slice(0, 10))
+    .map((d) => ({
+      client: d.clientName,
+      amount: `${Math.round(d.amount / 10000)}万円`,
+      delay: `${Math.floor((Date.now() - new Date(d.paymentDue!).getTime()) / 86400000)}日`,
+      assignee: d.assignee,
+    }));
+  const overdues = overdueDealsList;
+
+  const inflowExpected = expectedPayment;
+  const r = (v: number) => Math.round(v / 10000);
+  const weekDist = [0.3, 0.2, 0.3, 0.2];
+  const now = new Date();
+  const rollingWeeks = weekDist.map((pct, i) => {
+    const wStart = new Date(now); wStart.setDate(wStart.getDate() + i * 7);
+    const wEnd = new Date(wStart); wEnd.setDate(wEnd.getDate() + 6);
+    const fmt = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
+    const income = r(inflowExpected * pct);
+    const expense = r(cogs * pct * 1.1);
+    const net = income - expense;
+    return { week: `${fmt(wStart)}〜${fmt(wEnd)}`, income: `${income}万円`, expense: `${expense}万円`, net: `${net >= 0 ? '+' : ''}${net}万円`, ok: net >= 0 };
+  });
+
+  const breakEvenPoint = pl.sgaExpenses.actual > 0 && grossProfit > 0
+    ? Math.round((pl.sgaExpenses.actual / (grossProfit / totalRevenue)) / 10000)
     : 0;
-  const breakEvenRatio = pl.grossProfit.actual > 0
-    ? Math.round((pl.sgaExpenses.actual / pl.grossProfit.actual) * 100)
+  const breakEvenRatio = grossProfit > 0
+    ? Math.round((pl.sgaExpenses.actual / grossProfit) * 100)
     : 0;
   const safetyMargin = 100 - breakEvenRatio;
-  const marginalProfit = pl.grossProfit.actual;
+  const marginalProfit = grossProfit;
 
   return (
     <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-16">
@@ -175,16 +232,7 @@ export default function MonthlyDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <select
-            value={companyId}
-            onChange={(e) => setCompanyId(e.target.value)}
-            className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-600"
-            aria-label="会社選択"
-          >
-            {COMPANIES.map((c) => (
-              <option key={c.id} value={c.id}>{c.name}</option>
-            ))}
-          </select>
+          <span className="px-3 py-1.5 border border-gray-200 rounded-lg text-xs font-semibold text-gray-700 bg-white">トライポット</span>
           <select
             value={month}
             onChange={(e) => setMonth(e.target.value)}
@@ -326,11 +374,12 @@ export default function MonthlyDetailPage() {
             <DataTable
               headers={['取引先', '金額', '確度']}
               rows={[
-                ['株式会社A商事',  '300万円', <span key="p1" className="text-blue-600 font-semibold">90%</span>],
-                ['有限会社B工業',  '200万円', <span key="p2" className="text-gray-500">75%</span>],
-                ['C株式会社',      '250万円', <span key="p3" className="text-gray-500">60%</span>],
-                ['D合同会社',      '100万円', <span key="p4" className="text-gray-500">50%</span>],
-                ['確度加重合計',   formatYen(cf.expectedPayment), ''],
+                ...invoicedDeals.slice(0, 6).map((d, i) => [
+                  d.clientName,
+                  `${r(d.amount)}万円`,
+                  <span key={`p${i}`} className={d.probability >= 80 ? 'text-blue-600 font-semibold' : 'text-gray-500'}>{d.probability}%</span>,
+                ] as (string | React.ReactNode)[]),
+                ['確度加重合計', formatYen(cf.expectedPayment), ''],
               ]}
             />
           </Accordion>
