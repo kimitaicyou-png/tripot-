@@ -340,16 +340,33 @@ function PLSummary({
   );
 }
 
+function loadSavedPlan(): { segments: MonthlyRow[]; cogs: MonthlyRow[]; labor: MonthlyRow[]; admin: MonthlyRow[]; otherIncome: MonthlyRow[]; otherExpense: MonthlyRow[]; headcount: MonthlyRow[] } | null {
+  if (typeof window === 'undefined') return null;
+  try {
+    const raw = localStorage.getItem('budget_plan');
+    if (raw) return JSON.parse(raw);
+  } catch {}
+  return null;
+}
+
 function BudgetPlanTab() {
-  const [segments, setSegments] = useState<MonthlyRow[]>(INITIAL_SEGMENTS);
-  const [cogs, setCogs] = useState<MonthlyRow[]>(INITIAL_COGS);
-  const [labor, setLabor] = useState<MonthlyRow[]>(INITIAL_LABOR);
-  const [admin, setAdmin] = useState<MonthlyRow[]>(INITIAL_ADMIN);
-  const [otherIncome, setOtherIncome] = useState<MonthlyRow[]>(INITIAL_OTHER_INCOME);
-  const [otherExpense, setOtherExpense] = useState<MonthlyRow[]>(INITIAL_OTHER_EXPENSE);
-  const [headcount, setHeadcount] = useState<MonthlyRow[]>(INITIAL_HEADCOUNT);
+  const savedPlan = loadSavedPlan();
+  const [segments, setSegments] = useState<MonthlyRow[]>(savedPlan?.segments ?? INITIAL_SEGMENTS);
+  const [cogs, setCogs] = useState<MonthlyRow[]>(savedPlan?.cogs ?? INITIAL_COGS);
+  const [labor, setLabor] = useState<MonthlyRow[]>(savedPlan?.labor ?? INITIAL_LABOR);
+  const [admin, setAdmin] = useState<MonthlyRow[]>(savedPlan?.admin ?? INITIAL_ADMIN);
+  const [otherIncome, setOtherIncome] = useState<MonthlyRow[]>(savedPlan?.otherIncome ?? INITIAL_OTHER_INCOME);
+  const [otherExpense, setOtherExpense] = useState<MonthlyRow[]>(savedPlan?.otherExpense ?? INITIAL_OTHER_EXPENSE);
+  const [headcount, setHeadcount] = useState<MonthlyRow[]>(savedPlan?.headcount ?? INITIAL_HEADCOUNT);
   const [saved, setSaved] = useState(false);
   const [pdfMsg, setPdfMsg] = useState(false);
+
+  useEffect(() => {
+    if (!savedPlan) {
+      const data = { segments: INITIAL_SEGMENTS, cogs: INITIAL_COGS, labor: INITIAL_LABOR, admin: INITIAL_ADMIN, otherIncome: INITIAL_OTHER_INCOME, otherExpense: INITIAL_OTHER_EXPENSE, headcount: INITIAL_HEADCOUNT };
+      try { localStorage.setItem('budget_plan', JSON.stringify(data)); } catch {}
+    }
+  }, []);
 
   function updateRow(
     setter: React.Dispatch<React.SetStateAction<MonthlyRow[]>>
