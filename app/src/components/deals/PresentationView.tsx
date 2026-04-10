@@ -119,7 +119,7 @@ export function PresentationView({ slides, deal, onClose }: PresentationViewProp
               <h1 className="text-3xl font-semibold text-white mb-2">{deal.dealName}</h1>
               <p className="text-gray-500">{deal.clientName} 御中</p>
             </div>
-            <div className="grid grid-cols-4 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
               {KISHOUTENKETSU.map((sec, i) => {
                 const secSlides = sectionSlides(i);
                 return (

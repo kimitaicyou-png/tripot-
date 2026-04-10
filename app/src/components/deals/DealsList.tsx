@@ -78,7 +78,7 @@ export function DealsList() {
   return (
     <div className={`${view === 'pipeline' ? 'max-w-7xl' : 'max-w-3xl'} mx-auto px-4 py-5`}>
       <SectionHeader icon={<ChartBarIcon />} label="パイプラインサマリー" />
-      <div className="grid grid-cols-4 divide-x divide-gray-200 border border-gray-200 rounded-lg mb-5 bg-white">
+      <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-200 border border-gray-200 rounded-lg mb-5 bg-white">
         <div className="px-3 py-3 text-center"><p className="text-2xl font-semibold text-gray-900 tabular-nums">{activePipeline.length}</p><p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mt-0.5">営業中</p></div>
         <div className="px-3 py-3 text-center"><p className="text-2xl font-semibold text-blue-600 tabular-nums">{ordered.length}</p><p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mt-0.5">受注</p></div>
         <div className="px-3 py-3 text-center"><p className="text-2xl font-semibold text-blue-600 tabular-nums">{inProduction.length}</p><p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mt-0.5">制作中</p></div>

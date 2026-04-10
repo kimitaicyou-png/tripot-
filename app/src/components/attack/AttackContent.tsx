@@ -226,7 +226,7 @@ export function AttackContent() {
       ) : (
         <>
           <div className="flex items-start gap-2 mb-4">
-            <div className="grid grid-cols-4 gap-2 flex-1">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 flex-1">
               {(['S', 'A', 'B', 'C'] as const).map((p) => {
                 const cfg = PRIORITY_CONFIG[p];
                 return (

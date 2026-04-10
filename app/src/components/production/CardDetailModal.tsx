@@ -42,7 +42,7 @@ export function CardDetailModal({ card, onClose, onUpdate, children }: Props) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-40 animate-[fade-in_200ms_ease-out]" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full max-w-4xl bg-white shadow-sm z-50 flex flex-col animate-[slide-in-right_250ms_ease-out]" onClick={(e) => e.stopPropagation()}>
+      <div className="fixed inset-y-0 right-0 w-full sm:max-w-4xl bg-white shadow-sm z-50 flex flex-col animate-[slide-in-right_250ms_ease-out]" onClick={(e) => e.stopPropagation()}>
         <div className="px-5 py-4 border-b border-gray-200 flex items-start gap-3">
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 mb-1 flex-wrap">

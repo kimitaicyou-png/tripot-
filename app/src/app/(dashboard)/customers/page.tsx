@@ -332,7 +332,7 @@ function CustomerDetail({
       </div>
 
       {m && (
-        <div className="grid grid-cols-4 gap-2 mb-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
           <button
             onClick={() => setShowDealModal(true)}
             className="col-span-4 flex items-center justify-center gap-1.5 py-2.5 text-sm text-white bg-blue-600 rounded-lg active:scale-[0.98]"

@@ -673,7 +673,7 @@ export default function MemberDashboardPage() {
   const groupRank = groupRankIdx >= 0 ? groupRankIdx + 1 : null;
 
   return (
-    <div className="bg-white min-h-screen pb-16">
+    <div className="bg-white min-h-screen pb-24">
       {showModal && (
         <WelcomeModal firstName={member.firstName} memberId={memberId} onClose={handleCloseModal} />
       )}

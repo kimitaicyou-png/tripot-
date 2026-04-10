@@ -1038,7 +1038,7 @@ export default function WeeklyPage() {
   const [activeTab, setActiveTab] = useState<Tab>('numbers');
 
   return (
-    <div className="max-w-5xl mx-auto px-4 pt-4 pb-12 min-h-screen bg-gray-50">
+    <div className="max-w-5xl mx-auto px-4 pt-4 pb-24 min-h-screen bg-gray-50">
       <div className="mb-4">
         <h1 className="text-lg font-semibold text-gray-900">週次ダッシュボード</h1>
         <p className="text-xs font-semibold text-gray-500 mt-0.5">2026年4月第1週（4/1〜4/6）</p>

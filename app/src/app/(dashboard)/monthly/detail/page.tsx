@@ -225,7 +225,7 @@ export default function MonthlyDetailPage() {
   const marginalProfit = grossProfit;
 
   return (
-    <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-16">
+    <div className="p-4 lg:p-6 max-w-7xl mx-auto pb-24">
 
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-5">
         <div className="flex items-center gap-3">
@@ -356,7 +356,7 @@ export default function MonthlyDetailPage() {
           </Accordion>
 
           <Accordion title="行動ファネル詳細">
-            <div className="grid grid-cols-4 gap-2 mb-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-2 mb-4">
               {[
                 { label: 'アポ',  val: funnel.appointments },
                 { label: '商談',  val: funnel.meetings },

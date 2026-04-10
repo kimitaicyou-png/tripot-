@@ -117,7 +117,7 @@ export function BillingPhasePanel({ deal, onStageChange }: { deal: Deal; onStage
     return (
       <div className="bg-white rounded-lg border border-gray-200 p-4 mb-4">
         <h2 className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mb-3">請求フェーズ</h2>
-        <div className="grid grid-cols-3 divide-x divide-gray-100 border border-gray-100 rounded mb-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 sm:divide-x divide-gray-100 border border-gray-100 rounded mb-3">
           <div className="px-3 py-2"><p className="text-xs text-gray-500 mb-0.5">請求日</p><p className="text-xs font-semibold text-gray-900">{deal.invoiceDate ?? '—'}</p></div>
           <div className="px-3 py-2"><p className="text-xs text-gray-500 mb-0.5">請求額</p><p className="text-xs font-semibold text-gray-900 tabular-nums">¥{(deal.amount / 10000).toFixed(0)}万</p></div>
           <div className="px-3 py-2"><p className="text-xs text-gray-500 mb-0.5">支払期限</p><p className="text-xs font-semibold text-gray-900">{deal.paymentDue ?? '—'}</p></div>

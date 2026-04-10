@@ -37,7 +37,7 @@ export function DealDetailModal({ deal, onClose, onUpdate }: Props) {
   return (
     <>
       <div className="fixed inset-0 bg-black/40 z-40 animate-[fade-in_200ms_ease-out]" onClick={onClose} />
-      <div className="fixed inset-y-0 right-0 w-full max-w-[560px] bg-white shadow-sm z-50 flex flex-col animate-[slide-in-right_250ms_ease-out]">
+      <div className="fixed inset-y-0 right-0 w-full sm:max-w-[560px] bg-white shadow-sm z-50 flex flex-col animate-[slide-in-right_250ms_ease-out]">
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <div className="min-w-0">
             <p className="text-lg font-semibold text-gray-900 truncate">{deal.dealName}</p>
