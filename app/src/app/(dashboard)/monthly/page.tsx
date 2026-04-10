@@ -50,9 +50,17 @@ function useLiveFinancials() {
   const sga = 0;
   const operatingProfit = grossProfit - sga;
   const ordinaryProfit = operatingProfit;
-  const budgetRevenue = 0;
-  const budgetGross = 0;
-  const budgetOp = 0;
+  const savedTarget = (() => {
+    if (typeof window === 'undefined') return { revenueTarget: 12000000, grossProfitTarget: 5520000 };
+    try {
+      const raw = localStorage.getItem('tripot_settings_target');
+      if (raw) return JSON.parse(raw) as { revenueTarget: number; grossProfitTarget: number };
+    } catch {}
+    return { revenueTarget: 12000000, grossProfitTarget: 5520000 };
+  })();
+  const budgetRevenue = savedTarget.revenueTarget;
+  const budgetGross = savedTarget.grossProfitTarget;
+  const budgetOp = Math.round(budgetGross * 0.45);
 
   const r = (v: number) => Math.round(v / 10000);
 
