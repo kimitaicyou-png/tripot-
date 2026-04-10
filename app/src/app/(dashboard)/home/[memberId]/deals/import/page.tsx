@@ -4,7 +4,7 @@ import { useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { addDeal as addDealToStore } from '@/lib/dealsStore';
-import type { Deal } from '@/components/personal/DealsContent';
+import type { Deal } from '@/components/deals';
 
 type Stage =
   | 'lead'

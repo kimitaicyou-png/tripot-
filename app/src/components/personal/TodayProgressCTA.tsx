@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
-import { type Deal, MOCK_DEALS_INIT } from '@/components/personal/DealsContent';
+import { type Deal, MOCK_DEALS_INIT } from '@/components/deals';
 
 const DEALS_OVERRIDE_KEY = 'coaris_deals_override';
 

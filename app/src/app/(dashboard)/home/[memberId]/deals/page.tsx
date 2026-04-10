@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useParams } from 'next/navigation';
-import { DealsContent } from '@/components/personal/DealsContent';
+import { DealsContent } from '@/components/deals';
 import dynamic from 'next/dynamic';
 
 const PhotoDealCapture = dynamic(

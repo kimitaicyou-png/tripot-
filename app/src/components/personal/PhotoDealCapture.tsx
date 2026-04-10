@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
-import type { Deal } from '@/components/personal/DealsContent';
+import type { Deal } from '@/components/deals';
 import type { ExtractedDeal } from '@/app/api/deals/extract/route';
 import { addDeal as addDealToStore } from '@/lib/dealsStore';
 import type { RecentContact } from '@/components/personal/RecentContactsStrip';

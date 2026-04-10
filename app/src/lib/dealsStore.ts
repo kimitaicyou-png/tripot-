@@ -1,4 +1,4 @@
-import { MOCK_DEALS_INIT, type Deal } from '@/components/personal/DealsContent';
+import { MOCK_DEALS_INIT, type Deal } from '@/components/deals';
 
 const DEALS_KEY = 'tripot_deals_all';
 const ATTACK_KEY = 'coaris_attack_to_deals';

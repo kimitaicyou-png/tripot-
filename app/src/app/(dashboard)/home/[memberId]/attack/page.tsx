@@ -1,4 +1,4 @@
-import { AttackContent } from '@/components/personal/AttackContent';
+import { AttackContent } from '@/components/attack/AttackContent';
 
 export default function MemberAttackPage() {
   return <AttackContent />;

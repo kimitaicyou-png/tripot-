@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { logEmailSent } from '@/lib/emailLog';
 import { useRouter } from 'next/navigation';
-import { type Deal } from '@/components/personal/DealsContent';
+import { type Deal } from '@/components/deals';
 import { loadAllDeals } from '@/lib/dealsStore';
 import type { CustomerMaster } from '@/components/personal/PhotoDealCapture';
 
