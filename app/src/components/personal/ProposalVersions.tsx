@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 
 type ProposalVersion = {
   id: string;
@@ -82,8 +83,8 @@ function AddVersionModal({ nextVersion, onClose }: { nextVersion: number; onClos
   );
 }
 
-export default function ProposalVersions() {
-  const [versions, setVersions] = useState<ProposalVersion[]>(MOCK_VERSIONS);
+export default function ProposalVersions({ onViewProposal }: { onViewProposal?: (id: string) => void }) {
+  const [versions, setVersions] = usePersistedState<ProposalVersion[]>('proposal_versions', MOCK_VERSIONS);
   const [showAddModal, setShowAddModal] = useState(false);
 
   const latestVersion = versions.reduce((max, v) => (v.version > max ? v.version : max), 0);
@@ -164,13 +165,12 @@ export default function ProposalVersions() {
                   </button>
 
                   {isLatest && (
-                    <a
-                      href="#"
+                    <button
                       className="text-xs text-blue-600 hover:underline font-semibold"
-                      onClick={(e) => e.preventDefault()}
+                      onClick={() => onViewProposal?.(v.id)}
                     >
                       表示 &rarr;
-                    </a>
+                    </button>
                   )}
                 </div>
               </div>

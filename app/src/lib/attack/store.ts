@@ -7,7 +7,7 @@ export function loadTargets(): AttackTarget[] {
   try {
     const data = localStorage.getItem(STORAGE_KEY);
     return data ? JSON.parse(data) : [];
-  } catch { return []; }
+  } catch (err) { console.error('loadTargets failed:', err); return []; }
 }
 
 export function saveTargets(targets: AttackTarget[]) {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 
 type FinalProfit = {
   dealId: string;
@@ -228,7 +229,7 @@ export function FinalProfitReport({ report, onSave }: Props) {
 }
 
 export function FinalProfitHistory() {
-  const [records, setRecords] = useState<FinalProfit[]>(MOCK_HISTORY);
+  const [records, setRecords] = usePersistedState<FinalProfit[]>('finance_final_profit', MOCK_HISTORY);
   const [selected, setSelected] = useState<string>(MOCK_HISTORY[0].dealId);
 
   const current = records.find((r) => r.dealId === selected) ?? records[0];

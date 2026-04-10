@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 
 type Payment = {
   id: string;
@@ -350,6 +351,6 @@ export function PaymentSchedule({ payments: initialPayments, onChange }: Props) 
 }
 
 export function PaymentScheduleDemo() {
-  const [payments, setPayments] = useState<Payment[]>(MOCK_PAYMENTS);
+  const [payments, setPayments] = usePersistedState<Payment[]>('finance_payments', MOCK_PAYMENTS);
   return <PaymentSchedule payments={payments} onChange={setPayments} />;
 }

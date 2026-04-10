@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import type { Deal, Stage, Slide, HistoryEvent } from '@/lib/deals/types';
 import { STAGE_LABEL, STAGE_BADGE, SALES_STAGES, PRODUCTION_STAGES, BILLING_STAGES, CLAIM_NEXT_STAGES } from '@/lib/deals/constants';
 import { MOCK_CLAIMS, MOCK_COMMS } from '@/lib/deals/mockData';
@@ -25,7 +26,7 @@ export function DealDetail({ deal: initialDeal, onBack, onStageChange }: DealDet
   const [deal, setDeal] = useState(initialDeal);
   const [modal, setModal] = useState<'proposal' | 'estimate' | 'estimate-from-proposal' | 'lost' | null>(null);
   const [proposalSlides, setProposalSlides] = useState<Slide[]>([]);
-  const [nextActions, setNextActions] = useState<Record<string, NextActionData | null>>(MOCK_NEXT_ACTIONS as Record<string, NextActionData | null>);
+  const [nextActions, setNextActions] = usePersistedState<Record<string, NextActionData | null>>('deal_next_actions', MOCK_NEXT_ACTIONS as Record<string, NextActionData | null>);
   const [lostReason, setLostReason] = useState<LostReason | undefined>(undefined);
   const [invoice, setInvoice] = useState<NonNullable<Deal['invoice']>>(initialDeal.invoice ?? { status: 'none' });
   const [detailTab, setDetailTab] = useState<'main' | 'timeline' | 'attachments' | 'process'>('main');

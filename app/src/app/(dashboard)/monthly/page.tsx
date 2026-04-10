@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import Image from 'next/image';
 import Link from 'next/link';
 import {
@@ -656,7 +657,7 @@ function CashShortActionBoard() {
 }
 
 function CfTab() {
-  const [invoices, setInvoices] = useState<InvoiceStatus[]>(MOCK_INVOICES);
+  const [invoices, setInvoices] = usePersistedState<InvoiceStatus[]>('monthly_invoices', MOCK_INVOICES);
   const [showReconciliation, setShowReconciliation] = useState(false);
   const [showSchedule, setShowSchedule] = useState(false);
   const [showInvoiceTracker, setShowInvoiceTracker] = useState(false);

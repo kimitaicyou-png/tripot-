@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 
 type ContractType = 'nda' | 'master' | 'service' | 'individual' | 'po';
 
@@ -451,7 +452,7 @@ function PreviewModal({
 }
 
 export default function ContractManager({ dealStage, isFirstDeal = true, hasProposal = false, hasEstimate = false, clientName = 'クライアント', dealName = '本案件', dealAmount = 0, onStatusChange }: Props) {
-  const [contracts, setContracts] = useState<Contract[]>(MOCK_CONTRACTS);
+  const [contracts, setContracts] = usePersistedState<Contract[]>('contracts', MOCK_CONTRACTS);
   const [contractBodies, setContractBodies] = useState<Record<string, string>>({});
   const [showAddModal, setShowAddModal] = useState(false);
   const [generating, setGenerating] = useState<ContractType | null>(null);

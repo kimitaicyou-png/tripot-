@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import Link from 'next/link';
 import { LeaveCalendar, MOCK_LEAVE_ENTRIES } from '@/components/team/LeaveCalendar';
 import { loadProductionCards } from '@/lib/productionCards';
@@ -391,7 +392,7 @@ export default function TeamPage() {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [showAddModal, setShowAddModal] = useState(false);
   const [showLeave, setShowLeave] = useState(false);
-  const [leaveEntries, setLeaveEntries] = useState(MOCK_LEAVE_ENTRIES);
+  const [leaveEntries, setLeaveEntries] = usePersistedState('team_leave_entries', MOCK_LEAVE_ENTRIES);
 
   const avgLoad = useMemo(() => {
     if (liveMembers.length === 0) return 0;

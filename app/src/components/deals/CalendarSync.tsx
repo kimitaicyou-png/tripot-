@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 
 type ActionType = 'meeting' | 'proposal' | 'appointment' | 'other';
 
@@ -49,7 +50,7 @@ function formatDate(dateStr: string): string {
 export function CalendarSync() {
   const [synced, setSynced] = useState(false);
   const [syncing, setSyncing] = useState(false);
-  const [events, setEvents] = useState<CalendarEvent[]>(MOCK_CALENDAR);
+  const [events, setEvents] = usePersistedState<CalendarEvent[]>('calendar_events', MOCK_CALENDAR);
   const [bulkDone, setBulkDone] = useState(false);
 
   function handleSync() {

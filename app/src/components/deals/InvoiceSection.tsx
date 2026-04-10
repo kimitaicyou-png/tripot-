@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import type { Deal, Stage, HistoryEvent } from '@/lib/deals/types';
-import { STAGE_LABEL, STAGE_BADGE } from '@/lib/deals/constants';
+import { STAGE_LABEL, STAGE_BADGE, COMPANY_BANK_ACCOUNT_TEXT } from '@/lib/deals/constants';
 import { logEmailSent } from '@/lib/emailLog';
 
 type InvoiceData = NonNullable<Deal['invoice']>;
@@ -92,7 +92,7 @@ export function ProductionPhasePanel({ deal, onStageChange }: { deal: Deal; onSt
                 ['請求先', deal.clientName],
                 ['件名', deal.dealName],
                 ['金額', `¥${deal.amount.toLocaleString()}`],
-                ['振込先', '三菱UFJ銀行 名古屋支店 普通 1234567 トライポット(カ'],
+                ['振込先', COMPANY_BANK_ACCOUNT_TEXT],
                 ['支払期日', '検収後翌月末'],
               ].map(([label, value]) => (
                 <div key={label} className="flex justify-between gap-3 py-1.5 border-b border-gray-100 last:border-0">
@@ -123,8 +123,8 @@ export function BillingPhasePanel({ deal, onStageChange }: { deal: Deal; onStage
           <div className="px-3 py-2"><p className="text-xs text-gray-500 mb-0.5">支払期限</p><p className="text-xs font-semibold text-gray-900">{deal.paymentDue ?? '—'}</p></div>
         </div>
         <div className="flex gap-2 mb-2">
-          <button className="flex-1 py-2 bg-white border border-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-50 active:scale-[0.98]">Slackで通知</button>
-          <button className="flex-1 py-2 bg-white border border-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-50 active:scale-[0.98]">MFクラウド連携</button>
+          <button onClick={() => { const url = `https://hooks.slack.com/`; window.open(url, '_blank'); }} className="flex-1 py-2 bg-white border border-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-50 active:scale-[0.98]">Slackで通知</button>
+          <button onClick={() => { window.open('https://biz.moneyforward.com/', '_blank'); }} className="flex-1 py-2 bg-white border border-gray-300 text-gray-700 rounded text-xs font-medium hover:bg-gray-50 active:scale-[0.98]">MFクラウド連携</button>
         </div>
         <button onClick={() => onStageChange('accounting')} className="w-full py-2.5 bg-gray-100 text-gray-700 rounded text-sm font-medium hover:bg-gray-200 transition-colors active:scale-[0.98]">経理処理中に変更</button>
       </div>
@@ -168,7 +168,7 @@ export function InvoiceSection({ deal, invoice, onInvoiceChange, onStageChange, 
     const dueStr = paymentDue.toISOString().slice(0, 10);
     const amt = deal.amount > 0 ? deal.amount : (deal.monthlyAmount ?? 0);
     const tax = Math.round(amt * 0.1);
-    return `請求書\n\n請求先: ${deal.clientName} 御中\n件名: ${deal.dealName}\n\n発行日: ${today}\n支払期限: ${dueStr}（30日以内）\n\n---\n品目: ${deal.dealName}\n金額（税別）: ¥${amt.toLocaleString()}\n消費税（10%）: ¥${tax.toLocaleString()}\n合計（税込）: ¥${(amt + tax).toLocaleString()}\n---\n\n振込先: 三菱UFJ銀行 名古屋支店 普通 1234567 トライポット(カ\n\n何卒よろしくお願いいたします。\n\nトライポット株式会社\n担当: ${deal.assignee}`;
+    return `請求書\n\n請求先: ${deal.clientName} 御中\n件名: ${deal.dealName}\n\n発行日: ${today}\n支払期限: ${dueStr}（30日以内）\n\n---\n品目: ${deal.dealName}\n金額（税別）: ¥${amt.toLocaleString()}\n消費税（10%）: ¥${tax.toLocaleString()}\n合計（税込）: ¥${(amt + tax).toLocaleString()}\n---\n\n振込先: ${COMPANY_BANK_ACCOUNT_TEXT}\n\n何卒よろしくお願いいたします。\n\nトライポット株式会社\n担当: ${deal.assignee}`;
   };
 
   const handleGenerate = () => {

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, Fragment } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 
 type Invoice = {
   id: string;
@@ -262,6 +263,6 @@ export function PaymentReconciliation({ invoices: initialInvoices, onChange }: P
 }
 
 export function PaymentReconciliationDemo() {
-  const [invoices, setInvoices] = useState<Invoice[]>(MOCK_INVOICES);
+  const [invoices, setInvoices] = usePersistedState<Invoice[]>('finance_reconciliation', MOCK_INVOICES);
   return <PaymentReconciliation invoices={invoices} onChange={setInvoices} />;
 }

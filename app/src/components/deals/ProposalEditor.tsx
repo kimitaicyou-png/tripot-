@@ -205,31 +205,41 @@ export function ProposalEditor({ deal, onClose, onCreateEstimate, onAutoAdvance 
   const [researchEnabled, setResearchEnabled] = useState(true);
   const [slides, setSlides] = useState<Slide[]>([]);
 
-  const handleGenerate = () => {
-    if (researchEnabled) {
-      setResearching(true);
-      setTimeout(() => {
-        setResearching(false);
-        setGenerating(true);
-        setTimeout(() => {
-          setSlides(buildSlides(deal, true));
-          setGenerating(false);
-          setStep('edit');
-          if (['lead', 'meeting'].includes(deal.stage) && onAutoAdvance) {
-            onAutoAdvance(deal.id, 'proposal');
-          }
-        }, 1400);
-      }, 800);
-    } else {
-      setGenerating(true);
-      setTimeout(() => {
-        setSlides(buildSlides(deal, false));
-        setGenerating(false);
-        setStep('edit');
-        if (['lead', 'meeting'].includes(deal.stage) && onAutoAdvance) {
-          onAutoAdvance(deal.id, 'proposal');
-        }
-      }, 1800);
+  const handleGenerate = async () => {
+    if (researchEnabled) setResearching(true);
+    else setGenerating(true);
+
+    try {
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-proposal',
+          dealName: deal.dealName,
+          clientName: deal.clientName,
+          industry: deal.industry,
+          assignee: deal.assignee,
+          amount: deal.amount,
+          dealContext,
+          researchEnabled,
+          userPrompt: prompt,
+        }),
+      });
+      const data = await res.json();
+      if (data.slides && data.slides.length > 0) {
+        setSlides(data.slides);
+      } else {
+        setSlides(buildSlides(deal, researchEnabled));
+      }
+    } catch {
+      setSlides(buildSlides(deal, researchEnabled));
+    } finally {
+      setResearching(false);
+      setGenerating(false);
+      setStep('edit');
+      if (['lead', 'meeting'].includes(deal.stage) && onAutoAdvance) {
+        onAutoAdvance(deal.id, 'proposal');
+      }
     }
   };
 

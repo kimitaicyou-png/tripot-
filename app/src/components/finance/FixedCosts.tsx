@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 
 type FixedCost = {
   id: string;
@@ -289,6 +290,6 @@ export function FixedCosts({ costs: initialCosts, onChange }: Props) {
 }
 
 export function FixedCostsDemo() {
-  const [costs, setCosts] = useState<FixedCost[]>(MOCK_COSTS);
+  const [costs, setCosts] = usePersistedState<FixedCost[]>('finance_fixed_costs', MOCK_COSTS);
   return <FixedCosts costs={costs} onChange={setCosts} />;
 }

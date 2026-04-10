@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import Link from 'next/link';
 import { MonthlyTarget, MOCK_TARGET, MOCK_ACTUAL, type MonthlyTarget as MonthlyTargetType } from '@/components/personal/MonthlyTarget';
 import { FixedCostsDemo } from '@/components/finance/FixedCosts';
@@ -84,7 +85,7 @@ const GearIcon = () => (
 
 export default function SettingsPage() {
   const [selectedMonth, setSelectedMonth] = useState('2026-04');
-  const [savedTarget, setSavedTarget] = useState(MOCK_TARGET);
+  const [savedTarget, setSavedTarget] = usePersistedState('settings_target', MOCK_TARGET);
   const [saveMessage, setSaveMessage] = useState<string | null>(null);
   const [fiscalStartMonth, setFiscalStartMonth] = useState(4);
 

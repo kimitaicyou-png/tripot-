@@ -227,6 +227,16 @@ export const RESOURCES = [
   { id: 'tech-bridge', name: 'テックブリッジ', role: 'インフラ', load: 25, type: 'outsource' as const },
 ];
 
+export const COMPANY_BANK_ACCOUNT = {
+  bank: '三菱UFJ銀行',
+  branch: '名古屋支店',
+  accountType: '普通',
+  accountNumber: '1234567',
+  accountName: 'トライポット(カ',
+} as const;
+
+export const COMPANY_BANK_ACCOUNT_TEXT = `${COMPANY_BANK_ACCOUNT.bank} ${COMPANY_BANK_ACCOUNT.branch} ${COMPANY_BANK_ACCOUNT.accountType} ${COMPANY_BANK_ACCOUNT.accountNumber} ${COMPANY_BANK_ACCOUNT.accountName}`;
+
 export const scheduleData = [
   { name: '要件定義', start: 0, duration: 2 },
   { name: '基本設計', start: 2, duration: 2 },

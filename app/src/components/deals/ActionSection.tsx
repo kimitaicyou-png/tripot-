@@ -104,15 +104,30 @@ function MeetingTabContent({ deal, meetings }: { deal: Deal; meetings: CommRecor
   const [extractedNeeds, setExtractedNeeds] = useState<string[]>([]);
   const [showNeedsExtracted, setShowNeedsExtracted] = useState(false);
 
-  const generateMinutes = () => {
+  const generateMinutes = async () => {
     if (!voiceText.trim()) return;
     setMinutesGenerating(true);
-    setTimeout(() => {
-      setMinutesResult(`# 議事録: ${deal.dealName}\n**日時:** ${new Date().toLocaleDateString('ja-JP')}\n**参加者:** 柏樹 久美子（トライポット）、先方ご担当者\n\n---\n\n## 議題\n${voiceText}\n\n## 決定事項\n- 要件の方向性について合意\n- 次回打ち合わせで詳細仕様を確定\n\n## 宿題\n- 【トライポット】詳細見積もりの作成（期限: 1週間以内）\n- 【先方】社内承認プロセスの確認\n\n## 次回予定\n- 来週中に日程調整`);
-      setExtractedNeeds(['レスポンス改善・処理速度向上', 'データ移行・既存システム連携', 'コスト削減・運用効率化']);
-      setShowNeedsExtracted(true);
-      setMinutesGenerating(false);
-    }, 1800);
+    try {
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-minutes',
+          dealName: deal.dealName,
+          voiceText,
+          assignee: deal.assignee,
+        }),
+      });
+      const data = await res.json();
+      setMinutesResult(data.minutes || `# 議事録: ${deal.dealName}\n\n${voiceText}`);
+      if (data.needs && data.needs.length > 0) {
+        setExtractedNeeds(data.needs);
+        setShowNeedsExtracted(true);
+      }
+    } catch {
+      setMinutesResult(`# 議事録: ${deal.dealName}\n**日時:** ${new Date().toLocaleDateString('ja-JP')}\n\n## 内容\n${voiceText}`);
+    }
+    setMinutesGenerating(false);
   };
 
   return (
@@ -204,19 +219,29 @@ function EmailTabContent({ deal, emails }: { deal: Deal; emails: CommRecord[] })
   const comms = MOCK_COMMS[deal.id] ?? [];
   const allNeeds = comms.flatMap((c) => c.needs ?? []);
 
-  const generateEmail = () => {
+  const generateEmail = async () => {
     setEmailGenerating(true);
-    setTimeout(() => {
-      const lastComm = comms[0];
-      const needsList = allNeeds.length > 0
-        ? `\n\n先日のお打ち合わせで伺いました以下のご要望につきまして、検討を進めております。\n${allNeeds.map((n) => `・${n}`).join('\n')}`
-        : '';
-      const lastMeetingRef = lastComm
-        ? `\n\n${lastComm.date}の${lastComm.type === 'meeting' ? 'お打ち合わせ' : lastComm.type === 'email' ? 'メールでのやり取り' : 'お電話'}では「${lastComm.title}」についてお時間をいただき、誠にありがとうございました。`
-        : `\n\n先日はお時間をいただき、誠にありがとうございました。`;
-      setEmailDraft(`${deal.clientName}\nご担当者様\n\nお世話になっております。トライポット株式会社の${deal.assignee}です。${lastMeetingRef}${needsList}\n\n${deal.dealName}につきまして、ご提案内容をまとめております。\n\n次回のお打ち合わせ日程について、来週のご都合をお教えください。\n\n何卒よろしくお願いいたします。\n\nトライポット株式会社\n${deal.assignee}`);
-      setEmailGenerating(false);
-    }, 1500);
+    try {
+      const commsHistory = comms.slice(0, 3).map((c) => `[${c.date}] ${c.type}: ${c.title} - ${c.summary}`).join('\n');
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-email',
+          dealName: deal.dealName,
+          clientName: deal.clientName,
+          assignee: deal.assignee,
+          industry: deal.industry,
+          commsHistory,
+          allNeeds,
+        }),
+      });
+      const data = await res.json();
+      setEmailDraft(data.text || `${deal.clientName}\nご担当者様\n\nお世話になっております。トライポット株式会社の${deal.assignee}です。\n\n${deal.dealName}につきまして、ご連絡いたします。\n\n何卒よろしくお願いいたします。\n\nトライポット株式会社\n${deal.assignee}`);
+    } catch {
+      setEmailDraft(`${deal.clientName}\nご担当者様\n\nお世話になっております。トライポット株式会社の${deal.assignee}です。\n\n${deal.dealName}につきまして、ご連絡いたします。\n\n何卒よろしくお願いいたします。\n\nトライポット株式会社\n${deal.assignee}`);
+    }
+    setEmailGenerating(false);
   };
 
   return (

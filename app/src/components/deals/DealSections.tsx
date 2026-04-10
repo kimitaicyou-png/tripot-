@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import type { Deal, Attachment, AttachmentKind, HistoryEvent } from '@/lib/deals/types';
 import { HISTORY_TYPE_CONFIG, KIND_ICON, KIND_LABEL, COMM_TYPE_LABEL } from '@/lib/deals/constants';
 import { MOCK_COMMS, MOCK_CLAIMS } from '@/lib/deals/mockData';
@@ -184,7 +185,7 @@ export function ClaimInlineSection({ deal }: { deal: Deal }) {
 }
 
 export function InternalMemoSection({ deal }: { deal: Deal }) {
-  const [internalComments, setInternalComments] = useState(MOCK_COMMENTS);
+  const [internalComments, setInternalComments] = usePersistedState('internal_comments', MOCK_COMMENTS);
   return (
     <div>
       <div className="flex items-center gap-1.5 mb-3">

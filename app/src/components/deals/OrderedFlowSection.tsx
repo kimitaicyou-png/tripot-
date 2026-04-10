@@ -61,9 +61,28 @@ export function OrderedFlowSection({ deal, onSendToProduction }: { deal: Deal; o
 
   const mockRequirement = `# 要件定義書: ${deal.dealName}\n\n## 1. プロジェクト概要\n- クライアント: ${deal.clientName}\n- 案件名: ${deal.dealName}\n- 予算: ¥${deal.amount > 0 ? deal.amount.toLocaleString() : (deal.monthlyAmount ? deal.monthlyAmount.toLocaleString() + '/月' : '別途協議')}\n- 業種: ${deal.industry}\n\n## 2. 背景・課題（顧客ヒアリングより）\n${dealContext}\n## 3. 機能要件（ニーズから導出）\n${contextNeeds.length > 0 ? contextNeeds.map((n, i) => `### 3.${i + 1} ${n}\n- 具体的な実装内容について顧客と詳細確認が必要`).join('\n\n') : `### 3.1 ユーザー管理\n- ログイン/ログアウト機能\n- ロール管理（管理者/一般ユーザー）\n- プロフィール編集\n\n### 3.2 コア機能\n- ダッシュボード（KPI表示）\n- データ入力フォーム\n- レポート生成\n- 通知機能`}\n\n## 4. 非機能要件\n- レスポンス: 3秒以内\n- 稼働率: 99%以上\n- セキュリティ: SSL/TLS、データ暗号化\n- ブラウザ: Chrome/Edge最新版\n\n## 5. 技術スタック\n- フロントエンド: Next.js + TypeScript\n- バックエンド: Supabase\n- インフラ: Vercel\n\n## 6. 画面一覧（概算）\n- ログイン画面\n- ダッシュボード\n- データ入力画面\n- レポート画面\n- 設定画面\n`;
 
-  const handleGenerateRequirement = () => {
+  const handleGenerateRequirement = async () => {
     setRequirementState('generating');
-    setTimeout(() => { setRequirementText(mockRequirement); setRequirementState('generated'); }, 1500);
+    try {
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-requirement',
+          dealName: deal.dealName,
+          clientName: deal.clientName,
+          industry: deal.industry,
+          amount: deal.amount,
+          monthlyAmount: deal.monthlyAmount,
+          dealContext,
+        }),
+      });
+      const data = await res.json();
+      setRequirementText(data.text || mockRequirement);
+    } catch {
+      setRequirementText(mockRequirement);
+    }
+    setRequirementState('generated');
   };
 
   const handleApproveRequirement = () => {
@@ -71,12 +90,45 @@ export function OrderedFlowSection({ deal, onSendToProduction }: { deal: Deal; o
     if (deal.stage === 'ordered') onSendToProduction();
   };
 
-  const handleGenerateTasks = () => {
+  const handleGenerateTasks = async () => {
     setTasksState('generating');
-    setTimeout(() => {
-      const today = new Date('2026-04-08');
+    const memberNames = assignedMembers.map((m) => {
+      const r = RESOURCES.find((res) => res.id === m.resourceId);
+      return { name: r?.name ?? '', role: r?.role ?? '' };
+    }).filter((m) => m.name);
+
+    try {
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-tasks',
+          dealName: deal.dealName,
+          clientName: deal.clientName,
+          assignedMembers: memberNames,
+          requirementText,
+        }),
+      });
+      const data = await res.json();
+      if (data.tasks && data.tasks.length > 0) {
+        const today = new Date();
+        setTasks(data.tasks.map((t: { title: string; detail?: string; daysFromNow: number; assigneeIndex: number }, i: number) => {
+          const due = new Date(today);
+          due.setDate(due.getDate() + (t.daysFromNow || (i + 1) * 5));
+          return {
+            id: `task-${Date.now()}-${i}`,
+            title: t.title,
+            detail: t.detail ?? '',
+            dueDate: due.toISOString().slice(0, 10),
+            assigneeId: assignedMembers[t.assigneeIndex % Math.max(1, assignedMembers.length)]?.resourceId ?? '',
+            status: 'todo' as const,
+          };
+        }));
+      }
+    } catch {
+      const today = new Date();
       const addDays = (n: number) => { const d = new Date(today); d.setDate(d.getDate() + n); return d.toISOString().slice(0, 10); };
-      const baseTasks: Omit<ProductionTask, 'id' | 'assigneeId' | 'status'>[] = [
+      const fallback = [
         { title: 'キックオフMTG準備', detail: '議題・参加者・資料整理', dueDate: addDays(3) },
         { title: 'クライアント要件再ヒアリング', detail: '不明点リストの作成', dueDate: addDays(5) },
         { title: '画面設計（ワイヤー）', detail: '主要5画面のワイヤーフレーム', dueDate: addDays(10) },
@@ -86,19 +138,19 @@ export function OrderedFlowSection({ deal, onSendToProduction }: { deal: Deal; o
         { title: 'テスト・修正', detail: '結合・受入れテスト', dueDate: addDays(55) },
         { title: '納品・運用引き継ぎ', detail: 'マニュアル作成・トレーニング', dueDate: addDays(60) },
       ];
-      setTasks(baseTasks.map((t, i) => ({
+      setTasks(fallback.map((t, i) => ({
         ...t,
         id: `task-${Date.now()}-${i}`,
         assigneeId: assignedMembers[i % Math.max(1, assignedMembers.length)]?.resourceId ?? '',
         status: 'todo' as const,
       })));
-      setTasksState('generated');
-    }, 1500);
+    }
+    setTasksState('generated');
   };
 
   const updateTask = (id: string, patch: Partial<ProductionTask>) => setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, ...patch } : t)));
   const removeTask = (id: string) => setTasks((prev) => prev.filter((t) => t.id !== id));
-  const addTask = () => { const d = new Date('2026-04-15'); setTasks((prev) => [...prev, { id: `task-${Date.now()}`, title: '新しいタスク', dueDate: d.toISOString().slice(0, 10), assigneeId: assignedMembers[0]?.resourceId ?? '', status: 'todo' }]); };
+  const addTask = () => { const d = new Date(); d.setDate(d.getDate() + 7); setTasks((prev) => [...prev, { id: `task-${Date.now()}`, title: '新しいタスク', dueDate: d.toISOString().slice(0, 10), assigneeId: assignedMembers[0]?.resourceId ?? '', status: 'todo' }]); };
   const addMember = () => setAssignedMembers((prev) => [...prev, { resourceId: '', roleLabel: '' }]);
   const updateMember = (idx: number, resourceId: string) => setAssignedMembers((prev) => prev.map((m, i) => i === idx ? { ...m, resourceId } : m));
   const removeMember = (idx: number) => setAssignedMembers((prev) => prev.filter((_, i) => i !== idx));
@@ -108,7 +160,7 @@ export function OrderedFlowSection({ deal, onSendToProduction }: { deal: Deal; o
     setScheduleState('generating');
     setTimeout(() => {
       const end = new Date(deadline);
-      const now = new Date('2026-04-07');
+      const now = new Date();
       const totalDays = Math.max(14, Math.floor((end.getTime() - now.getTime()) / (1000 * 60 * 60 * 24)));
       const req = Math.round(totalDays * 0.15);
       const design = Math.round(totalDays * 0.15);

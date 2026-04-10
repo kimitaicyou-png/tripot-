@@ -7,11 +7,11 @@ export function loadOverrides(): Record<string, Partial<Deal>> {
   try {
     const raw = localStorage.getItem(DEALS_OVERRIDE_KEY);
     return raw ? (JSON.parse(raw) as Record<string, Partial<Deal>>) : {};
-  } catch { return {}; }
+  } catch (err) { console.error('loadOverrides failed:', err); return {}; }
 }
 
 export function saveOverrides(overrides: Record<string, Partial<Deal>>) {
-  try { localStorage.setItem(DEALS_OVERRIDE_KEY, JSON.stringify(overrides)); } catch {}
+  try { localStorage.setItem(DEALS_OVERRIDE_KEY, JSON.stringify(overrides)); } catch (err) { console.error('saveOverrides failed:', err); }
 }
 
 export function appendHistory(
@@ -37,7 +37,7 @@ export function loadAttachments(dealId: string): Attachment[] {
     if (!raw) return [];
     const overrides = JSON.parse(raw) as Record<string, { attachments?: Attachment[] }>;
     return overrides[dealId]?.attachments ?? [];
-  } catch { return []; }
+  } catch (err) { console.error('loadAttachments failed:', err); return []; }
 }
 
 export function saveAttachments(dealId: string, attachments: Attachment[]) {
@@ -47,5 +47,5 @@ export function saveAttachments(dealId: string, attachments: Attachment[]) {
     const existing = (overrides[dealId] as Record<string, unknown>) ?? {};
     overrides[dealId] = { ...existing, attachments };
     localStorage.setItem(DEALS_OVERRIDE_KEY, JSON.stringify(overrides));
-  } catch {}
+  } catch (err) { console.error('saveAttachments failed:', err); }
 }

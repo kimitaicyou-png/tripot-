@@ -1,17 +1,17 @@
 import type { EightCard, AttackTarget, TrackingEvent } from './types';
 
 export function isWithin48h(timestamp: string): boolean {
-  const now = new Date('2026-04-06T12:00:00').getTime();
+  const now = Date.now();
   return now - new Date(timestamp).getTime() < 48 * 60 * 60 * 1000;
 }
 
 export function isWithin24h(timestamp: string): boolean {
-  const now = new Date('2026-04-06T12:00:00').getTime();
+  const now = Date.now();
   return now - new Date(timestamp).getTime() < 24 * 60 * 60 * 1000;
 }
 
 export function relativeTime(timestamp: string): string {
-  const now = new Date('2026-04-06T12:00:00').getTime();
+  const now = Date.now();
   const diff = now - new Date(timestamp).getTime();
   const hours = Math.floor(diff / 3600000);
   const minutes = Math.floor(diff / 60000);

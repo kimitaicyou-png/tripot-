@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import type { Deal, Slide, Stage, EstimateItem, BudgetItem } from '@/lib/deals/types';
 import { getIndustryRates } from '@/lib/deals/constants';
 import { gatherDealContext } from '@/lib/deals/dealContext';
@@ -68,45 +69,74 @@ export function EstimateEditor({ deal, slides, onClose, onAutoAdvance }: Estimat
       : `${deal.clientName}向け「${deal.dealName}」の見積書を作成してください。\n\n${dealContext}\n総額: ${deal.amount > 0 ? `¥${deal.amount.toLocaleString()}` : '未定'}`
   );
 
-  const handleGenerate = () => {
+  const handleGenerate = async () => {
     setGenerating(true);
-    setTimeout(() => {
-      const amt = deal.amount || 3000000;
-      const generatedRates = getIndustryRates(deal.industry);
-      if (slides && scheduleSlide) {
-        const phases = scheduleSlide.bullets.filter((b) => b.includes('Phase'));
-        const ratios = [0.15, 0.15, 0.45, 0.15, 0.1];
-        setItems(phases.map((b, i) => {
-          const name = b.replace(/Phase \d+: /, '').replace(/（.*$/, '').trim();
-          const rate = generatedRates[i] ?? generatedRates[0];
-          const phaseAmt = Math.round(amt * (ratios[i] ?? 0.2));
-          const manMonth = parseFloat((phaseAmt / rate.unitPrice).toFixed(1));
-          return { name, amount: phaseAmt, manMonth, unitPrice: rate.unitPrice };
-        }));
+    try {
+      const slideSummary = slides?.map((s) => `[${s.type}] ${s.title}: ${s.bullets.join(', ')}`).join('\n');
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-estimate',
+          dealName: deal.dealName,
+          clientName: deal.clientName,
+          industry: deal.industry,
+          amount: deal.amount || 3000000,
+          dealContext,
+          slideSummary,
+        }),
+      });
+      const data = await res.json();
+      if (data.items && data.items.length > 0) {
+        setItems(data.items);
       } else {
-        const ratios = [0.15, 0.15, 0.45, 0.15, 0.05, 0.05];
-        setItems(generatedRates.map((r, i) => {
-          const phaseAmt = Math.round(amt * (ratios[i] ?? 0.1));
-          const manMonth = parseFloat((phaseAmt / r.unitPrice).toFixed(1));
-          return { name: r.label, amount: phaseAmt, manMonth, unitPrice: r.unitPrice };
-        }));
+        fallbackGenerate();
       }
-      setGenerating(false);
-      setStep('edit');
-      if (['proposal', 'meeting', 'lead'].includes(deal.stage) && onAutoAdvance) {
-        onAutoAdvance(deal.id, 'estimate_sent');
-      }
-    }, 1200);
+    } catch {
+      fallbackGenerate();
+    }
+    setGenerating(false);
+    setStep('edit');
+    if (['proposal', 'meeting', 'lead'].includes(deal.stage) && onAutoAdvance) {
+      onAutoAdvance(deal.id, 'estimate_sent');
+    }
   };
 
-  const handleBudgetGenerate = () => {
+  const fallbackGenerate = () => {
+    const amt = deal.amount || 3000000;
+    const generatedRates = getIndustryRates(deal.industry);
+    const ratios = [0.15, 0.15, 0.45, 0.15, 0.05, 0.05];
+    setItems(generatedRates.map((r, i) => {
+      const phaseAmt = Math.round(amt * (ratios[i] ?? 0.1));
+      const manMonth = parseFloat((phaseAmt / r.unitPrice).toFixed(1));
+      return { name: r.label, amount: phaseAmt, manMonth, unitPrice: r.unitPrice };
+    }));
+  };
+
+  const handleBudgetGenerate = async () => {
     setBudgetGenerating(true);
-    setTimeout(() => {
+    try {
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'generate-budget',
+          items: items.filter((i) => i.amount > 0),
+          industry: deal.industry,
+        }),
+      });
+      const data = await res.json();
+      if (data.budget && data.budget.length > 0) {
+        setBudgetItems(data.budget);
+      } else {
+        generateBudgetItems();
+      }
+    } catch {
       generateBudgetItems();
-      setBudgetGenerating(false);
-      setBudgetGenerated(true);
-      setBudgetStale(false);
-    }, 1400);
+    }
+    setBudgetGenerating(false);
+    setBudgetGenerated(true);
+    setBudgetStale(false);
   };
 
   const updateItem = (idx: number, field: keyof EstimateItem, value: string) => {
@@ -125,7 +155,7 @@ export function EstimateEditor({ deal, slides, onClose, onAutoAdvance }: Estimat
   const total = items.reduce((s, i) => s + i.amount, 0);
   const tax = Math.round(total * 0.1);
 
-  const [runningItems, setRunningItems] = useState<RunningItem[]>(MOCK_RUNNING_ITEMS[deal.id] ?? []);
+  const [runningItems, setRunningItems] = usePersistedState<RunningItem[]>(`running_items_${deal.id}`, MOCK_RUNNING_ITEMS[deal.id] ?? []);
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([]);
 
   const generateBudgetItems = () => {
