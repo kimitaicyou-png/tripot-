@@ -1,28 +1,30 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
 import { auth, type AllowedUser, type UserRole } from '@/auth';
+import membersJson from '@/data/members.json';
 
-const SRC_PATH = join(process.cwd(), 'src/data/members.json');
 const TMP_PATH = '/tmp/tripot_members.json';
 
 function loadMembers(): AllowedUser[] {
   try {
+    const { readFileSync } = require('fs');
     try {
       const tmp = readFileSync(TMP_PATH, 'utf-8');
       return JSON.parse(tmp) as AllowedUser[];
     } catch {}
-    const raw = readFileSync(SRC_PATH, 'utf-8');
-    return JSON.parse(raw) as AllowedUser[];
-  } catch {
-    return [];
-  }
+  } catch {}
+  return membersJson as AllowedUser[];
 }
 
 function saveMembers(members: AllowedUser[]): void {
-  const json = JSON.stringify(members, null, 2);
-  try { writeFileSync(TMP_PATH, json, 'utf-8'); } catch {}
-  try { writeFileSync(SRC_PATH, json, 'utf-8'); } catch {}
+  try {
+    const { writeFileSync } = require('fs');
+    const json = JSON.stringify(members, null, 2);
+    writeFileSync(TMP_PATH, json, 'utf-8');
+    try {
+      const { join } = require('path');
+      writeFileSync(join(process.cwd(), 'src/data/members.json'), json, 'utf-8');
+    } catch {}
+  } catch {}
 }
 
 async function getCallerRole(): Promise<{ role: UserRole | null; memberId: string | null }> {

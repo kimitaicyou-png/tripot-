@@ -1,7 +1,6 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
-import { readFileSync } from 'fs';
-import { join } from 'path';
+import membersJson from '@/data/members.json';
 
 export type UserRole = 'owner' | 'manager' | 'member';
 
@@ -16,19 +15,15 @@ export type AllowedUser = {
 
 function loadMembers(): AllowedUser[] {
   try {
-    const tmpPath = '/tmp/tripot_members.json';
-    try {
-      const tmp = readFileSync(tmpPath, 'utf-8');
-      return JSON.parse(tmp) as AllowedUser[];
-    } catch {}
-    const filePath = join(process.cwd(), 'src/data/members.json');
-    const raw = readFileSync(filePath, 'utf-8');
-    return JSON.parse(raw) as AllowedUser[];
-  } catch {
-    return [
-      { id: 'toki', email: 'k.toki@jtravel.group', name: '土岐 公人', role: 'owner', invitedBy: null, invitedAt: '2026-04-09' },
-    ];
-  }
+    if (typeof window === 'undefined') {
+      const { readFileSync } = require('fs');
+      try {
+        const tmp = readFileSync('/tmp/tripot_members.json', 'utf-8');
+        return JSON.parse(tmp) as AllowedUser[];
+      } catch {}
+    }
+  } catch {}
+  return membersJson as AllowedUser[];
 }
 
 export function findUser(email: string): AllowedUser | undefined {
