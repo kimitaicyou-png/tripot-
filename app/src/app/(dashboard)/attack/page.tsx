@@ -1,5 +1,8 @@
 import { redirect } from 'next/navigation';
+import { auth } from '@/auth';
 
-export default function AttackPage() {
-  redirect('/home/kashiwagi/attack');
+export default async function AttackPage() {
+  const session = await auth();
+  const memberId = (session?.user as Record<string, unknown> | undefined)?.memberId as string | undefined;
+  redirect(`/home/${memberId ?? 'toki'}/attack`);
 }

@@ -5,7 +5,7 @@ import type { MemberInfo } from '@/lib/stores/types';
 import { MEMBERS } from '@/lib/constants/members';
 
 const STORAGE_KEY = 'coaris_current_member';
-const DEFAULT_ID = 'kashiwagi';
+const DEFAULT_ID = 'toki';
 
 export function useCurrentMember() {
   const [memberId, setMemberId] = useState(DEFAULT_ID);

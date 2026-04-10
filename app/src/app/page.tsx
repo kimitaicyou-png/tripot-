@@ -5,7 +5,7 @@ export default async function RootPage() {
   const session = await auth();
   if (session?.user) {
     const memberId = (session.user as Record<string, unknown>).memberId as string | undefined;
-    redirect(`/home/${memberId ?? 'kashiwagi'}`);
+    redirect(`/home/${memberId ?? 'toki'}`);
   }
   redirect('/login');
 }

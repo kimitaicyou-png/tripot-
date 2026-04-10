@@ -35,7 +35,7 @@ export const MEMBERS: MemberInfo[] = loadMembersFromStorage();
 
 const STORAGE_KEY = 'coaris_current_member';
 // ログイン中ユーザー（デフォルト）。(dashboard)/layout.tsx の CURRENT_USER と揃える
-const DEFAULT_MEMBER_ID = 'kashiwagi';
+const DEFAULT_MEMBER_ID = 'toki';
 
 export function getCurrentMemberId(): string {
   if (typeof window === 'undefined') return DEFAULT_MEMBER_ID;

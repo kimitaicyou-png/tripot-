@@ -4,7 +4,7 @@ import { auth, signIn } from '@/auth';
 export default async function LoginPage({ searchParams }: { searchParams: Promise<{ error?: string }> }) {
   const session = await auth();
   if (session?.user) {
-    const memberId = (session.user as unknown as Record<string, unknown>).memberId ?? 'kashiwagi';
+    const memberId = (session.user as unknown as Record<string, unknown>).memberId ?? 'toki';
     redirect(`/home/${memberId}`);
   }
 
