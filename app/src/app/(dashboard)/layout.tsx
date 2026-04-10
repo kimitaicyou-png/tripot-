@@ -4,11 +4,13 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useState, useEffect, Suspense } from 'react';
+import { useSession, signOut } from 'next-auth/react';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { NotificationCenter } from '@/components/ui/NotificationCenter';
 import { setCurrentMember } from '@/lib/currentMember';
 import { loadAllDeals } from '@/lib/dealsStore';
 import { loadProductionCards } from '@/lib/productionCards';
+import type { UserRole } from '@/auth';
 
 type CurrentUser = {
   id: string;
@@ -296,19 +298,17 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
   const [searchOpen, setSearchOpen] = useState(false);
   const [addMemberOpen, setAddMemberOpen] = useState(false);
   const [memberSwitcherOpen, setMemberSwitcherOpen] = useState(false);
-  const [currentUser, setCurrentUserState] = useState<CurrentUser>(USERS.kashiwagi);
-  const [userSwitcherOpen, setUserSwitcherOpen] = useState(false);
   const router = useRouter();
-  useEffect(() => { setCurrentUserState(loadCurrentUser()); }, []);
-  const switchUser = (id: string) => {
-    const u = USERS[id];
-    if (!u) return;
-    localStorage.setItem(CU_STORAGE_KEY, id);
-    setCurrentUserState(u);
-    setCurrentMember(id);
-    setUserSwitcherOpen(false);
-    router.push(`/home/${id}`);
-  };
+  const { data: session } = useSession();
+  const sessionMemberId = (session?.user as Record<string, unknown> | undefined)?.memberId as string | undefined;
+  const sessionRole = (session?.user as Record<string, unknown> | undefined)?.role as UserRole | undefined;
+  const currentUser = USERS[sessionMemberId ?? ''] ?? loadCurrentUser();
+  useEffect(() => {
+    if (sessionMemberId) {
+      localStorage.setItem(CU_STORAGE_KEY, sessionMemberId);
+      setCurrentMember(sessionMemberId);
+    }
+  }, [sessionMemberId]);
 
   const isMonthly = pathname === '/monthly' || pathname.startsWith('/monthly/');
   const isWeekly = pathname === '/weekly' || pathname.startsWith('/weekly/');
@@ -397,42 +397,27 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
 
         {open && (
           <div className="px-2 pt-2 pb-0 border-b border-white/10 relative">
-            <button
-              onClick={() => setUserSwitcherOpen((v) => !v)}
-              className="w-full flex items-center gap-2 px-2 py-2 rounded-lg hover:bg-white/10 transition-colors">
+            <div className="w-full flex items-center gap-2 px-2 py-2">
               <div className={`w-7 h-7 rounded-full ${currentUser.color} flex items-center justify-center text-xs font-semibold text-white shrink-0`}>
                 {currentUser.initial}
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <div className="text-sm font-semibold text-white truncate leading-tight">{currentUser.name}</div>
+                <div className="text-sm font-semibold text-white truncate leading-tight">{session?.user?.name ?? currentUser.name}</div>
                 <div className="text-xs text-white/50 truncate leading-tight mt-0.5">
-                  {currentUser.role === 'president' ? '代表' : currentUser.role === 'hq_member' ? '本部' : 'メンバー'}
+                  {sessionRole === 'owner' ? 'オーナー' : sessionRole === 'manager' ? 'マネージャー' : currentUser.role === 'president' ? '代表' : currentUser.role === 'hq_member' ? '本部' : 'メンバー'}
                 </div>
               </div>
-              <svg className="w-3.5 h-3.5 text-white/50 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8 9l4-4 4 4m0 6l-4 4-4-4" />
-              </svg>
-            </button>
-            {userSwitcherOpen && (
-              <div className="absolute left-2 right-2 top-full mt-1 bg-gray-900 border border-white/20 rounded-lg shadow-sm overflow-hidden z-50">
-                <div className="px-3 py-1.5 border-b border-white/10 text-xs font-semibold text-white/50 uppercase tracking-wider">ユーザー切替</div>
-                {Object.values(USERS).map((u) => (
-                  <button
-                    key={u.id}
-                    onClick={() => switchUser(u.id)}
-                    className={`w-full flex items-center gap-2 px-3 py-2 hover:bg-white/10 text-left ${u.id === currentUser.id ? 'bg-white/5' : ''}`}>
-                    <div className={`w-6 h-6 rounded-full ${u.color} flex items-center justify-center text-xs font-semibold text-white shrink-0`}>
-                      {u.initial}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="text-xs font-semibold text-white truncate">{u.name}</div>
-                      <div className="text-xs text-white/50">{u.role === 'president' ? '代表' : u.role === 'hq_member' ? '本部' : 'メンバー'}</div>
-                    </div>
-                    {u.id === currentUser.id && <span className="text-xs text-blue-300 shrink-0">●</span>}
-                  </button>
-                ))}
-              </div>
-            )}
+              {session && (
+                <button
+                  onClick={() => signOut({ callbackUrl: '/login' })}
+                  title="ログアウト"
+                  className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors shrink-0">
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
+                  </svg>
+                </button>
+              )}
+            </div>
           </div>
         )}
         {open && (
