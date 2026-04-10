@@ -7,7 +7,7 @@ import { useState, useEffect, Suspense } from 'react';
 import { useSession, signOut } from 'next-auth/react';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { NotificationCenter } from '@/components/ui/NotificationCenter';
-import { setCurrentMember } from '@/lib/currentMember';
+import { setCurrentMember, cacheMembersFromApi } from '@/lib/currentMember';
 import { loadAllDeals } from '@/lib/dealsStore';
 import { loadProductionCards } from '@/lib/productionCards';
 import type { UserRole } from '@/auth';
@@ -36,21 +36,39 @@ function loadCurrentUser(): CurrentUser {
   return USERS[id] ?? USERS.kashiwagi;
 }
 
-const MEMBERS = [
-  { id: 'kashiwagi', name: '柏樹 久美子', initial: '柏', color: 'bg-pink-500' },
-  { id: 'inukai', name: '犬飼 智之', initial: '犬', color: 'bg-emerald-500' },
-  { id: 'izumi', name: '和泉 阿委璃', initial: '和', color: 'bg-amber-500' },
-  { id: 'ono', name: '小野 崇', initial: '小', color: 'bg-indigo-500' },
-  { id: 'ichioka', name: '市岡 陸', initial: '市', color: 'bg-teal-500' },
+const MEMBER_COLORS = ['bg-pink-500', 'bg-emerald-500', 'bg-amber-500', 'bg-indigo-500', 'bg-teal-500', 'bg-blue-500', 'bg-purple-500', 'bg-rose-500'];
+
+function useMembers() {
+  const [members, setMembers] = useState<Array<{ id: string; name: string; initial: string; color: string }>>([]);
+  useEffect(() => {
+    fetch('/api/members')
+      .then((r) => r.json())
+      .then((data) => {
+        const raw = data.members ?? [];
+        const list = raw.map((m: { id: string; name: string }, i: number) => ({
+          id: m.id,
+          name: m.name,
+          initial: m.name.charAt(0),
+          color: MEMBER_COLORS[i % MEMBER_COLORS.length],
+        }));
+        setMembers(list);
+        cacheMembersFromApi(raw);
+      })
+      .catch(() => {});
+  }, []);
+  return members;
+}
+
+const DEFAULT_QUOTES = [
+  '打席に立たなければヒットは出ない。',
+  '小さな一歩が、大きな案件を動かす。',
+  '放置は最大の敵。今日連絡するだけで状況は変わる。',
+  '行動量がKPIの源泉。量×質=結果。',
 ];
 
-const MEMBER_KPI: Record<string, { revenue: number; revenueTarget: number; gross: number; grossTarget: number; meetings: number; newDeals: number; tasks: number; urgent: number; quote: string; role: string }> = {
-  kashiwagi: { revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: '打席に立たなければヒットは出ない。', role: 'Sales Lead' },
-  inukai:    { revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: '小さな一歩が、大きな案件を動かす。', role: 'PM / Engineer' },
-  izumi:     { revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: '放置は最大の敵。今日連絡するだけで状況は変わる。', role: 'Creative Director' },
-  ono:       { revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: '行動量がKPIの源泉。量×質=結果。', role: 'Field Sales' },
-  ichioka:   { revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: 'ピクセルの1つが体験を変える。', role: 'Designer' },
-};
+function getMemberKpi(memberId: string, idx: number) {
+  return { revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: DEFAULT_QUOTES[idx % DEFAULT_QUOTES.length], role: '' };
+}
 
 function getDateLabel(): string {
   const d = new Date();
@@ -59,8 +77,10 @@ function getDateLabel(): string {
 }
 
 function MemberContextPanel({ memberId }: { memberId: string }) {
-  const member = MEMBERS.find((m) => m.id === memberId);
-  const meta = MEMBER_KPI[memberId];
+  const allMembers = useMembers();
+  const member = allMembers.find((m) => m.id === memberId);
+  const memberIdx = allMembers.findIndex((m) => m.id === memberId);
+  const meta = getMemberKpi(memberId, memberIdx);
   const [kpi, setKpi] = useState({ revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: meta?.quote ?? '', role: meta?.role ?? '' });
   useEffect(() => {
     const deals = loadAllDeals();
@@ -289,6 +309,7 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
   const sessionMemberId = (session?.user as Record<string, unknown> | undefined)?.memberId as string | undefined;
   const sessionRole = (session?.user as Record<string, unknown> | undefined)?.role as UserRole | undefined;
   const currentUser = USERS[sessionMemberId ?? ''] ?? loadCurrentUser();
+  const MEMBERS = useMembers();
   useEffect(() => {
     if (sessionMemberId) {
       localStorage.setItem(CU_STORAGE_KEY, sessionMemberId);
