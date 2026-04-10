@@ -73,7 +73,7 @@ function useLiveFinancials() {
        budgetPlan.admin.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0)) * 10000
     : 0;
   const budgetOp = budgetGross - budgetSga;
-  const sga = budgetSga;
+  const sga = 0;
   const operatingProfit = grossProfit - sga;
   const ordinaryProfit = operatingProfit;
 
@@ -84,7 +84,7 @@ function useLiveFinancials() {
     { label: '営業利益',           budget: r(budgetOp),    actual: r(operatingProfit), ytdBudget: r(budgetOp), ytdActual: r(operatingProfit), momDir: 'flat' as const, reverse: false, kind: 'flow' as const },
     { label: '売上',               budget: r(budgetRevenue), actual: r(totalRevenue), ytdBudget: r(budgetRevenue), ytdActual: r(totalRevenue), momDir: 'flat' as const, reverse: false, kind: 'flow' as const },
     { label: '売上原価',           budget: r(budgetRevenue * 0.54), actual: r(cogs), ytdBudget: r(budgetRevenue * 0.54), ytdActual: r(cogs), momDir: 'flat' as const, reverse: true, kind: 'flow' as const },
-    { label: '販管費',             budget: r(sga), actual: r(sga), ytdBudget: r(sga), ytdActual: r(sga), momDir: 'flat' as const, reverse: true, kind: 'fixed' as const },
+    { label: '販管費',             budget: r(budgetSga), actual: r(sga), ytdBudget: r(budgetSga), ytdActual: r(sga), momDir: 'flat' as const, reverse: true, kind: 'fixed' as const },
     { label: '経常利益',           budget: 0, actual: r(ordinaryProfit), ytdBudget: 0, ytdActual: r(ordinaryProfit), momDir: 'flat' as const, reverse: false, kind: 'flow' as const },
   ];
 
