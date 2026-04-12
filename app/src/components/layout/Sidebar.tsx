@@ -20,6 +20,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/monthly', label: '月次', icon: '📈' },
   { href: '/team', label: 'チーム', icon: '🤝' },
   { href: '/settings', label: '設定', icon: '⚙️' },
+  { href: '/guide', label: 'はじめてガイド', icon: '🗺️' },
 ];
 
 type Props = {
