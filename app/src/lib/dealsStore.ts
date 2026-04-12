@@ -21,10 +21,12 @@ export function loadAllDeals(): Deal[] {
 }
 
 export function addDeal(deal: Deal): void {
-  const deals = loadAllDeals();
-  const existing = deals.find((d) => d.id === deal.id);
-  if (existing) return;
-  saveAllDeals([...deals, deal]);
+  if (typeof window === 'undefined') return;
+  const saved = localStorage.getItem(DEALS_KEY);
+  const mainDeals: Deal[] = saved ? (() => { try { const p = JSON.parse(saved); return Array.isArray(p) ? p : []; } catch { return []; } })() : [];
+  if (mainDeals.some((d) => d.id === deal.id)) return;
+  mainDeals.push(deal);
+  localStorage.setItem(DEALS_KEY, JSON.stringify(mainDeals));
 }
 
 export function updateDeal(id: string, patch: Partial<Deal>): void {
@@ -33,6 +35,19 @@ export function updateDeal(id: string, patch: Partial<Deal>): void {
   if (idx === -1) return;
   deals[idx] = { ...deals[idx], ...patch };
   saveAllDeals(deals);
+  removeFromAttacks(id);
+}
+
+function removeFromAttacks(id: string): void {
+  try {
+    const raw = localStorage.getItem(ATTACK_KEY);
+    if (!raw) return;
+    const attacks = JSON.parse(raw) as Deal[];
+    const filtered = attacks.filter((d) => d.id !== id);
+    if (filtered.length !== attacks.length) {
+      localStorage.setItem(ATTACK_KEY, JSON.stringify(filtered));
+    }
+  } catch {}
 }
 
 export function saveAllDeals(deals: Deal[]): void {
@@ -86,7 +101,7 @@ export function calcDealKpi(deals: Deal[]): DealKpiSummary {
   const totalGrossProfit = Math.round(totalRevenue * grossRate);
   const pipelineWeighted = pipeline.reduce((s, d) => s + Math.round(d.amount * d.probability / 100), 0);
 
-  const assignees = [...new Set(deals.map((d) => d.assignee))];
+  const assignees = [...new Set(deals.map((d) => d.assignee).filter((a) => a && a.trim()))];
   const memberStats: MemberDealStat[] = assignees.map((name) => {
     const mine = deals.filter((d) => d.assignee === name);
     const myOrdered = mine.filter((d) => ORDERED_STAGES.includes(d.stage));

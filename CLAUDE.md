@@ -60,9 +60,9 @@ tripot/
 
 ## 本番環境
 
-- URL: https://app-sigma-seven-46.vercel.app
+- URL: https://tripot-system.vercel.app
 - GitHub: https://github.com/kimitaicyou-png/tripot-
-- Vercel project: `app`（ktoki-2559s-projects）
+- Vercel project: `tripot-system`（ktoki-2559s-projects）
 
 ## 認証・権限
 

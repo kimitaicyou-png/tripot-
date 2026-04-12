@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Deal } from '@/lib/stores/types';
+import { useMemberNames } from '@/lib/hooks/useMemberNames';
 
 type Props = {
   onSubmit: (deal: Deal) => void;
@@ -9,15 +10,15 @@ type Props = {
 };
 
 const INDUSTRIES = ['IT', '製造業', '医療', '教育', '金融', '物流', '農業', '福祉', '建設', '食品', '商社', '不動産', '官公庁・教育', 'その他'];
-const ASSIGNEES = ['柏樹 久美子', '犬飼 智之', '和泉 阿委璃', '小野 崇'];
 
 export function DealForm({ onSubmit, onClose }: Props) {
+  const memberNames = useMemberNames();
   const [clientName, setClientName] = useState('');
   const [dealName, setDealName] = useState('');
   const [industry, setIndustry] = useState('IT');
   const [amount, setAmount] = useState('');
   const [probability, setProbability] = useState('50');
-  const [assignee, setAssignee] = useState(ASSIGNEES[0]);
+  const [assignee, setAssignee] = useState('');
   const [revenueType, setRevenueType] = useState<'shot' | 'running'>('shot');
   const [memo, setMemo] = useState('');
 
@@ -83,7 +84,8 @@ export function DealForm({ onSubmit, onClose }: Props) {
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">担当者</label>
             <select value={assignee} onChange={(e) => setAssignee(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
-              {ASSIGNEES.map((n) => <option key={n} value={n}>{n}</option>)}
+              <option value="">選択してください</option>
+              {memberNames.map((n) => <option key={n} value={n}>{n}</option>)}
             </select>
           </div>
           <div>

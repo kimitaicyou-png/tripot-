@@ -97,12 +97,48 @@ function VoiceInput({ value, onChange }: { value: string; onChange: (v: string) 
   );
 }
 
-function MeetingTabContent({ deal, meetings }: { deal: Deal; meetings: CommRecord[] }) {
+function MeetingTabContent({ deal, meetings: initialMeetings }: { deal: Deal; meetings: CommRecord[] }) {
   const [voiceText, setVoiceText] = useState('');
   const [minutesGenerating, setMinutesGenerating] = useState(false);
   const [minutesResult, setMinutesResult] = useState('');
   const [extractedNeeds, setExtractedNeeds] = useState<string[]>([]);
   const [showNeedsExtracted, setShowNeedsExtracted] = useState(false);
+  const [savedMeetings, setSavedMeetings] = useState<CommRecord[]>([]);
+  const [showVoiceInput, setShowVoiceInput] = useState(false);
+  const [saveToast, setSaveToast] = useState(false);
+
+  const meetings = [...savedMeetings, ...initialMeetings];
+
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem(`coaris_meetings_${deal.id}`);
+      if (raw) setSavedMeetings(JSON.parse(raw) as CommRecord[]);
+    } catch {}
+  }, [deal.id]);
+
+  const saveMinutesToMeeting = () => {
+    if (!minutesResult) return;
+    const newMeeting: CommRecord = {
+      id: `meeting_${Date.now()}`,
+      date: new Date().toLocaleDateString('ja-JP'),
+      type: 'meeting',
+      title: `打合せ記録 ${new Date().toLocaleDateString('ja-JP')}`,
+      summary: minutesResult.slice(0, 200),
+      needs: extractedNeeds.length > 0 ? extractedNeeds : undefined,
+    };
+    const updated = [newMeeting, ...savedMeetings];
+    setSavedMeetings(updated);
+    try {
+      localStorage.setItem(`coaris_meetings_${deal.id}`, JSON.stringify(updated));
+    } catch {}
+    setMinutesResult('');
+    setVoiceText('');
+    setShowNeedsExtracted(false);
+    setExtractedNeeds([]);
+    setShowVoiceInput(false);
+    setSaveToast(true);
+    setTimeout(() => setSaveToast(false), 2000);
+  };
 
   const generateMinutes = async () => {
     if (!voiceText.trim()) return;
@@ -142,8 +178,15 @@ function MeetingTabContent({ deal, meetings }: { deal: Deal; meetings: CommRecor
 
   return (
     <div>
+      {saveToast && (
+        <div className="mb-3 text-center text-sm font-semibold text-green-700 bg-green-50 border border-green-200 rounded-xl py-2">
+          打合せ記録を保存しました ✓
+        </div>
+      )}
       <div className="flex gap-2 mb-3">
-        <button className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-700 active:scale-[0.98] transition-all duration-200">
+        <button
+          onClick={() => setShowVoiceInput(true)}
+          className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-gray-50 border border-gray-200 text-sm font-medium text-gray-700 active:scale-[0.98] transition-all duration-200">
           + 打合せを記録
         </button>
       </div>
@@ -171,7 +214,7 @@ function MeetingTabContent({ deal, meetings }: { deal: Deal; meetings: CommRecor
           ))}
         </div>
       )}
-      <div className="space-y-3 mt-2">
+      {showVoiceInput && <div className="space-y-3 mt-2">
         <VoiceInput value={voiceText} onChange={setVoiceText} />
         {voiceText.trim() && (
           <button
@@ -204,13 +247,13 @@ function MeetingTabContent({ deal, meetings }: { deal: Deal; meetings: CommRecor
             <div className="bg-gray-50 rounded-xl p-4 border border-gray-200">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-semibold text-gray-900">生成された議事録</span>
-                <button className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium active:scale-[0.98]">保存</button>
+                <button onClick={saveMinutesToMeeting} className="px-3 py-1 bg-blue-600 text-white rounded text-xs font-medium active:scale-[0.98]">保存</button>
               </div>
               <pre className="text-xs text-gray-800 whitespace-pre-wrap leading-relaxed">{minutesResult}</pre>
             </div>
           </div>
         )}
-      </div>
+      </div>}
     </div>
   );
 }

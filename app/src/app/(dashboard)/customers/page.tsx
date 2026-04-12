@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { logEmailSent } from '@/lib/emailLog';
 import { useRouter } from 'next/navigation';
 import { type Deal } from '@/components/deals';
-import { loadAllDeals } from '@/lib/dealsStore';
+import { loadAllDeals, addDeal } from '@/lib/dealsStore';
 import type { CustomerMaster } from '@/components/personal/PhotoDealCapture';
 
 const ACTIVE_STAGES = new Set([
@@ -171,19 +171,13 @@ function DealCreateModal({
       stage: 'lead' as Deal['stage'],
       amount: form.amount ? parseInt(form.amount, 10) : 0,
       probability: 20,
-      assignee: '柏樹 久美子',
+      assignee: '',
       lastDate: today,
       memo: form.memo,
       revenueType: 'shot',
     };
 
-    try {
-      const raw = localStorage.getItem('coaris_attack_to_deals');
-      const arr: Deal[] = raw ? JSON.parse(raw) : [];
-      arr.push(newDeal);
-      localStorage.setItem('coaris_attack_to_deals', JSON.stringify(arr));
-    } catch {
-    }
+    addDeal(newDeal);
 
     onCreated();
     onClose();
@@ -298,7 +292,7 @@ function CustomerDetail({
     showToast({
       message: '案件を作成しました',
       type: 'success',
-      link: { label: '案件管理を開く', href: '/home/kashiwagi/deals' },
+      link: { label: '案件管理を開く', href: '/home/toki/deals' },
     });
   }, [showToast]);
 

@@ -1,7 +1,7 @@
 # セッション引き継ぎ 2026-04-12
 
 ## 本番URL
-- **Vercel:** https://app-sigma-seven-46.vercel.app
+- **Vercel:** https://tripot-system.vercel.app
 - **GitHub:** https://github.com/kimitaicyou-png/tripot-
 
 ## 今日やったこと（全量）
@@ -115,5 +115,5 @@ AUTH_SECRET → Production + Development
 AUTH_GOOGLE_ID → Production + Development
 AUTH_GOOGLE_SECRET → Production + Development
 ANTHROPIC_API_KEY → Production + Development
-NEXTAUTH_URL → Production (https://app-sigma-seven-46.vercel.app)
+NEXTAUTH_URL → Production (https://tripot-system.vercel.app)
 ```

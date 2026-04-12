@@ -83,7 +83,12 @@ export function TodayProgressCTA() {
   };
 
   const openModal = (type: ModalType) => {
-    setSelectedDealId(activeDeals[0]?.id ?? '');
+    const fresh = loadAllDeals();
+    setDeals(fresh);
+    const freshActive = fresh.filter((d) =>
+      ['lead', 'meeting', 'proposal', 'estimate_sent', 'negotiation', 'ordered'].includes(d.stage)
+    );
+    setSelectedDealId(freshActive[0]?.id ?? '');
     setMeetingStage('no_change');
     setModal(type);
   };

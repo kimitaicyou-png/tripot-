@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import type { Deal } from '@/lib/deals/types';
+import { useMemberNames } from '@/lib/hooks/useMemberNames';
 
 type Props = {
   onClose: () => void;
@@ -10,13 +11,14 @@ type Props = {
 };
 
 export function NewDealModal({ onClose, onAdd, existingDeals }: Props) {
+  const memberNames = useMemberNames();
   const [clientName, setClientName] = useState('');
   const [dealName, setDealName] = useState('');
   const [industry, setIndustry] = useState('製造業');
   const [amount, setAmount] = useState('');
   const [probability, setProbability] = useState('50');
   const [revenueType, setRevenueType] = useState<'shot' | 'running'>('shot');
-  const [assignee, setAssignee] = useState('柏樹 久美子');
+  const [assignee, setAssignee] = useState('');
   const [memo, setMemo] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
 
@@ -156,7 +158,8 @@ export function NewDealModal({ onClose, onAdd, existingDeals }: Props) {
             <label className="block text-xs font-semibold text-gray-700 mb-1">担当者</label>
             <select value={assignee} onChange={(e) => setAssignee(e.target.value)}
               className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none bg-white">
-              {['柏樹 久美子', '犬飼 智之', '和泉 阿委璃', '小野 崇'].map((n) => (
+              <option value="">選択してください</option>
+              {memberNames.map((n) => (
                 <option key={n} value={n}>{n}</option>
               ))}
             </select>

@@ -193,6 +193,6 @@ export function getHqSummary() {
 
 export function getDaysSinceJoined(joinedAt: string): number {
   const joined = new Date(joinedAt);
-  const today = new Date('2026-04-08');
+  const today = new Date();
   return Math.floor((today.getTime() - joined.getTime()) / 86400000);
 }

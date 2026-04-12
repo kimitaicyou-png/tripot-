@@ -22,13 +22,11 @@ const QUOTES = [
   '小さな一歩が、大きな案件を動かす。',
 ];
 
-function getTodayQuote(): string {
-  const day = new Date().getDay();
+function getTodayQuote(day: number): string {
   return QUOTES[day % QUOTES.length];
 }
 
-function getDateString(): string {
-  const d = new Date();
+function getDateString(d: Date): string {
   const days = ['日', '月', '火', '水', '木', '金', '土'];
   return `${d.getMonth() + 1}月${d.getDate()}日 (${days[d.getDay()]})`;
 }
@@ -90,7 +88,8 @@ function saveProdTaskStatus(map: Record<string, string>): void {
 
 function buildDueLabel(dateStr: string): { dueLabel: string; priority: ActionPriority } {
   const d = new Date(dateStr);
-  const today = new Date('2026-04-08');
+  const now = new Date();
+  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
   const diff = Math.ceil((d.getTime() - today.getTime()) / 86400000);
   if (diff < 0) return { dueLabel: `${Math.abs(diff)}日超過`, priority: 'urgent' };
   if (diff === 0) return { dueLabel: '今日', priority: 'today' };
@@ -136,7 +135,8 @@ function isNewbie(joinedAt: string): boolean {
 }
 
 function NewbadgePill({ joinedAt }: { joinedAt: string }) {
-  const info = getNewbadgeInfo(joinedAt);
+  const [info, setInfo] = useState<ReturnType<typeof getNewbadgeInfo>>(null);
+  useEffect(() => { setInfo(getNewbadgeInfo(joinedAt)); }, [joinedAt]);
   if (!info) return null;
   return (
     <span className={`inline-flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${info.className}`}>
@@ -486,7 +486,9 @@ export default function MemberDashboardPage() {
   const memberId = params.memberId as string;
   const member = MEMBERS[memberId] ?? { firstName: memberId, role: 'Member', accent: '#3B82F6', joinedAt: '2020-01-01' };
 
-  const newbie = isNewbie(member.joinedAt);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
+  const newbie = mounted ? isNewbie(member.joinedAt) : false;
   const memberKpi = MEMBER_KPIS.find((m) => m.id === memberId);
   const isZeroKpi = memberKpi
     ? memberKpi.revenue === 0 && memberKpi.gross === 0 && memberKpi.meetings === 0
