@@ -192,7 +192,7 @@ export function AttackContent() {
         revenueType: 'shot' as const, industry: target.industry || 'その他',
         stage: status === 'dealt' ? 'proposal' as const : 'meeting' as const,
         amount: 0, probability: status === 'dealt' ? 50 : 30,
-        assignee: '柏樹 久美子', lastDate: new Date().toISOString().slice(0, 10),
+        assignee: '', lastDate: new Date().toISOString().slice(0, 10),
         memo: target.memo || `アタックリストから${status === 'dealt' ? '案件化' : '商談化'}`,
       });
       setConversionMsg(`${target.company} を案件管理に追加しました`);

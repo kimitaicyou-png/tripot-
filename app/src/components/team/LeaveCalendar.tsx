@@ -16,12 +16,7 @@ type Props = {
   onChange: (entries: LeaveEntry[]) => void;
 };
 
-const MEMBERS = [
-  { id: 'kashiwagi', name: '柏樹 久美子', initial: '柏', color: 'bg-pink-500' },
-  { id: 'inukai', name: '犬飼 智之', initial: '犬', color: 'bg-emerald-500' },
-  { id: 'izumi', name: '和泉 阿委璃', initial: '和', color: 'bg-amber-500' },
-  { id: 'ono', name: '小野 崇', initial: '小', color: 'bg-indigo-500' },
-];
+const MEMBERS: { id: string; name: string; initial: string; color: string }[] = [];
 
 const LEAVE_TYPE_CONFIG: Record<LeaveEntry['type'], { label: string; bg: string; text: string; border: string }> = {
   paid: { label: '有給', bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-200' },
@@ -296,43 +291,4 @@ export function LeaveCalendar({ entries, onChange }: Props) {
 
 const BASE_DATE = new Date();
 
-export const MOCK_LEAVE_ENTRIES: LeaveEntry[] = [
-  {
-    id: 'l1',
-    memberId: 'kashiwagi',
-    memberName: '柏樹 久美子',
-    type: 'paid',
-    date: new Date(BASE_DATE.getFullYear(), BASE_DATE.getMonth(), 10).toISOString().slice(0, 10),
-    note: '私用',
-  },
-  {
-    id: 'l2',
-    memberId: 'inukai',
-    memberName: '犬飼 智之',
-    type: 'remote',
-    date: new Date(BASE_DATE.getFullYear(), BASE_DATE.getMonth(), BASE_DATE.getDate() + 1).toISOString().slice(0, 10),
-  },
-  {
-    id: 'l3',
-    memberId: 'izumi',
-    memberName: '和泉 阿委璃',
-    type: 'sick',
-    date: new Date(BASE_DATE.getFullYear(), BASE_DATE.getMonth(), BASE_DATE.getDate()).toISOString().slice(0, 10),
-    note: '体調不良',
-  },
-  {
-    id: 'l4',
-    memberId: 'ono',
-    memberName: '小野 崇',
-    type: 'half',
-    date: new Date(BASE_DATE.getFullYear(), BASE_DATE.getMonth(), BASE_DATE.getDate() + 2).toISOString().slice(0, 10),
-    note: '午後半休',
-  },
-  {
-    id: 'l5',
-    memberId: 'kashiwagi',
-    memberName: '柏樹 久美子',
-    type: 'remote',
-    date: new Date(BASE_DATE.getFullYear(), BASE_DATE.getMonth(), 20).toISOString().slice(0, 10),
-  },
-];
+export const MOCK_LEAVE_ENTRIES: LeaveEntry[] = [];

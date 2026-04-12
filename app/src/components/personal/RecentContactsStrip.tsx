@@ -207,7 +207,7 @@ export default function RecentContactsStrip() {
         stage: 'lead',
         amount: 0,
         probability: 20,
-        assignee: '柏樹 久美子',
+        assignee: '',
         lastDate: new Date().toISOString().slice(0, 10),
         memo: `名刺交換（${contact.name} ${contact.title}）から案件化`,
       };

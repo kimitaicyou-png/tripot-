@@ -1,5 +1,5 @@
 export const CURRENT_USER = {
-  name: '柏樹 久美子',
+  name: '',
   companyName: 'トライポット株式会社',
   companyShort: 'トライポット',
 };

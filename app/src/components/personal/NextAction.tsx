@@ -32,18 +32,12 @@ function formatDate(date: string): string {
   return `${parseInt(month)}/${parseInt(day)}`;
 }
 
-const ASSIGNEE_OPTIONS = [
-  '柏樹 久美子',
-  '犬飼 智之',
-  '和泉 阿委璃',
-  '西田 玄暉',
-  '土岐 公人',
-];
+const ASSIGNEE_OPTIONS: string[] = [];
 
 export default function NextAction({ action, onChange, compact = false, currentStage, stageOptions, onStageChange }: Props) {
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<NextActionData>(
-    action ?? { date: '', time: '', content: '', assignee: '柏樹 久美子', nextStage: currentStage }
+    action ?? { date: '', time: '', content: '', assignee: '', nextStage: currentStage }
   );
 
   if (compact) {
@@ -71,7 +65,7 @@ export default function NextAction({ action, onChange, compact = false, currentS
 
   const handleClear = () => {
     onChange(null);
-    setDraft({ date: '', time: '', content: '', assignee: '柏樹 久美子' });
+    setDraft({ date: '', time: '', content: '', assignee: '' });
     setEditing(false);
   };
 
@@ -95,7 +89,7 @@ export default function NextAction({ action, onChange, compact = false, currentS
           <button
             type="button"
             onClick={() => {
-              setDraft(action ?? { date: '', time: '', content: '', assignee: '柏樹 久美子' });
+              setDraft(action ?? { date: '', time: '', content: '', assignee: '' });
               setEditing(true);
             }}
             className="text-xs text-blue-600 hover:text-blue-800 hover:underline"
@@ -224,8 +218,4 @@ export default function NextAction({ action, onChange, compact = false, currentS
 
 export type { NextActionData };
 
-export const MOCK_NEXT_ACTIONS: Record<string, NextActionData> = {
-  'd1': { date: '2026-04-10', time: '14:00', content: '先方決裁確認のフォロー電話', assignee: '柏樹 久美子' },
-  'd2': { date: '2026-04-09', time: '11:00', content: 'フォローアップ電話',    assignee: '柏樹 久美子' },
-  'd3': { date: '2026-04-15',               content: '中間報告書提出',          assignee: '柏樹 久美子' },
-};
+export const MOCK_NEXT_ACTIONS: Record<string, NextActionData> = {};

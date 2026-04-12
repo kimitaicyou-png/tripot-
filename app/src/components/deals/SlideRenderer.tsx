@@ -36,7 +36,7 @@ export function SlideRenderer({ slide, deal, isPresent }: SlideRendererProps) {
           </div>
           <div className="text-right">
             <p className={`${metaSize} text-white/80 font-semibold`}>トライポット株式会社</p>
-            <p className={`${metaSize} text-white/40`}>柏樹 久美子</p>
+            <p className={`${metaSize} text-white/40`}>{deal.assignee}</p>
           </div>
         </div>
       </div>

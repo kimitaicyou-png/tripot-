@@ -16,23 +16,7 @@ type Props = {
   onClose: () => void;
 };
 
-const MOCK_RESULTS: SearchResult[] = [
-  { id: 'd1', type: 'deal', title: '株式会社山田製作所 DX支援', subtitle: '案件 · 進行中 · ¥3,200,000', url: '/home/kashiwagi' },
-  { id: 'd2', type: 'deal', title: 'ナゴヤフーズ Lark Base導入', subtitle: '案件 · 提案中 · ¥1,800,000', url: '/home/inukai' },
-  { id: 'd3', type: 'deal', title: '東海商事 業務改善コンサル', subtitle: '案件 · 完了 · ¥2,500,000', url: '/home/izumi' },
-  { id: 'd4', type: 'deal', title: 'マルヨシ工業 AI見える化', subtitle: '案件 · 進行中 · ¥4,100,000', url: '/home/ono' },
-  { id: 'd5', type: 'deal', title: 'セントラル物流 DXロードマップ', subtitle: '案件 · 失注 · ¥900,000', url: '/home/kashiwagi' },
-  { id: 'c1', type: 'customer', title: '株式会社山田製作所', subtitle: '顧客 · 製造業 · 愛知県名古屋市', url: '/customers' },
-  { id: 'c2', type: 'customer', title: 'ナゴヤフーズ株式会社', subtitle: '顧客 · 飲食業 · 愛知県名古屋市', url: '/customers' },
-  { id: 'c3', type: 'customer', title: '東海商事株式会社', subtitle: '顧客 · 商社 · 愛知県名古屋市', url: '/customers' },
-  { id: 'p1', type: 'project', title: 'Lark Base導入テンプレ整備', subtitle: 'プロジェクト · 進行中 · 担当: 犬飼', url: '/production' },
-  { id: 'p2', type: 'project', title: '見積書自動化システム', subtitle: 'プロジェクト · 完了 · 担当: 柏樹', url: '/production' },
-  { id: 'p3', type: 'project', title: 'Coaris AI v2 設計', subtitle: 'プロジェクト · 準備中 · 担当: 小野', url: '/production' },
-  { id: 'm1', type: 'member', title: '柏樹 久美子', subtitle: 'メンバー · 社長 · トライポット', url: '/home/kashiwagi' },
-  { id: 'm2', type: 'member', title: '犬飼 智之', subtitle: 'メンバー · 営業 · トライポット', url: '/home/inukai' },
-  { id: 'm3', type: 'member', title: '和泉 阿委璃', subtitle: 'メンバー · デザイン · トライポット', url: '/home/izumi' },
-  { id: 'm4', type: 'member', title: '小野 崇', subtitle: 'メンバー · エンジニア · トライポット', url: '/home/ono' },
-];
+const MOCK_RESULTS: SearchResult[] = [];
 
 const TYPE_LABEL: Record<SearchResult['type'], string> = {
   deal: '案件',

@@ -57,13 +57,7 @@ export type CompanyKpi = {
   alertLevel: 'normal' | 'caution' | 'danger';
 };
 
-export const MEMBER_KPIS: MemberKpi[] = [
-  { id: 'kashiwagi', name: '柏樹 久美子', initial: '柏', color: 'bg-pink-500',    role: 'Sales Lead',        revenue: 1050, revenueTarget: 1200, gross: 480, grossTarget: 600, meetings: 8,  newDeals: 3, tasks: 7, urgent: 1, quote: '打席に立たなければヒットは出ない。',  joinedAt: '2023-04-01' },
-  { id: 'inukai',    name: '犬飼 智之',   initial: '犬', color: 'bg-emerald-500', role: 'Account Manager',   revenue: 1420, revenueTarget: 1500, gross: 650, grossTarget: 720, meetings: 11, newDeals: 4, tasks: 5, urgent: 0, quote: '小さな一歩が、大きな案件を動かす。', joinedAt: '2022-10-01' },
-  { id: 'izumi',     name: '和泉 阿委璃', initial: '和', color: 'bg-amber-500',   role: 'Creative Director', revenue: 880,  revenueTarget: 1000, gross: 410, grossTarget: 500, meetings: 6,  newDeals: 2, tasks: 9, urgent: 2, quote: '放置は最大の敵。',                   joinedAt: '2026-03-17' },
-  { id: 'ono',       name: '小野 崇',     initial: '小', color: 'bg-indigo-500',  role: 'Field Sales',       revenue: 720,  revenueTarget: 900,  gross: 330, grossTarget: 450, meetings: 5,  newDeals: 1, tasks: 6, urgent: 1, quote: '行動量がKPIの源泉。',               joinedAt: '2024-01-10' },
-  { id: 'ichioka',   name: '市岡 陸',     initial: '市', color: 'bg-teal-500',    role: 'Junior Sales',      revenue: 0,    revenueTarget: 500,  gross: 0,   grossTarget: 250, meetings: 0,  newDeals: 0, tasks: 0, urgent: 0, quote: 'まず動く。考えるのはその後でいい。', joinedAt: '2026-04-01' },
-];
+export const MEMBER_KPIS: MemberKpi[] = [];
 
 export function getMemberKpi(id: string): MemberKpi | undefined {
   return MEMBER_KPIS.find((m) => m.id === id);

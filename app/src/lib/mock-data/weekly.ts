@@ -56,12 +56,7 @@ export type PrevTodoItem = {
   insight?: string;
 };
 
-export const PREV_TODOS_MOCK: PrevTodoItem[] = [
-  { id: 'p1', content: '豊田精工CTO 鈴木氏に技術提案書を送付', assignee: '渡辺', status: 'completed', weeksCarried: 0, insight: '直接電話してから送付したのが効いた' },
-  { id: 'p2', content: '教育委員会 中間報告書を提出', assignee: '山本', status: 'completed', weeksCarried: 0 },
-  { id: 'p3', content: '新規リード3件にアポ電話', assignee: '柏樹', status: 'pending', weeksCarried: 2, reason: '' },
-  { id: 'p4', content: '外注単価の再交渉（粗利改善）', assignee: '柏樹', status: 'pending', weeksCarried: 3, reason: '先方担当者が出張中で連絡取れず' },
-];
+export const PREV_TODOS_MOCK: PrevTodoItem[] = [];
 
 export type NewTodo = {
   id: string;
@@ -70,10 +65,7 @@ export type NewTodo = {
   deadline: string;
 };
 
-export const NEXT_TODOS_INITIAL: NewTodo[] = [
-  { id: 'n1', content: '中京メディカル 技術検証MTG実施', assignee: '柏樹 久美子', deadline: '2026-04-11' },
-  { id: 'n2', content: '碧会 院長に提案書プレゼン', assignee: '柏樹 久美子', deadline: '2026-04-10' },
-];
+export const NEXT_TODOS_INITIAL: NewTodo[] = [];
 
 export const FUNNEL_STAGES: { key: ActionType; label: string; dataKey: string }[] = [
   { key: 'appointment', label: 'アポ', dataKey: 'appointments' },

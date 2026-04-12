@@ -218,14 +218,7 @@ export function getMarketData(industry: string): MarketData {
   return MARKET_DATA[industry] ?? MARKET_DATA_DEFAULT;
 }
 
-export const RESOURCES = [
-  { id: 'ono', name: '小野 崇', role: 'PM', load: 80, type: 'inhouse' as const },
-  { id: 'kashiwagi', name: '柏樹 久美子', role: '営業', load: 60, type: 'inhouse' as const },
-  { id: 'inukai', name: '犬飼 智之', role: '開発', load: 90, type: 'inhouse' as const },
-  { id: 'izumi', name: '和泉 阿委璃', role: 'ディレクター', load: 40, type: 'inhouse' as const },
-  { id: 'create-design', name: 'クリエイトデザイン', role: 'UIデザイン', load: 50, type: 'outsource' as const },
-  { id: 'tech-bridge', name: 'テックブリッジ', role: 'インフラ', load: 25, type: 'outsource' as const },
-];
+export const RESOURCES: { id: string; name: string; role: string; load: number; type: 'inhouse' | 'outsource' }[] = [];
 
 export const COMPANY_BANK_ACCOUNT = {
   bank: '三菱UFJ銀行',

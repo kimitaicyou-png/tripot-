@@ -16,14 +16,9 @@ type Props = {
   currentUser: string;
 };
 
-const MEMBERS = ['柏樹 久美子', '犬飼 智之', '和泉 阿委璃', '小野 崇'];
+const MEMBERS: string[] = [];
 
-const MEMBER_INITIALS: Record<string, { initial: string; color: string }> = {
-  '柏樹 久美子': { initial: '柏', color: 'bg-pink-500' },
-  '犬飼 智之': { initial: '犬', color: 'bg-emerald-500' },
-  '和泉 阿委璃': { initial: '和', color: 'bg-amber-500' },
-  '小野 崇': { initial: '小', color: 'bg-indigo-500' },
-};
+const MEMBER_INITIALS: Record<string, { initial: string; color: string }> = {};
 
 function formatDate(dateStr: string): string {
   const d = new Date(dateStr);
@@ -194,33 +189,4 @@ export function InternalComments({ comments, onChange, currentUser }: Props) {
   );
 }
 
-export const MOCK_COMMENTS: Comment[] = [
-  {
-    id: 'c1',
-    author: '柏樹 久美子',
-    content: '山田製作所の件、先方の担当者が変わったそうです。@犬飼 智之 引き続き対応お願いします。',
-    mentions: ['犬飼 智之'],
-    createdAt: new Date(Date.now() - 3 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'c2',
-    author: '犬飼 智之',
-    content: '承知しました。来週月曜に再訪問の予定を入れます。',
-    mentions: [],
-    createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'c3',
-    author: '和泉 阿委璃',
-    content: '提案資料の修正が完了しました。@柏樹 久美子 ご確認をお願いします。',
-    mentions: ['柏樹 久美子'],
-    createdAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000).toISOString(),
-  },
-  {
-    id: 'c4',
-    author: '小野 崇',
-    content: 'システム連携の要件定義が固まりました。見積もりの更新が必要かもしれません。@犬飼 智之 確認してください。',
-    mentions: ['犬飼 智之'],
-    createdAt: new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString(),
-  },
-];
+export const MOCK_COMMENTS: Comment[] = [];

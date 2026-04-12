@@ -21,15 +21,7 @@ type Props = {
   onAssignmentsChange: (assignments: Assignment[]) => void;
 };
 
-const RESOURCE_OPTIONS = [
-  { id: 'r1', name: '小野 崇', role: '代表取締役/PM', type: 'inhouse' as const, unitPrice: 1000000 },
-  { id: 'r2', name: '柏樹 久美子', role: '営業/ディレクター', type: 'inhouse' as const, unitPrice: 800000 },
-  { id: 'r3', name: '渡辺 健', role: 'エンジニア', type: 'inhouse' as const, unitPrice: 750000 },
-  { id: 'r4', name: '山本 彩', role: 'エンジニア/QA', type: 'inhouse' as const, unitPrice: 700000 },
-  { id: 'r5', name: 'クリエイトデザイン', role: 'UIデザイン', type: 'outsource' as const, unitPrice: 600000 },
-  { id: 'r6', name: 'テックブリッジ', role: 'インフラ/DevOps', type: 'outsource' as const, unitPrice: 850000 },
-  { id: 'r7', name: 'QAパートナーズ', role: 'テスト/QA', type: 'outsource' as const, unitPrice: 550000 },
-];
+const RESOURCE_OPTIONS: { id: string; name: string; role: string; type: 'inhouse' | 'outsource'; unitPrice: number }[] = [];
 
 export function AssignmentTable({ assignments, revenue, onAssignmentsChange }: Props) {
   const [showAddModal, setShowAddModal] = useState(false);
@@ -314,9 +306,4 @@ export function AssignmentTable({ assignments, revenue, onAssignmentsChange }: P
   );
 }
 
-export const MOCK_ASSIGNMENTS: Assignment[] = [
-  { id: 'a1', resourceId: 'r4', resourceName: '山本 彩', role: 'PM', type: 'inhouse', unitPrice: 800000, plannedMonths: 2, actualMonths: 1.6, startDate: '2026-03-01' },
-  { id: 'a2', resourceId: 'r3', resourceName: '渡辺 健', role: '開発', type: 'inhouse', unitPrice: 750000, plannedMonths: 3, actualMonths: 1.5, startDate: '2026-03-15' },
-  { id: 'a3', resourceId: 'r4', resourceName: '山本 彩', role: 'QA', type: 'inhouse', unitPrice: 700000, plannedMonths: 0.5, actualMonths: null, startDate: '2026-06-01' },
-  { id: 'a4', resourceId: 'r5', resourceName: 'クリエイトデザイン', role: 'UIデザイン', type: 'outsource', unitPrice: 600000, plannedMonths: 1, actualMonths: 1, startDate: '2026-03-01' },
-];
+export const MOCK_ASSIGNMENTS: Assignment[] = [];

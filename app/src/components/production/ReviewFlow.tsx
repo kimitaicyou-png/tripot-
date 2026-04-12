@@ -181,9 +181,4 @@ export default function ReviewFlow({ reviews, onChange }: Props) {
 
 export type { ReviewItem };
 
-export const MOCK_REVIEWS: ReviewItem[] = [
-  { id: 'rv1', name: '画面設計書',           type: 'document', status: 'approved',  reviewer: '柏樹 久美子', submittedAt: '2026-04-01', comment: '問題なし。承認します。' },
-  { id: 'rv2', name: 'UIデザインカンプ v1',  type: 'design',   status: 'in_review', reviewer: '和泉 阿委璃', submittedAt: '2026-04-05' },
-  { id: 'rv3', name: 'API設計書',            type: 'document', status: 'rejected',  reviewer: '犬飼 智之',   submittedAt: '2026-04-04', comment: 'エンドポイント命名規則が統一されていません。修正が必要です。' },
-  { id: 'rv4', name: 'フロントエンド実装',   type: 'code',     status: 'pending',   reviewer: '犬飼 智之',   submittedAt: '' },
-];
+export const MOCK_REVIEWS: ReviewItem[] = [];

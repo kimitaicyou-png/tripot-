@@ -39,43 +39,7 @@ export function seedDemoNotifications(currentMemberId: string): void {
   if (typeof window === 'undefined') return;
   if (localStorage.getItem(DEMO_SEEDED_KEY)) return;
 
-  const demos: Notification[] = [
-    {
-      id: generateId(),
-      toMemberId: currentMemberId,
-      fromMemberId: 'kashiwagi',
-      fromName: '柏樹 久美子',
-      type: 'task_assigned',
-      title: '新案件をアサインしました',
-      body: 'アークデザイン様のWebリニューアル案件を担当してください。',
-      link: '/production',
-      createdAt: new Date(Date.now() - 30 * 60 * 1000).toISOString(),
-      read: false,
-    },
-    {
-      id: generateId(),
-      toMemberId: currentMemberId,
-      fromMemberId: 'izumi',
-      fromName: '和泉 阿委璃',
-      type: 'task_assigned',
-      title: '制作タスクを割り当てました',
-      body: 'バナー制作×3点、納期4/12です。確認をお願いします。',
-      link: '/production',
-      createdAt: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
-      read: false,
-    },
-    {
-      id: generateId(),
-      toMemberId: currentMemberId,
-      fromMemberId: 'system',
-      fromName: 'システム',
-      type: 'general',
-      title: 'Coaris AI へようこそ',
-      body: 'In-app通知機能が利用可能になりました。',
-      createdAt: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
-      read: false,
-    },
-  ];
+  const demos: Notification[] = [];
 
   const existing = load();
   save([...demos, ...existing]);

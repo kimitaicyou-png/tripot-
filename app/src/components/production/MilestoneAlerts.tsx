@@ -107,32 +107,4 @@ export default function MilestoneAlerts({ alerts }: Props) {
 
 export type { MilestoneAlert };
 
-export const MOCK_MILESTONE_ALERTS: MilestoneAlert[] = [
-  {
-    id: 'ma1',
-    projectName: '基幹システム開発',
-    milestoneName: 'フロントエンド結合テスト完了',
-    dueDate: '2026-03-31',
-    daysOverdue: 5,
-    assignee: '犬飼 智之',
-    impact: 'high',
-  },
-  {
-    id: 'ma2',
-    projectName: 'ECサイトリニューアル',
-    milestoneName: 'デザインカンプ最終承認',
-    dueDate: '2026-04-02',
-    daysOverdue: 3,
-    assignee: 'クリエイトデザイン',
-    impact: 'medium',
-  },
-  {
-    id: 'ma3',
-    projectName: '基幹システム開発',
-    milestoneName: 'テスト仕様書レビュー',
-    dueDate: '2026-04-04',
-    daysOverdue: 1,
-    assignee: '小野 崇',
-    impact: 'low',
-  },
-];
+export const MOCK_MILESTONE_ALERTS: MilestoneAlert[] = [];

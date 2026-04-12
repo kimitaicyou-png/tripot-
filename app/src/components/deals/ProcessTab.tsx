@@ -82,9 +82,9 @@ export function ProcessTab({ deal, onUpdate, onAppendHistory }: {
   const applyPreset = () => {
     const tasks = (proc.tasks ?? []).map((t) => {
       const title = t.title.toLowerCase();
-      if (title.includes('デザイン') || title.includes('ワイヤー') || title.includes('カンプ')) return { ...t, assigneeType: 'internal' as const, internalMemberId: MEMBERS.find((x) => x.id === 'kashiwagi')?.id ?? '' };
-      if (title.includes('コーディング') || title.includes('コード') || title.includes('実装') || title.includes('バックエンド')) { const p = partners.find((x) => x.contactName === 'Vinh') ?? partners[0]; return { ...t, assigneeType: 'external' as const, externalPartnerId: p?.id }; }
-      if (title.includes('ディレクション') || title.includes('pm') || title.includes('PM')) return { ...t, assigneeType: 'internal' as const, internalMemberId: MEMBERS.find((x) => x.id === 'izumi')?.id ?? '' };
+      if (title.includes('デザイン') || title.includes('ワイヤー') || title.includes('カンプ')) return { ...t, assigneeType: 'internal' as const, internalMemberId: MEMBERS[0]?.id ?? '' };
+      if (title.includes('コーディング') || title.includes('コード') || title.includes('実装') || title.includes('バックエンド')) { const p = partners[0]; return { ...t, assigneeType: 'external' as const, externalPartnerId: p?.id }; }
+      if (title.includes('ディレクション') || title.includes('pm') || title.includes('PM')) return { ...t, assigneeType: 'internal' as const, internalMemberId: MEMBERS[1]?.id ?? '' };
       return t;
     });
     onUpdate({ ...deal, process: { ...proc, tasks } });

@@ -145,11 +145,4 @@ export default function TestCases({ testCases, onChange }: Props) {
 
 export type { TestCase };
 
-export const MOCK_TEST_CASES: TestCase[] = [
-  { id: 'tc1', name: 'ログイン機能（正常系）',          category: 'unit',        status: 'pass',    assignee: '犬飼 智之',   lastRun: '2026-04-05' },
-  { id: 'tc2', name: 'ログイン機能（異常系）',          category: 'unit',        status: 'pass',    assignee: '犬飼 智之',   lastRun: '2026-04-05' },
-  { id: 'tc3', name: 'ユーザー登録フロー',              category: 'integration', status: 'fail',    assignee: '犬飼 智之',   lastRun: '2026-04-05' },
-  { id: 'tc4', name: 'データ入力→保存→一覧表示',       category: 'e2e',         status: 'not_run', assignee: '犬飼 智之' },
-  { id: 'tc5', name: 'レポート出力（PDF）',             category: 'manual',      status: 'not_run', assignee: '柏樹 久美子' },
-  { id: 'tc6', name: 'スマートフォン表示確認（iPhone）', category: 'manual',      status: 'not_run', assignee: '和泉 阿委璃' },
-];
+export const MOCK_TEST_CASES: TestCase[] = [];

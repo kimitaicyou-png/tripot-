@@ -9,12 +9,7 @@ type Props = {
   members: MemberPL[];
 };
 
-// TODO: company.ts の calculateMemberActuals('2026-04') から取得する
-export const MOCK_MEMBER_PL: MemberPL[] = [
-  { name: '柏樹 久美子', shotRevenue: 3500000, runningRevenue: 300000, cost: 2063400 },
-  { name: '犬飼 智之',   shotRevenue: 4200000, runningRevenue:      0, cost: 2280600 },
-  { name: '和泉 阿委璃', shotRevenue: 2270000, runningRevenue: 230000, cost: 1355550 },
-];
+export const MOCK_MEMBER_PL: MemberPL[] = [];
 
 function formatJPY(value: number): string {
   const man = value / 10000;

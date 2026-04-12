@@ -8,13 +8,7 @@ import { MEMBER_KPIS, getDaysSinceJoined } from '@/lib/data/aggregation';
 import { loadProductionCards } from '@/lib/productionCards';
 import { loadAllDeals } from '@/lib/dealsStore';
 
-const MEMBERS: Record<string, { firstName: string; role: string; accent: string; joinedAt: string }> = {
-  kashiwagi: { firstName: '久美子', role: 'Sales Lead',        accent: '#E91E63', joinedAt: '2023-04-01' },
-  inukai:    { firstName: '智之',   role: 'Account Manager',   accent: '#10B981', joinedAt: '2022-10-01' },
-  izumi:     { firstName: '阿委璃', role: 'Creative Director', accent: '#F59E0B', joinedAt: '2026-03-17' },
-  ono:       { firstName: '崇',     role: 'Field Sales',       accent: '#6366F1', joinedAt: '2024-01-10' },
-  ichioka:   { firstName: '陸',     role: 'Designer',          accent: '#14B8A6', joinedAt: '2026-04-01' },
-};
+const MEMBERS: Record<string, { firstName: string; role: string; accent: string; joinedAt: string }> = {};
 
 const QUOTES = [
   '打席に立たなければヒットは出ない。',

@@ -11,7 +11,7 @@ function useMemberKpi(memberId: string) {
   useEffect(() => {
     const deals = loadAllDeals();
     const cards = loadProductionCards();
-    const memberNames: Record<string, string> = { kashiwagi: '柏樹 久美子', inukai: '犬飼 智之', izumi: '和泉 阿委璃', ono: '小野 崇', ichioka: '市岡 陸' };
+    const memberNames: Record<string, string> = {};
     const name = memberNames[memberId] ?? '';
     const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
     const myDeals = deals.filter((d) => d.assignee === name);
@@ -32,12 +32,7 @@ export default function MemberLayout({ children }: { children: React.ReactNode }
   const memberId = params.memberId as string;
   const pathname = usePathname();
 
-  const MEMBERS: Record<string, { name: string; company: string }> = {
-    kashiwagi: { name: '柏樹 久美子', company: 'トライポット株式会社' },
-    inukai: { name: '犬飼 智之', company: 'トライポット株式会社' },
-    izumi: { name: '和泉 阿委璃', company: 'トライポット株式会社' },
-    ono: { name: '小野 崇', company: 'トライポット株式会社' },
-  };
+  const MEMBERS: Record<string, { name: string; company: string }> = {};
 
   const member = MEMBERS[memberId] ?? { name: memberId, company: '' };
   const kpi = useMemberKpi(memberId);

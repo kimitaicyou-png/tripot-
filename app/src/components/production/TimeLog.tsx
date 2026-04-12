@@ -18,17 +18,12 @@ type Props = {
   budget: number;
 };
 
-const MEMBER_OPTIONS = [
-  { id: 'kashiwagi', name: '柏樹 久美子' },
-  { id: 'inukai',    name: '犬飼 智之' },
-  { id: 'izumi',     name: '和泉 阿委璃' },
-  { id: 'ono',       name: '小野 崇' },
-];
+const MEMBER_OPTIONS: { id: string; name: string }[] = [];
 
 const EMPTY_DRAFT = {
   date: '',
-  memberId: 'kashiwagi',
-  memberName: '柏樹 久美子',
+  memberId: '',
+  memberName: '',
   hours: 0,
   description: '',
 };
@@ -225,15 +220,6 @@ export default function TimeLog({ entries, onChange, budget }: Props) {
 
 export type { TimeEntry };
 
-export const MOCK_TIME_ENTRIES: TimeEntry[] = [
-  { id: 'te1', date: '2026-04-01', memberId: 'inukai',    memberName: '犬飼 智之',   hours: 6,   description: 'ログイン・認証機能実装' },
-  { id: 'te2', date: '2026-04-01', memberId: 'kashiwagi', memberName: '柏樹 久美子', hours: 2,   description: '顧客要件確認・調整' },
-  { id: 'te3', date: '2026-04-02', memberId: 'inukai',    memberName: '犬飼 智之',   hours: 7,   description: 'データ入力フォーム実装' },
-  { id: 'te4', date: '2026-04-02', memberId: 'izumi',     memberName: '和泉 阿委璃', hours: 4,   description: 'UIデザイン修正・画面設計' },
-  { id: 'te5', date: '2026-04-03', memberId: 'inukai',    memberName: '犬飼 智之',   hours: 8,   description: 'ダッシュボード・一覧画面実装' },
-  { id: 'te6', date: '2026-04-03', memberId: 'kashiwagi', memberName: '柏樹 久美子', hours: 1.5, description: '中間報告・進捗確認' },
-  { id: 'te7', date: '2026-04-04', memberId: 'inukai',    memberName: '犬飼 智之',   hours: 5,   description: 'レポート出力機能実装' },
-  { id: 'te8', date: '2026-04-05', memberId: 'izumi',     memberName: '和泉 阿委璃', hours: 3,   description: 'スマートフォン対応・レスポンシブ調整' },
-];
+export const MOCK_TIME_ENTRIES: TimeEntry[] = [];
 
 export const MOCK_BUDGET_HOURS = 160;

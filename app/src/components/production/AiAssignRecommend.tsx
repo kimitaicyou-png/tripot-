@@ -27,18 +27,13 @@ type Props = {
   onAssign: (resourceId: string) => void;
 };
 
-export const MOCK_RESOURCES: ResourceOption[] = [
-  { id: 'inukai', name: '犬飼 智之', type: 'inhouse', role: 'エンジニア', skills: ['Next.js', 'TypeScript', 'API設計', 'Supabase'], loadRate: 90, avgSpeedRate: 92, qualityScore: 4.9, unitPrice: 750000 },
-  { id: 'izumi', name: '和泉 阿委璃', type: 'inhouse', role: 'ディレクター', skills: ['React', 'デザイン', 'PM'], loadRate: 40, avgSpeedRate: 96, qualityScore: 4.7, unitPrice: 700000 },
-  { id: 'tech-bridge', name: 'テックブリッジ', type: 'outsource', role: 'インフラ/DevOps', skills: ['AWS', 'Docker', 'Terraform'], loadRate: 25, avgSpeedRate: 98, qualityScore: 4.6, unitPrice: 850000 },
-  { id: 'create-design', name: 'クリエイトデザイン', type: 'outsource', role: 'UIデザイン', skills: ['Figma', 'LP', 'コーポレートサイト'], loadRate: 50, avgSpeedRate: 115, qualityScore: 4.0, unitPrice: 600000 },
-];
+export const MOCK_RESOURCES: ResourceOption[] = [];
 
 export const MOCK_TASK: TaskContext = {
-  taskName: '学習進捗ダッシュボード',
-  requiredSkills: ['Next.js', 'TypeScript'],
-  estimatedHours: 80,
-  deadline: '2026-05-09',
+  taskName: '',
+  requiredSkills: [],
+  estimatedHours: 0,
+  deadline: '',
 };
 
 function calcScore(resource: ResourceOption, task: TaskContext): number {

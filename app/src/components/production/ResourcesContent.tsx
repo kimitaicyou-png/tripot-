@@ -22,15 +22,7 @@ type Resource = {
   memo?: string;
 };
 
-const RESOURCES: Resource[] = [
-  { id: 'r1', name: '小野 崇', type: 'inhouse', role: '代表取締役/PM', skills: ['経営', 'PM', '営業'], unitPrice: 1000000, capacity: 160, currentLoad: 128, totalProjects: 45, avgSpeedRate: 95, qualityScore: 4.5, onTimeRate: 92, lastProjectDate: '2026-04-01' },
-  { id: 'r2', name: '柏樹 久美子', type: 'inhouse', role: '営業/ディレクター', skills: ['営業', '提案', '顧客折衝'], unitPrice: 800000, capacity: 160, currentLoad: 96, totalProjects: 28, avgSpeedRate: 88, qualityScore: 4.8, onTimeRate: 96, lastProjectDate: '2026-04-03' },
-  { id: 'r3', name: '渡辺 健', type: 'inhouse', role: 'エンジニア', skills: ['Next.js', 'TypeScript', 'API設計', 'Supabase'], unitPrice: 750000, capacity: 160, currentLoad: 144, totalProjects: 32, avgSpeedRate: 92, qualityScore: 4.9, onTimeRate: 94, lastProjectDate: '2026-04-04' },
-  { id: 'r4', name: '山本 彩', type: 'inhouse', role: 'エンジニア/QA', skills: ['React', 'テスト設計', 'CI/CD'], unitPrice: 700000, capacity: 160, currentLoad: 64, totalProjects: 18, avgSpeedRate: 96, qualityScore: 4.7, onTimeRate: 98, lastProjectDate: '2026-04-02' },
-  { id: 'r5', name: 'クリエイトデザイン', type: 'outsource', company: '株式会社クリエイトデザイン', role: 'UIデザイン', skills: ['Figma', 'LP', 'コーポレートサイト', 'バナー'], unitPrice: 600000, capacity: 160, currentLoad: 80, totalProjects: 5, avgSpeedRate: 115, qualityScore: 4.0, onTimeRate: 75, lastProjectDate: '2026-03-28', memo: '納期遅延傾向あり。品質は問題なし' },
-  { id: 'r6', name: 'テックブリッジ', type: 'outsource', company: 'テックブリッジ株式会社', role: 'インフラ/DevOps', skills: ['AWS', 'Docker', 'Terraform', '監視'], unitPrice: 850000, capacity: 160, currentLoad: 40, totalProjects: 8, avgSpeedRate: 98, qualityScore: 4.6, onTimeRate: 95, lastProjectDate: '2026-03-20' },
-  { id: 'r7', name: 'QAパートナーズ', type: 'outsource', company: '株式会社QAパートナーズ', role: 'テスト/QA', skills: ['E2Eテスト', '負荷テスト', 'セキュリティテスト'], unitPrice: 550000, capacity: 160, currentLoad: 0, totalProjects: 3, avgSpeedRate: 100, qualityScore: 4.8, onTimeRate: 100, lastProjectDate: '2026-02-15' },
-];
+const RESOURCES: Resource[] = [];
 
 const EIGHT_OUTSOURCE_CANDIDATES = [
   { name: '佐々木デザイン事務所', contact: '佐々木 太郎', role: 'グラフィックデザイン', skills: ['ロゴ', 'パンフレット'] },

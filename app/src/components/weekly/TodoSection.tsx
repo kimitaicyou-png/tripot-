@@ -20,17 +20,9 @@ type Props = {
   onNewTodosChange: (todos: TodoItem[]) => void;
 };
 
-export const MOCK_PREV_TODOS: TodoItem[] = [
-  { id: 'p1', content: '豊田精工CTO 鈴木氏に技術提案書を送付', assignee: '渡辺', deadline: '2026-04-04', status: 'completed', weeksCarried: 0, insight: '直接電話してから送付したのが効いた' },
-  { id: 'p2', content: '教育委員会 中間報告書を提出', assignee: '山本', deadline: '2026-04-03', status: 'completed', weeksCarried: 0 },
-  { id: 'p3', content: '新規リード3件にアポ電話', assignee: '柏樹', deadline: '2026-04-05', status: 'pending', weeksCarried: 2, reason: '' },
-  { id: 'p4', content: '外注単価の再交渉（粗利改善）', assignee: '柏樹', deadline: '2026-03-28', status: 'pending', weeksCarried: 3, reason: '先方担当者が出張中' },
-];
+export const MOCK_PREV_TODOS: TodoItem[] = [];
 
-export const MOCK_NEW_TODOS: TodoItem[] = [
-  { id: 'n1', content: '中京メディカル 技術検証MTG実施', assignee: '柏樹', deadline: '2026-04-11', status: 'pending', weeksCarried: 0 },
-  { id: 'n2', content: '碧会 院長に提案書プレゼン', assignee: '柏樹', deadline: '2026-04-10', status: 'pending', weeksCarried: 0 },
-];
+export const MOCK_NEW_TODOS: TodoItem[] = [];
 
 function CarryBadge({ weeks }: { weeks: number }) {
   if (weeks === 0) return null;

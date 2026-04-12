@@ -309,7 +309,7 @@ export default function ProductionDashboardPage() {
           <div className="text-4xl mb-3">📥</div>
           <p className="text-base font-semibold text-gray-900 mb-1">制作カードはまだありません</p>
           <p className="text-sm text-gray-500 mb-4">案件管理から「制作に引き渡す」を実行するとここに表示されます。</p>
-          <Link href="/home/kashiwagi/deals" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition">
+          <Link href="/home/toki/deals" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition">
             案件管理を開く →
           </Link>
         </div>
@@ -1201,7 +1201,7 @@ function CardDetailModal({
                                 const email = vendor?.email;
                                 if (!email) return null;
                                 const subject = `【${card.dealName}】${t.title}`;
-                                const body = `${t.externalPartnerName} 様\n\nお世話になっております。トライポットの柏樹です。\n以下の作業をご依頼したく、ご連絡いたします。\n\n案件: ${card.dealName}（${card.clientName}）\n内容: ${t.title}\n${t.estimatedCost ? `原価: ¥${t.estimatedCost.toLocaleString()}` : ''}\n${t.dueDate ? `納期: ${t.dueDate}` : ''}\n\nよろしくお願いいたします。`;
+                                const body = `${t.externalPartnerName} 様\n\nお世話になっております。トライポットです。\n以下の作業をご依頼したく、ご連絡いたします。\n\n案件: ${card.dealName}（${card.clientName}）\n内容: ${t.title}\n${t.estimatedCost ? `原価: ¥${t.estimatedCost.toLocaleString()}` : ''}\n${t.dueDate ? `納期: ${t.dueDate}` : ''}\n\nよろしくお願いいたします。`;
                                 const url = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(email)}&su=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
                                 return (
                                   <a href={url} target="_blank" rel="noreferrer" title={`Gmail: ${t.externalPartnerName}`} className="text-xs font-semibold bg-red-50 text-red-700 border border-red-200 rounded px-1.5 py-1 hover:bg-red-100 active:scale-[0.98] shrink-0">✉️</a>
@@ -1895,7 +1895,7 @@ const ACTION_TYPE_META: Record<ProductionActionType, { label: string; icon: stri
   incident: { label: '障害',            icon: '🚨', color: 'bg-red-50 text-red-700 border-red-300' },
 };
 
-const ACTION_ASSIGNEE_OPTIONS = ['柏樹 久美子', '犬飼 智之', '和泉 阿委璃', '小野 崇', '土岐 公人'];
+const ACTION_ASSIGNEE_OPTIONS: string[] = [];
 
 function ActionLogSection({
   actions,

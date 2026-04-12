@@ -23,17 +23,14 @@ type CurrentUser = {
 };
 
 const USERS: Record<string, CurrentUser> = {
-  kashiwagi: { id: 'kashiwagi', name: '柏樹 久美子', role: 'president',  companyId: 'tripot', companyName: 'トライポット株式会社', initial: '柏', color: 'bg-pink-500' },
-  inukai:    { id: 'inukai',    name: '犬飼 智之',   role: 'hq_member',   companyId: 'tripot', companyName: 'トライポット株式会社', initial: '犬', color: 'bg-emerald-500' },
-  izumi:     { id: 'izumi',     name: '和泉 阿委璃', role: 'member',      companyId: 'tripot', companyName: 'トライポット株式会社', initial: '和', color: 'bg-amber-500' },
+  toki:      { id: 'toki',      name: '土岐 公人',   role: 'president',   companyId: 'tripot', companyName: 'トライポット株式会社', initial: '土', color: 'bg-pink-500' },
   ono:       { id: 'ono',       name: '小野 崇',     role: 'hq_member',   companyId: 'tripot', companyName: 'トライポット株式会社', initial: '小', color: 'bg-indigo-500' },
-  ichioka:   { id: 'ichioka',   name: '市岡 陸',     role: 'member',      companyId: 'tripot', companyName: 'トライポット株式会社', initial: '市', color: 'bg-teal-500' },
 };
 const CU_STORAGE_KEY = 'tripot_current_user';
 function loadCurrentUser(): CurrentUser {
-  if (typeof window === 'undefined') return USERS.kashiwagi;
-  const id = localStorage.getItem(CU_STORAGE_KEY) ?? 'kashiwagi';
-  return USERS[id] ?? USERS.kashiwagi;
+  if (typeof window === 'undefined') return USERS.toki;
+  const id = localStorage.getItem(CU_STORAGE_KEY) ?? 'toki';
+  return USERS[id] ?? USERS.toki;
 }
 
 const MEMBER_COLORS = ['bg-pink-500', 'bg-emerald-500', 'bg-amber-500', 'bg-indigo-500', 'bg-teal-500', 'bg-blue-500', 'bg-purple-500', 'bg-rose-500'];
@@ -85,7 +82,7 @@ function MemberContextPanel({ memberId }: { memberId: string }) {
   useEffect(() => {
     const deals = loadAllDeals();
     const cards = loadProductionCards();
-    const nameMap: Record<string, string> = { kashiwagi: '柏樹 久美子', inukai: '犬飼 智之', izumi: '和泉 阿委璃', ono: '小野 崇', ichioka: '市岡 陸' };
+    const nameMap: Record<string, string> = {};
     const name = nameMap[memberId] ?? '';
     const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
     const myDeals = deals.filter((d) => d.assignee === name);
@@ -331,7 +328,6 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
     : null;
 
   // URL の /home/[memberId] からカレントメンバーをlocalStorageに自動同期
-  // これが無いと /my-production への遷移時に常にデフォルト（= 旧: 犬飼）に飛ぶバグになる
   useEffect(() => {
     if (activeMemberId) {
       setCurrentMember(activeMemberId);

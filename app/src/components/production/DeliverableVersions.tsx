@@ -263,7 +263,7 @@ export default function DeliverableVersions({ versions, onChange }: Props) {
                 type="text"
                 value={draft.uploadedBy}
                 onChange={(e) => setDraft({ ...draft, uploadedBy: e.target.value })}
-                placeholder="例: 犬飼 智之"
+                placeholder="担当者名"
                 className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-600"
               />
             </div>
@@ -315,47 +315,4 @@ export default function DeliverableVersions({ versions, onChange }: Props) {
 
 export type { DeliverableVersion };
 
-export const MOCK_DELIVERABLE_VERSIONS: DeliverableVersion[] = [
-  {
-    id: 'dv1',
-    deliverableName: 'UIデザインカンプ',
-    version: 1,
-    status: 'delivered',
-    uploadedBy: 'クリエイトデザイン',
-    uploadedAt: '2026-03-20',
-    clientDelivered: true,
-    clientDeliveredAt: '2026-03-21',
-    note: '初回提出',
-  },
-  {
-    id: 'dv2',
-    deliverableName: 'UIデザインカンプ',
-    version: 2,
-    status: 'delivered',
-    uploadedBy: 'クリエイトデザイン',
-    uploadedAt: '2026-03-28',
-    clientDelivered: true,
-    clientDeliveredAt: '2026-03-29',
-    note: '顧客フィードバック反映',
-  },
-  {
-    id: 'dv3',
-    deliverableName: 'UIデザインカンプ',
-    version: 3,
-    status: 'client_review',
-    uploadedBy: 'クリエイトデザイン',
-    uploadedAt: '2026-04-04',
-    clientDelivered: false,
-    note: 'スマホ対応追加修正',
-  },
-  {
-    id: 'dv4',
-    deliverableName: '要件定義書',
-    version: 1,
-    status: 'approved',
-    uploadedBy: '柏樹 久美子',
-    uploadedAt: '2026-03-15',
-    clientDelivered: false,
-    note: '',
-  },
-];
+export const MOCK_DELIVERABLE_VERSIONS: DeliverableVersion[] = [];

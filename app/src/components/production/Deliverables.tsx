@@ -199,9 +199,4 @@ export default function Deliverables({ deliverables, onChange }: Props) {
 
 export type { Deliverable };
 
-export const MOCK_DELIVERABLES: Deliverable[] = [
-  { id: 'del1', name: '要件定義書 v2.0',          type: 'document', status: 'approved',  updatedAt: '2026-04-03', assignee: '柏樹' },
-  { id: 'del2', name: 'UIデザインカンプ',           type: 'design',   status: 'review',    updatedAt: '2026-04-05', assignee: 'クリエイトデザイン' },
-  { id: 'del3', name: 'フロントエンドソースコード', type: 'code',     status: 'draft',     updatedAt: '2026-04-06', assignee: '犬飼' },
-  { id: 'del4', name: 'テスト結果報告書',           type: 'document', status: 'draft',     updatedAt: '',           assignee: '' },
-];
+export const MOCK_DELIVERABLES: Deliverable[] = [];
