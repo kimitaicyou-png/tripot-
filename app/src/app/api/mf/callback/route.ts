@@ -15,7 +15,7 @@ export async function GET(req: NextRequest) {
   const redirectUri = `${baseUrl}/api/mf/callback`;
 
   const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-  const tokenRes = await fetch('https://api.biz.moneyforward.com/token', {
+  const tokenRes = await fetch('https://invoice.moneyforward.com/oauth/token', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded',
