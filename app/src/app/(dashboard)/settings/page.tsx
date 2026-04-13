@@ -369,11 +369,21 @@ function MemberManagement() {
   };
 
   const handleRemove = async (id: string, name: string) => {
-    if (!confirm(`${name}さんをチームから外しますか？`)) return;
+    if (!confirm(`${name}さんをチームから外しますか？この操作は取り消せません。`)) return;
     try {
-      await fetch(`/api/members?id=${id}`, { method: 'DELETE' });
-      fetchMembers();
-    } catch {}
+      const res = await fetch(`/api/members?id=${id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (res.ok) {
+        setMsg(`${name}さんを削除しました`);
+        fetchMembers();
+      } else {
+        setMsg(data.error ?? '削除に失敗しました');
+      }
+      setTimeout(() => setMsg(null), 3000);
+    } catch {
+      setMsg('削除に失敗しました');
+      setTimeout(() => setMsg(null), 3000);
+    }
   };
 
   if (loading) return <div className="bg-white border border-gray-200 rounded-2xl p-5 text-sm text-gray-500">読み込み中...</div>;
@@ -492,7 +502,7 @@ function MemberManagement() {
                       <option value="manager">マネージャー</option>
                       <option value="member">メンバー</option>
                     </select>
-                    {m.role !== 'owner' && (
+                    {(m.role !== 'owner' || m.status === 'pending') && (
                       <button onClick={() => handleRemove(m.id, m.name)}
                         className="text-xs text-gray-500 hover:text-red-600 font-medium transition-colors">外す</button>
                     )}

@@ -16,7 +16,7 @@ async function getCallerRole(): Promise<{ role: UserRole | null; memberId: strin
     const session = await auth();
     if (!session?.user?.email) return { role: null, memberId: null };
     const sql = getDb();
-    const rows = await sql`SELECT id, role FROM members WHERE email = ${session.user.email} LIMIT 1`;
+    const rows = await sql`SELECT id, role FROM members WHERE email = ${session.user.email} AND status = 'active' LIMIT 1`;
     if (rows.length === 0) return { role: null, memberId: null };
     return { role: rows[0].role as UserRole, memberId: rows[0].id };
   } catch {
@@ -25,8 +25,13 @@ async function getCallerRole(): Promise<{ role: UserRole | null; memberId: strin
 }
 
 export async function GET() {
+  const { role } = await getCallerRole();
   const sql = getDb();
-  const rows = await sql`SELECT id, email, name, role, invited_by, invited_at, status FROM members ORDER BY created_at`;
+  if (role === 'owner') {
+    const rows = await sql`SELECT id, email, name, role, invited_by, invited_at, status FROM members ORDER BY created_at`;
+    return NextResponse.json({ members: rows });
+  }
+  const rows = await sql`SELECT id, name, role FROM members WHERE status = 'active' ORDER BY created_at`;
   return NextResponse.json({ members: rows });
 }
 
