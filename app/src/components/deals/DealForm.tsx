@@ -19,7 +19,8 @@ export function DealForm({ onSubmit, onClose }: Props) {
   const [amount, setAmount] = useState('');
   const [probability, setProbability] = useState('50');
   const [assignee, setAssignee] = useState('');
-  const [revenueType, setRevenueType] = useState<'shot' | 'running'>('shot');
+  const [revenueType, setRevenueType] = useState<'shot' | 'running' | 'both'>('shot');
+  const [monthlyAmount, setMonthlyAmount] = useState('');
   const [memo, setMemo] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -37,6 +38,7 @@ export function DealForm({ onSubmit, onClose }: Props) {
       lastDate: new Date().toISOString().slice(0, 10),
       memo,
       revenueType,
+      ...(revenueType === 'running' || revenueType === 'both' ? { monthlyAmount: Number(monthlyAmount) || 0 } : {}),
     });
   };
 
@@ -65,15 +67,16 @@ export function DealForm({ onSubmit, onClose }: Props) {
             </div>
             <div>
               <label className="block text-xs font-medium text-gray-700 mb-1">売上種別</label>
-              <select value={revenueType} onChange={(e) => setRevenueType(e.target.value as 'shot' | 'running')} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+              <select value={revenueType} onChange={(e) => setRevenueType(e.target.value as 'shot' | 'running' | 'both')} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
                 <option value="shot">単発</option>
                 <option value="running">月額</option>
+                <option value="both">スポット+継続</option>
               </select>
             </div>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-xs font-medium text-gray-700 mb-1">金額（円）</label>
+              <label className="block text-xs font-medium text-gray-700 mb-1">{revenueType === 'both' ? 'スポット金額（円）' : '金額（円）'}</label>
               <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="0" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
             </div>
             <div>
@@ -81,6 +84,12 @@ export function DealForm({ onSubmit, onClose }: Props) {
               <input type="number" value={probability} onChange={(e) => setProbability(e.target.value)} min="0" max="100" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
             </div>
           </div>
+          {(revenueType === 'running' || revenueType === 'both') && (
+          <div>
+            <label className="block text-xs font-medium text-gray-700 mb-1">月額金額（円）</label>
+            <input type="number" value={monthlyAmount} onChange={(e) => setMonthlyAmount(e.target.value)} placeholder="例: 100000" className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none" />
+          </div>
+          )}
           <div>
             <label className="block text-xs font-medium text-gray-700 mb-1">担当者</label>
             <select value={assignee} onChange={(e) => setAssignee(e.target.value)} className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-900 focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">

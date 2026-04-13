@@ -16,9 +16,9 @@ import { ChartBarIcon, ListBulletIcon, SectionHeader } from './icons';
 function dealToCard(deal: Deal): KanbanCard {
   return {
     id: deal.id, title: deal.dealName, subtitle: deal.clientName,
-    amount: deal.revenueType === 'running' ? (deal.monthlyAmount ?? 0) * 12 : deal.amount,
+    amount: deal.revenueType === 'running' ? (deal.monthlyAmount ?? 0) * 12 : deal.revenueType === 'both' ? deal.amount + (deal.monthlyAmount ?? 0) * 12 : deal.amount,
     progress: deal.progress, assignee: deal.assignee, risk: undefined,
-    claim: deal.stage === 'claim', badge: deal.revenueType === 'running' ? '継続' : undefined,
+    claim: deal.stage === 'claim', badge: deal.revenueType === 'running' ? '継続' : deal.revenueType === 'both' ? 'スポット+継続' : undefined,
   };
 }
 
@@ -62,7 +62,7 @@ export function DealsList() {
     if (filter === 'production') return ['in_production', 'delivered', 'acceptance'].includes(d.stage);
     if (filter === 'handed_off') return d.process?.committedToProduction === true;
     if (filter === 'billing') return ['invoiced', 'accounting', 'paid'].includes(d.stage);
-    if (filter === 'running') return d.revenueType === 'running';
+    if (filter === 'running') return d.revenueType === 'running' || d.revenueType === 'both';
     return true;
   });
 
@@ -162,11 +162,11 @@ export function DealsList() {
                         <div className="mt-1"><NextAction action={MOCK_NEXT_ACTIONS[deal.id] ?? null} onChange={() => {}} compact /></div>
                       </div>
                       <div className="text-right shrink-0">
-                        {deal.revenueType === 'shot' && deal.amount > 0 && <p className="text-base font-semibold text-gray-900 tabular-nums">¥{(deal.amount / 10000).toFixed(0)}万</p>}
-                        {deal.revenueType === 'running' && deal.monthlyAmount && (
+                        {(deal.revenueType === 'shot' || deal.revenueType === 'both') && deal.amount > 0 && <p className="text-base font-semibold text-gray-900 tabular-nums">¥{(deal.amount / 10000).toFixed(0)}万</p>}
+                        {(deal.revenueType === 'running' || deal.revenueType === 'both') && deal.monthlyAmount && (
                           <div>
                             <p className="text-base font-semibold text-blue-600 tabular-nums">¥{(deal.monthlyAmount / 10000).toFixed(0)}万<span className="text-xs font-medium">/月</span></p>
-                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">継続</span>
+                            <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-blue-50 text-blue-600 border border-blue-200">{deal.revenueType === 'both' ? 'スポット+継続' : '継続'}</span>
                           </div>
                         )}
                       </div>

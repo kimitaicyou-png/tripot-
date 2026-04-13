@@ -96,7 +96,7 @@ const ORDERED_STAGES = ['ordered', 'in_production', 'delivered', 'acceptance', '
 export function calcDealKpi(deals: Deal[]): DealKpiSummary {
   const ordered = deals.filter((d) => ORDERED_STAGES.includes(d.stage));
   const pipeline = deals.filter((d) => SALES_STAGES.includes(d.stage));
-  const totalRevenue = ordered.reduce((s, d) => s + d.amount, 0) + ordered.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
+  const totalRevenue = ordered.reduce((s, d) => s + d.amount, 0) + ordered.filter((d) => (d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
   const grossRate = 0.457;
   const totalGrossProfit = Math.round(totalRevenue * grossRate);
   const pipelineWeighted = pipeline.reduce((s, d) => s + Math.round(d.amount * d.probability / 100), 0);

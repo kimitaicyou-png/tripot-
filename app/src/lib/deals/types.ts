@@ -81,7 +81,7 @@ export type Deal = {
   assignee: string;
   lastDate: string;
   memo: string;
-  revenueType: 'shot' | 'running';
+  revenueType: 'shot' | 'running' | 'both';
   monthlyAmount?: number;
   runningStartDate?: string;
   progress?: number;

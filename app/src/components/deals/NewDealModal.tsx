@@ -16,8 +16,9 @@ export function NewDealModal({ onClose, onAdd, existingDeals }: Props) {
   const [dealName, setDealName] = useState('');
   const [industry, setIndustry] = useState('製造業');
   const [amount, setAmount] = useState('');
+  const [monthlyAmount, setMonthlyAmount] = useState('');
   const [probability, setProbability] = useState('50');
-  const [revenueType, setRevenueType] = useState<'shot' | 'running'>('shot');
+  const [revenueType, setRevenueType] = useState<'shot' | 'running' | 'both'>('shot');
   const [assignee, setAssignee] = useState('');
   const [memo, setMemo] = useState('');
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -67,6 +68,7 @@ export function NewDealModal({ onClose, onAdd, existingDeals }: Props) {
       lastDate: new Date().toISOString().slice(0, 10),
       memo,
       revenueType,
+      ...(revenueType === 'running' || revenueType === 'both' ? { monthlyAmount: Number(monthlyAmount) || 0 } : {}),
     };
     onAdd(deal);
   };
@@ -128,23 +130,37 @@ export function NewDealModal({ onClose, onAdd, existingDeals }: Props) {
           </div>
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">案件種別</label>
-            <div className="flex gap-3">
+            <div className="flex gap-3 flex-wrap">
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" value="shot" checked={revenueType === 'shot'} onChange={() => setRevenueType('shot')} className="accent-blue-600" />
-                <span className="text-sm text-gray-700">スポット案件</span>
+                <span className="text-sm text-gray-700">スポット</span>
               </label>
               <label className="flex items-center gap-2 cursor-pointer">
                 <input type="radio" value="running" checked={revenueType === 'running'} onChange={() => setRevenueType('running')} className="accent-blue-600" />
                 <span className="text-sm text-gray-700">月額継続</span>
               </label>
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="radio" value="both" checked={revenueType === 'both'} onChange={() => setRevenueType('both')} className="accent-blue-600" />
+                <span className="text-sm text-gray-700">スポット+継続</span>
+              </label>
             </div>
           </div>
+          {(revenueType === 'shot' || revenueType === 'both') && (
           <div>
-            <label className="block text-xs font-semibold text-gray-700 mb-1">概算金額（円） <span className="text-gray-500 font-normal">（任意）</span></label>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">{revenueType === 'both' ? 'スポット金額（円）' : '概算金額（円）'} <span className="text-gray-500 font-normal">（任意）</span></label>
             <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)}
-              placeholder="例: 5000000"
+              placeholder="例: 3000000"
               className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none" />
           </div>
+          )}
+          {(revenueType === 'running' || revenueType === 'both') && (
+          <div>
+            <label className="block text-xs font-semibold text-gray-700 mb-1">月額金額（円） <span className="text-gray-500 font-normal">（任意）</span></label>
+            <input type="number" value={monthlyAmount} onChange={(e) => setMonthlyAmount(e.target.value)}
+              placeholder="例: 100000"
+              className="w-full px-3 py-2 border border-gray-200 rounded text-sm text-gray-900 focus:ring-2 focus:ring-blue-600 focus:outline-none" />
+          </div>
+          )}
           <div>
             <label className="block text-xs font-semibold text-gray-700 mb-1">受注見込み（%） <span className="text-gray-500 font-normal">（任意）</span></label>
             <select value={probability} onChange={(e) => setProbability(e.target.value)}

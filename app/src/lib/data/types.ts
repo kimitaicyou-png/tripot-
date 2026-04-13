@@ -19,7 +19,7 @@ export type Deal = {
   dealName: string;
   industry: string;
   stage: Stage;
-  revenueType: 'shot' | 'running';
+  revenueType: 'shot' | 'running' | 'both';
   amount: number;
   monthlyAmount?: number;
   runningStartDate?: string;

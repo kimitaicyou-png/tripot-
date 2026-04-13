@@ -87,8 +87,8 @@ export function DealDetail({ deal: initialDeal, onBack, onStageChange }: DealDet
                 <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ml-3 shrink-0 ${STAGE_BADGE[deal.stage]}`}>{STAGE_LABEL[deal.stage]}</span>
               </div>
               <div className="flex flex-wrap gap-x-4 gap-y-1 mt-2 mb-4 text-sm text-gray-600">
-                {deal.revenueType === 'shot' && deal.amount > 0 && <span className="font-semibold text-gray-900 tabular-nums">¥{(deal.amount / 10000).toFixed(0)}万</span>}
-                {deal.revenueType === 'running' && deal.monthlyAmount && <span className="font-semibold text-blue-600 tabular-nums">¥{(deal.monthlyAmount / 10000).toFixed(0)}万/月</span>}
+                {(deal.revenueType === 'shot' || deal.revenueType === 'both') && deal.amount > 0 && <span className="font-semibold text-gray-900 tabular-nums">¥{(deal.amount / 10000).toFixed(0)}万</span>}
+                {(deal.revenueType === 'running' || deal.revenueType === 'both') && deal.monthlyAmount && <span className="font-semibold text-blue-600 tabular-nums">¥{(deal.monthlyAmount / 10000).toFixed(0)}万/月</span>}
                 <span className="text-gray-500">{deal.industry}</span>
                 <span className="text-gray-500">{deal.assignee}</span>
                 <span className="text-gray-500 tabular-nums">確度 {deal.probability}%</span>
