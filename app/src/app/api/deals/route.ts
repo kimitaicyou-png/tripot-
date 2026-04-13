@@ -39,6 +39,11 @@ export async function POST(req: NextRequest) {
   const id = body.id || `d${Date.now()}`;
   const now = new Date().toISOString();
 
+  const existing = await sql`SELECT id FROM deals WHERE id = ${id}`;
+  if (existing.length > 0) {
+    return NextResponse.json({ id, skipped: true });
+  }
+
   await sql`
     INSERT INTO deals (id, client_name, deal_name, industry, stage, amount, probability, assignee, last_date, memo, revenue_type, monthly_amount, running_start_date, progress, invoice_date, payment_due, paid_date, invoice, history, attachments, process, updated_at)
     VALUES (
