@@ -299,14 +299,26 @@ function MemberManagement() {
 
   const [pendingInvite, setPendingInvite] = useState<{ email: string; name: string } | null>(null);
 
-  const sendInvite = (email: string, name: string) => {
-    const subject = `【トライポット】業務システムへの招待`;
-    const body = `${name}さん\n\nトライポット業務システムへの招待です。\n以下のリンクからGoogleアカウント（${email}）でログインしてください。\n\nhttps://tripot-system.vercel.app/login\n\nトライポット株式会社`;
-    const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
-    window.location.href = mailtoUrl;
-    setMsg(`${name}さんへの招待メールを作成しました`);
+  const sendInvite = async (email: string, name: string) => {
+    setMsg(`${name}さんに招待メールを送信中...`);
+    try {
+      const inviterName = (await fetch('/api/auth/session').then((r) => r.json()))?.user?.name ?? 'オーナー';
+      const res = await fetch('/api/members/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, name, inviterName }),
+      });
+      const data = await res.json();
+      if (res.ok && data.sent) {
+        setMsg(`${name}さん（${email}）に招待メールを送信しました`);
+      } else {
+        setMsg(data.error ?? '招待メールの送信に失敗しました');
+      }
+    } catch {
+      setMsg('招待メールの送信に失敗しました');
+    }
     setPendingInvite(null);
-    setTimeout(() => setMsg(null), 3000);
+    setTimeout(() => setMsg(null), 5000);
   };
 
   const fetchMembers = async () => {
