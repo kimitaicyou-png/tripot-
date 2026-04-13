@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
+import { useSearchParams } from 'next/navigation';
 import { loadAllDeals, calcDealKpi } from '@/lib/dealsStore';
 
 function formatYen(n: number): string {
@@ -53,7 +54,9 @@ export default function SettingsPage() {
   const userEmail = session?.user?.email ?? '---';
   const userRole = (session?.user as Record<string, unknown> | undefined)?.role as string | undefined;
 
-  const [activeTab, setActiveTab] = useState<'account' | 'company' | 'members'>('account');
+  const searchParams = useSearchParams();
+  const initialTab = searchParams.get('tab') === 'members' ? 'members' : 'account';
+  const [activeTab, setActiveTab] = useState<'account' | 'company' | 'members'>(initialTab);
   const [fiscalStartMonth, setFiscalStartMonth] = usePersistedState('fiscal_start_month', 4);
   const [fiscalSaveMsg, setFiscalSaveMsg] = useState<string | null>(null);
 

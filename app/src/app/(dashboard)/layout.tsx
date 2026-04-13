@@ -516,6 +516,11 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
                 <Link href="/customers" className={navLinkClass(isCustomers)}>
                   <CustomersIcon /><span>顧客</span>
                 </Link>
+                {sessionRole === 'owner' && (
+                  <Link href="/settings?tab=members" className={navLinkClass(isSettings)}>
+                    <SettingsIcon /><span>アカウント一覧</span>
+                  </Link>
+                )}
               </div>
               </div>
             </>
@@ -554,6 +559,11 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
               <div className="flex justify-center">
                 <Link href="/customers" title="顧客" className={navIconClass(isCustomers)}><CustomersIcon /></Link>
               </div>
+              {sessionRole === 'owner' && (
+              <div className="flex justify-center">
+                <Link href="/settings?tab=members" title="アカウント一覧" className={navIconClass(isSettings)}><SettingsIcon /></Link>
+              </div>
+              )}
             </div>
           )}
         </nav>
