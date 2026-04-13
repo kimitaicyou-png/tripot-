@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useParams, useRouter } from 'next/navigation';
 import { TodayProgressCTA } from '@/components/personal/TodayProgressCTA';
 import RecentContactsStrip from '@/components/personal/RecentContactsStrip';
@@ -522,7 +523,7 @@ export default function MemberDashboardPage() {
       : [['toki', '土岐 公人'], ['ono', '小野 隆士']]
   );
   const myName = memberNames[memberId] ?? '';
-  const myDeals = liveDeals.filter((d: { assignee: string }) => d.assignee === myName);
+  const myDeals = myName ? liveDeals.filter((d: { assignee: string }) => d.assignee === myName || !d.assignee) : liveDeals;
   const myOrdered = myDeals.filter((d: { stage: string }) => orderedStages.includes(d.stage));
   const myRevenue = myOrdered.reduce((s: number, d: { amount: number }) => s + d.amount, 0);
 
@@ -540,8 +541,8 @@ export default function MemberDashboardPage() {
   };
 
   const pipeline = [
-    { key: 'lead', label: 'アポ', count: myDeals.filter((d: { stage: string }) => d.stage === 'lead').length, amount: 0 },
-    { key: 'meeting', label: '商談', count: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').length, amount: 0 },
+    { key: 'lead', label: 'アポ', count: myDeals.filter((d: { stage: string }) => d.stage === 'lead').length, amount: myDeals.filter((d: { stage: string }) => d.stage === 'lead').reduce((s: number, d: { amount: number }) => s + Math.round(d.amount / 10000), 0) },
+    { key: 'meeting', label: '商談', count: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').length, amount: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').reduce((s: number, d: { amount: number }) => s + Math.round(d.amount / 10000), 0) },
     { key: 'estimate', label: '見積', count: myDeals.filter((d: { stage: string }) => ['proposal', 'estimate_sent', 'negotiation'].includes(d.stage)).length, amount: myDeals.filter((d: { stage: string; amount: number }) => ['proposal', 'estimate_sent', 'negotiation'].includes(d.stage)).reduce((s: number, d: { amount: number }) => s + Math.round(d.amount / 10000), 0) },
     { key: 'ordered', label: '受注', count: myOrdered.length, amount: Math.round(myRevenue / 10000) },
   ];
@@ -696,6 +697,9 @@ export default function MemberDashboardPage() {
 
       <div className="max-w-4xl mx-auto px-6 pt-8 space-y-6">
         <div className="flex items-center gap-3 flex-wrap">
+          <Link href={`/home/${memberId}`} className="text-lg font-semibold text-gray-900 hover:text-blue-600 transition-colors active:scale-[0.98]">
+            {myName || member.firstName}
+          </Link>
           <TodayProgressCTA />
           <NewbadgePill joinedAt={member.joinedAt} />
         </div>

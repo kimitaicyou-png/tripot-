@@ -408,7 +408,10 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
                 {currentUser.initial}
               </div>
               <div className="flex-1 min-w-0 text-left">
-                <div className="text-sm font-semibold text-white truncate leading-tight">{session?.user?.name ?? currentUser.name}</div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-semibold text-white truncate leading-tight">{session?.user?.name ?? currentUser.name}</span>
+                  <span className="w-2 h-2 rounded-full bg-emerald-400 shrink-0" title="アクティブ" />
+                </div>
                 <div className="text-xs text-white/50 truncate leading-tight mt-0.5">
                   {sessionRole === 'owner' ? 'オーナー' : sessionRole === 'manager' ? 'マネージャー' : currentUser.role === 'president' ? '代表' : currentUser.role === 'hq_member' ? '本部' : 'メンバー'}
                 </div>

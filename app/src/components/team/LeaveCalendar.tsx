@@ -56,7 +56,7 @@ type AddModalProps = {
 
 function AddModal({ onAdd, onClose }: AddModalProps) {
   const today = new Date().toISOString().slice(0, 10);
-  const [memberId, setMemberId] = useState(MEMBERS[0].id);
+  const [memberId, setMemberId] = useState(MEMBERS[0]?.id ?? '');
   const [type, setType] = useState<LeaveEntry['type']>('paid');
   const [date, setDate] = useState(today);
   const [note, setNote] = useState('');

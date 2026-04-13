@@ -10,7 +10,7 @@ type Props = {
 };
 
 export function SettingsPanel({ currentMemberId, onMemberSwitch }: Props) {
-  const member = MEMBERS.find((m) => m.id === currentMemberId) ?? MEMBERS[0];
+  const member = MEMBERS.find((m) => m.id === currentMemberId) ?? MEMBERS[0] ?? { id: '', name: '', initial: '', color: 'bg-gray-500' };
   const [fiscalStart, setFiscalStart] = useState(4);
 
   return (

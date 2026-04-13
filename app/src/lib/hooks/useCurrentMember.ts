@@ -21,7 +21,7 @@ export function useCurrentMember() {
     if (typeof window !== 'undefined') localStorage.setItem(STORAGE_KEY, id);
   }, []);
 
-  const member: MemberInfo = MEMBERS.find((m) => m.id === memberId) ?? MEMBERS[0];
+  const member: MemberInfo = MEMBERS.find((m) => m.id === memberId) ?? MEMBERS[0] ?? { id: '', name: '', initial: '', color: 'bg-gray-500' };
 
   return { memberId, member, switchMember, allMembers: MEMBERS };
 }

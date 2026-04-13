@@ -24,7 +24,7 @@ export function ProcessTab({ deal, onUpdate, onAppendHistory }: {
   const [showAddPartner, setShowAddPartner] = useState<string | null>(null);
   const [newPartnerForm, setNewPartnerForm] = useState({ companyName: '', contactName: '', role: '', email: '' });
   const [toast, setToast] = useState('');
-  const defaultPmId = proc.pmId ?? MEMBERS.find((m) => m.name === deal.assignee)?.id ?? MEMBERS[0].id;
+  const defaultPmId = proc.pmId ?? MEMBERS.find((m) => m.name === deal.assignee)?.id ?? MEMBERS[0]?.id ?? '';
   const [pmId, setPmId] = useState<string>(defaultPmId);
   const [teamMemberIds, setTeamMemberIds] = useState<string[]>(proc.teamMemberIds ?? []);
 

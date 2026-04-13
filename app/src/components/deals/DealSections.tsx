@@ -195,7 +195,7 @@ export function InternalMemoSection({ deal }: { deal: Deal }) {
       <InternalComments
         comments={internalComments}
         onChange={setInternalComments}
-        currentUser=""
+        currentUser={deal.assignee}
       />
     </div>
   );
