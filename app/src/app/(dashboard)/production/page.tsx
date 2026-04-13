@@ -65,7 +65,7 @@ export default function ProductionDashboardPage() {
   const [showBudgetOverview, setShowBudgetOverview] = useState(false);
 
   useEffect(() => {
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
     fetchProductionCards().then(setCards);
   }, []);
 
@@ -84,12 +84,12 @@ export default function ProductionDashboardPage() {
 
   const movePhase = async (cardId: string, to: ProductionCard['phase']) => {
     await updateProductionCard(cardId, { phase: to });
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   };
 
   const setNextActionFor = async (cardId: string, next: ProductionNextAction | null) => {
     await updateProductionCard(cardId, { nextAction: next });
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   };
 
   const updateTaskFor = async (cardId: string, taskId: string, patch: Partial<ProductionCardTask>) => {
@@ -105,7 +105,7 @@ export default function ProductionDashboardPage() {
       return merged;
     });
     await updateProductionCard(cardId, { tasks });
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   };
 
   const addTaskFor = async (cardId: string, title: string, assigneeId?: string) => {
@@ -118,14 +118,14 @@ export default function ProductionDashboardPage() {
       assigneeId,
     };
     await updateProductionCard(cardId, { tasks: [...card.tasks, newTask] });
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   };
 
   const removeTaskFor = async (cardId: string, taskId: string) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
     await updateProductionCard(cardId, { tasks: card.tasks.filter((t) => t.id !== taskId) });
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   };
 
   const addActionFor = async (cardId: string, action: Omit<ProductionAction, 'id' | 'createdAt'>) => {
@@ -138,19 +138,19 @@ export default function ProductionDashboardPage() {
     };
     const actions = [entry, ...(card.actions ?? [])];
     await updateProductionCard(cardId, { actions });
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   };
 
   const removeActionFor = async (cardId: string, actionId: string) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
     await updateProductionCard(cardId, { actions: (card.actions ?? []).filter((a) => a.id !== actionId) });
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   };
 
   const updateCardFields = async (cardId: string, patch: Partial<ProductionCard>) => {
     await updateProductionCard(cardId, patch);
-    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   };
 
   const handleGenerateTasks = (card: ProductionCard) => {
@@ -169,7 +169,7 @@ export default function ProductionDashboardPage() {
         assigneeId: i === 0 ? card.pmId : card.teamMemberIds[i % Math.max(card.teamMemberIds.length, 1)] ?? card.pmId,
       }));
       await updateProductionCard(card.id, { tasks: newTasks, phase: 'requirements' });
-      setCards(loadProductionCards());
+      fetchProductionCards().then(setCards);
       setTasksGenerating(null);
     }, 900);
   };

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
 function rowToCard(r: Record<string, unknown>) {
+  const extra = (r.extra ?? {}) as Record<string, unknown>;
   return {
     id: r.id,
     dealId: r.deal_id,
@@ -16,7 +17,19 @@ function rowToCard(r: Record<string, unknown>) {
     milestones: r.milestones ?? [],
     risk: r.risk,
     memo: r.memo,
+    ...extra,
   };
+}
+
+function cardToExtra(body: Record<string, unknown>): Record<string, unknown> {
+  const coreKeys = new Set(['id', 'dealId', 'dealName', 'clientName', 'status', 'phase', 'assigneeId', 'startDate', 'endDate', 'tasks', 'milestones', 'risk', 'memo']);
+  const extra: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(body)) {
+    if (!coreKeys.has(key) && value !== undefined) {
+      extra[key] = value;
+    }
+  }
+  return extra;
 }
 
 export async function GET() {
@@ -35,8 +48,10 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ id, skipped: true });
   }
 
+  const extra = cardToExtra(body);
+
   await sql`
-    INSERT INTO production_cards (id, deal_id, deal_name, client_name, status, phase, assignee_id, start_date, end_date, tasks, milestones, risk, memo)
+    INSERT INTO production_cards (id, deal_id, deal_name, client_name, status, phase, assignee_id, start_date, end_date, tasks, milestones, risk, memo, extra)
     VALUES (
       ${id},
       ${body.dealId ?? ''},
@@ -50,7 +65,8 @@ export async function POST(req: NextRequest) {
       ${JSON.stringify(body.tasks ?? [])},
       ${JSON.stringify(body.milestones ?? [])},
       ${body.risk ?? 'none'},
-      ${body.memo ?? ''}
+      ${body.memo ?? ''},
+      ${JSON.stringify(extra)}
     )
   `;
 
@@ -67,6 +83,8 @@ export async function PUT(req: NextRequest) {
 
   const cur = existing[0];
   const now = new Date().toISOString();
+  const curExtra = (cur.extra ?? {}) as Record<string, unknown>;
+  const newExtra = { ...curExtra, ...cardToExtra(body) };
 
   await sql`
     UPDATE production_cards SET
@@ -81,6 +99,7 @@ export async function PUT(req: NextRequest) {
       milestones = ${JSON.stringify(body.milestones ?? cur.milestones)},
       risk = ${body.risk ?? cur.risk},
       memo = ${body.memo ?? cur.memo},
+      extra = ${JSON.stringify(newExtra)},
       updated_at = ${now}
     WHERE id = ${body.id}
   `;
