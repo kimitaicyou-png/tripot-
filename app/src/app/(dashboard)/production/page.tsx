@@ -156,7 +156,7 @@ export default function ProductionDashboardPage() {
   const handleGenerateTasks = (card: ProductionCard) => {
     setTasksGenerating(card.id);
     setTimeout(async () => {
-      const lines = card.referenceArtifacts.requirement
+      const lines = (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement
         .split('\n')
         .filter((l) => l.trim().startsWith('- ') || /^\d+\./.test(l.trim()))
         .slice(0, 6);
@@ -182,10 +182,10 @@ export default function ProductionDashboardPage() {
   }, [cards, phaseFilter, hideInactive]);
 
   const totalRevenue = cards.reduce((s, c) => s + c.amount + (c.amendments ?? []).reduce((a, x) => a + x.amount, 0), 0);
-  const totalBudget = cards.reduce((s, c) => s + c.referenceArtifacts.budget, 0);
+  const totalBudget = cards.reduce((s, c) => s + (c.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget, 0);
   const grossProfit = totalRevenue - totalBudget;
   const grossMarginRate = totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 100) : 0;
-  const avgProgress = cards.length > 0 ? Math.round(cards.reduce((s, c) => s + c.progress, 0) / cards.length) : 0;
+  const avgProgress = cards.length > 0 ? Math.round(cards.reduce((s, c) => s + (c.progress ?? 0), 0) / cards.length) : 0;
 
   const alerts: { level: 'red' | 'amber'; msg: string }[] = [];
   cards.forEach((c) => {
@@ -388,7 +388,7 @@ function CardRow({
   const delivery = getDeliveryDate(card);
   const dl = daysUntil(delivery);
   const dlColor = dl !== null && dl <= 14 ? 'text-red-600' : dl !== null && dl <= 30 ? 'text-blue-600' : 'text-gray-500';
-  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - card.referenceArtifacts.budget;
+  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
   const grossRate = card.amount > 0 ? Math.round((grossProfit / card.amount) * 100) : 0;
   const needsTasks = card.tasks.length === 0;
 
@@ -452,19 +452,19 @@ function CardRow({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="bg-white rounded-lg p-3 border border-gray-200">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">📝 要件定義</p>
-              <pre className="text-xs text-gray-800 whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto font-sans">{card.referenceArtifacts.requirement || '(未生成)'}</pre>
+              <pre className="text-xs text-gray-800 whitespace-pre-wrap leading-relaxed max-h-40 overflow-y-auto font-sans">{(card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement || '(未生成)'}</pre>
             </div>
             <div className="bg-white rounded-lg p-3 border border-gray-200">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">💰 見積・予算</p>
               <div className="space-y-1 text-xs text-gray-800">
                 <div className="flex justify-between"><span>受注金額</span><span className="font-semibold tabular-nums">{yen(card.amount)}</span></div>
-                <div className="flex justify-between"><span>予算</span><span className="font-semibold tabular-nums">{yen(card.referenceArtifacts.budget)}</span></div>
+                <div className="flex justify-between"><span>予算</span><span className="font-semibold tabular-nums">{yen((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget)}</span></div>
                 <div className="flex justify-between border-t border-gray-100 pt-1 mt-1"><span>粗利</span><span className="font-semibold tabular-nums text-blue-600">{yen(grossProfit)}</span></div>
               </div>
             </div>
             <div className="bg-white rounded-lg p-3 border border-gray-200">
               <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">📄 提案</p>
-              <p className="text-xs text-gray-800 leading-relaxed">{card.referenceArtifacts.proposalSummary}</p>
+              <p className="text-xs text-gray-800 leading-relaxed">{(card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).proposalSummary}</p>
             </div>
           </div>
 
@@ -563,11 +563,11 @@ function KanbanCard({ card, onOpen, onDragStart, onDragEnd }: { card: Production
   const delivery = getDeliveryDate(card);
   const dl = daysUntil(delivery);
   const dlColor = dl !== null && dl <= 14 ? 'text-red-600' : dl !== null && dl <= 30 ? 'text-blue-600' : 'text-gray-700';
-  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - card.referenceArtifacts.budget;
+  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
   const grossRate = card.amount > 0 ? Math.round((grossProfit / card.amount) * 100) : 0;
   const needsTasks = card.tasks.length === 0;
   const taskCostTotal = card.tasks.reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
-  const budgetUsedPct = card.referenceArtifacts.budget > 0 ? Math.round((taskCostTotal / card.referenceArtifacts.budget) * 100) : 0;
+  const budgetUsedPct = (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget > 0 ? Math.round((taskCostTotal / (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget) * 100) : 0;
   const budgetBadge =
     budgetUsedPct > 100 ? { label: `🔥 予算超過 ${budgetUsedPct}%`, cls: 'bg-red-50 text-red-700 border-red-300' } :
     budgetUsedPct >= 80 ? { label: `⚠ 予算 ${budgetUsedPct}%`,      cls: 'bg-amber-50 text-amber-700 border-amber-300' } :
@@ -673,7 +673,7 @@ function CardDetailModal({
   const [undoStack, setUndoStack] = useState<{ field: string; value: string }[]>([]);
 
   const appendToRequirements = (text: string) => {
-    const current = card.referenceArtifacts.requirement ?? '';
+    const current = (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement ?? '';
     const separator = current.trim() ? '\n\n' : '';
     onFieldChange({ referenceArtifacts: { ...card.referenceArtifacts, requirement: current + separator + `## 打ち合わせメモ (${new Date().toLocaleDateString('ja-JP')})\n${text}` } });
     setLastVoiceSummary(null);
@@ -690,8 +690,8 @@ function CardDetailModal({
   const hasUndo = (field: string) => undoStack.some((u) => u.field === field);
 
   const runRefineRequirements = async () => {
-    pushUndo('requirement', card.referenceArtifacts.requirement ?? '');
-    const j = await callAI('refine-requirements', { requirement: card.referenceArtifacts.requirement });
+    pushUndo('requirement', (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement ?? '');
+    const j = await callAI('refine-requirements', { requirement: (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement });
     const text = typeof j.text === 'string' ? j.text : '';
     if (text) onFieldChange({ referenceArtifacts: { ...card.referenceArtifacts, requirement: text } });
   };
@@ -699,8 +699,8 @@ function CardDetailModal({
   const runGenerateSitemap = async () => {
     pushUndo('sitemap', card.sitemap ?? '');
     const j = await callAI('generate-sitemap', {
-      requirement: card.referenceArtifacts.requirement,
-      proposalSummary: card.referenceArtifacts.proposalSummary,
+      requirement: (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement,
+      proposalSummary: (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).proposalSummary,
     });
     const text = typeof j.text === 'string' ? j.text : '';
     if (text) onFieldChange({ sitemap: text });
@@ -715,8 +715,8 @@ function CardDetailModal({
       load: (memberLoad.get(m.id)?.active) ?? 0,
     }));
     const j = await callAI('generate-tasks', {
-      requirement: card.referenceArtifacts.requirement,
-      budget: card.referenceArtifacts.budget,
+      requirement: (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement,
+      budget: (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget,
       members,
       vendors: VENDORS.map((v) => ({ name: v.name, specialty: v.specialty })),
     });
@@ -754,12 +754,12 @@ function CardDetailModal({
   const delivery = getDeliveryDate(card);
   const dl = daysUntil(delivery);
   const dlColor = dl !== null && dl <= 14 ? 'text-red-600' : dl !== null && dl <= 30 ? 'text-blue-600' : 'text-gray-700';
-  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - card.referenceArtifacts.budget;
+  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
   const grossRate = card.amount > 0 ? Math.round((grossProfit / card.amount) * 100) : 0;
   const needsTasks = card.tasks.length === 0;
   const taskCostTotal = card.tasks.reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
-  const budgetRemaining = card.referenceArtifacts.budget - taskCostTotal;
-  const budgetUsedPct = card.referenceArtifacts.budget > 0 ? Math.round((taskCostTotal / card.referenceArtifacts.budget) * 100) : 0;
+  const budgetRemaining = (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget - taskCostTotal;
+  const budgetUsedPct = (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget > 0 ? Math.round((taskCostTotal / (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget) * 100) : 0;
   const memberLoad = useMemo(() => {
     const map = new Map<string, { active: number; cost: number }>();
     for (const c of allCards) {
@@ -773,7 +773,7 @@ function CardDetailModal({
     }
     return map;
   }, [allCards]);
-  const requirementItems = useMemo(() => parseRequirementItems(card.referenceArtifacts.requirement), [card.referenceArtifacts.requirement]);
+  const requirementItems = useMemo(() => parseRequirementItems((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement), [(card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement]);
   const tasksByRequirementId = useMemo(() => {
     const map = new Map<string, ProductionCardTask[]>();
     for (const t of card.tasks) {
@@ -859,18 +859,18 @@ function CardDetailModal({
                     >{aiBusy === 'refine-requirements' ? '整形中...' : '✨ AIで整形'}</button>
                     <button
                       onClick={runGenerateSitemap}
-                      disabled={aiBusy !== null || !(card.referenceArtifacts.requirement ?? '').trim()}
+                      disabled={aiBusy !== null || !((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement ?? '').trim()}
                       className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-1 hover:bg-blue-100 active:scale-[0.98] disabled:opacity-50"
                     >{aiBusy === 'generate-sitemap' ? '生成中...' : '🗺 サイトマップ生成'}</button>
                     <button
                       onClick={runGenerateTasksAI}
-                      disabled={aiBusy !== null || !(card.referenceArtifacts.requirement ?? '').trim()}
+                      disabled={aiBusy !== null || !((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement ?? '').trim()}
                       className="text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200 rounded px-2 py-1 hover:bg-emerald-100 active:scale-[0.98] disabled:opacity-50"
                     >{aiBusy === 'generate-tasks' ? '生成中...' : '🤖 タスク自動生成'}</button>
                   </div>
                 </div>
                 <textarea
-                  value={card.referenceArtifacts.requirement ?? ''}
+                  value={(card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement ?? ''}
                   onChange={(e) => onFieldChange({ referenceArtifacts: { ...card.referenceArtifacts, requirement: e.target.value } })}
                   placeholder="# 要件定義書&#10;&#10;## 機能要件&#10;- ..."
                   className="w-full min-h-[260px] text-sm p-3 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none rounded-b-xl resize-y font-mono text-gray-900"
@@ -971,7 +971,7 @@ function CardDetailModal({
                 )}
                 <button
                   onClick={runGenerateSitemap}
-                  disabled={aiBusy !== null || !(card.referenceArtifacts.requirement ?? '').trim()}
+                  disabled={aiBusy !== null || !((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement ?? '').trim()}
                   className="text-xs font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded px-2 py-1 hover:bg-blue-100 active:scale-[0.98] disabled:opacity-50"
                 >{aiBusy === 'generate-sitemap' ? '生成中...' : '🤖 要件から自動生成'}</button>
               </div>
@@ -993,7 +993,7 @@ function CardDetailModal({
                 <div className="p-3 space-y-2">
                   <div className="flex items-center gap-2 text-xs text-gray-700">
                     <span>制作予算</span>
-                    <span className="font-semibold text-gray-900 tabular-nums">{yen(card.referenceArtifacts.budget)}</span>
+                    <span className="font-semibold text-gray-900 tabular-nums">{yen((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget)}</span>
                     <span className="mx-1 text-gray-700">/</span>
                     <span>割当済</span>
                     <span className={`font-semibold tabular-nums ${budgetUsedPct > 100 ? 'text-red-600' : 'text-gray-900'}`}>{yen(taskCostTotal)}</span>
@@ -1566,7 +1566,7 @@ function BudgetOverview({ cards }: { cards: ProductionCard[] }) {
               const cost = c.tasks.reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
               const amendments = (c.amendments ?? []).reduce((s, a) => s + a.amount, 0);
               const totalAmount = c.amount + amendments;
-              const budget = c.referenceArtifacts.budget;
+              const budget = (c.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
               const remain = budget - cost;
               const pct = budget > 0 ? Math.round((cost / budget) * 100) : 0;
               return (
@@ -1788,7 +1788,7 @@ function HandoffPanel({
         <div className="divide-y divide-gray-100">
           <div className="p-3">
             <p className="text-xs font-semibold text-gray-700 mb-1.5">📄 提案サマリー（営業から）</p>
-            <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">{card.referenceArtifacts.proposalSummary || '(未記載)'}</p>
+            <p className="text-sm text-gray-900 leading-relaxed whitespace-pre-wrap">{(card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).proposalSummary || '(未記載)'}</p>
           </div>
 
           <div className="p-3">
@@ -1805,8 +1805,8 @@ function HandoffPanel({
             <p className="text-xs font-semibold text-gray-700 mb-1.5">💰 見積・予算</p>
             <div className="space-y-1 text-sm text-gray-900">
               <div className="flex justify-between"><span className="text-gray-700">受注金額</span><span className="font-semibold tabular-nums">{yen(card.amount)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-700">見積合計</span><span className="font-semibold tabular-nums">{yen(card.referenceArtifacts.quoteTotal)}</span></div>
-              <div className="flex justify-between"><span className="text-gray-700">制作予算（原価上限）</span><span className="font-semibold tabular-nums">{yen(card.referenceArtifacts.budget)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-700">見積合計</span><span className="font-semibold tabular-nums">{yen((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).quoteTotal)}</span></div>
+              <div className="flex justify-between"><span className="text-gray-700">制作予算（原価上限）</span><span className="font-semibold tabular-nums">{yen((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget)}</span></div>
               <div className="flex justify-between border-t border-gray-200 pt-1 mt-1"><span className="text-gray-700">目標粗利</span><span className="font-semibold tabular-nums text-blue-600">{yen(grossProfit)}（{grossRate}%）</span></div>
             </div>
             <div className="text-xs text-gray-700 mt-2">
