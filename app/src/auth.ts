@@ -1,6 +1,6 @@
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
-import membersJson from '@/data/members.json';
+import { neon } from '@neondatabase/serverless';
 
 export type UserRole = 'owner' | 'manager' | 'member';
 
@@ -13,26 +13,16 @@ export type AllowedUser = {
   invitedAt: string;
 };
 
-function loadMembers(): AllowedUser[] {
+async function findUserByEmail(email: string): Promise<AllowedUser | undefined> {
   try {
-    if (typeof window === 'undefined') {
-      const { readFileSync } = require('fs');
-      try {
-        const tmp = readFileSync('/tmp/tripot_members.json', 'utf-8');
-        return JSON.parse(tmp) as AllowedUser[];
-      } catch {}
-    }
-  } catch {}
-  return membersJson as AllowedUser[];
-}
-
-export function findUser(email: string): AllowedUser | undefined {
-  const members = loadMembers();
-  return members.find((u) => u.email === email);
-}
-
-export function getAllUsers(): AllowedUser[] {
-  return loadMembers();
+    const sql = neon(process.env.DATABASE_URL!);
+    const rows = await sql`SELECT id, email, name, role, invited_by, invited_at FROM members WHERE email = ${email} LIMIT 1`;
+    if (rows.length === 0) return undefined;
+    const r = rows[0];
+    return { id: r.id, email: r.email, name: r.name, role: r.role as UserRole, invitedBy: r.invited_by, invitedAt: r.invited_at ?? '' };
+  } catch {
+    return undefined;
+  }
 }
 
 const ROLE_LEVEL: Record<UserRole, number> = { owner: 3, manager: 2, member: 1 };
@@ -44,13 +34,14 @@ export function hasMinRole(userRole: UserRole, minRole: UserRole): boolean {
 export const { handlers, auth, signIn, signOut } = NextAuth({
   providers: [Google],
   callbacks: {
-    signIn({ profile }) {
+    async signIn({ profile }) {
       if (!profile?.email) return false;
-      return !!findUser(profile.email);
+      const user = await findUserByEmail(profile.email);
+      return !!user;
     },
-    jwt({ token, profile }) {
+    async jwt({ token, profile }) {
       if (profile?.email) {
-        const user = findUser(profile.email);
+        const user = await findUserByEmail(profile.email);
         if (user) {
           token.memberId = user.id;
           token.role = user.role;
@@ -74,10 +65,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       }
       if (!isLoggedIn) return false;
 
-      const email = auth?.user?.email;
-      const matched = email ? findUser(email) : undefined;
-      const role = matched?.role as UserRole | undefined;
-      const memberId = matched?.id;
+      const role = (auth?.user as Record<string, unknown> | undefined)?.role as UserRole | undefined;
+      const memberId = (auth?.user as Record<string, unknown> | undefined)?.memberId as string | undefined;
 
       const restrictedForMember = ['/budget', '/monthly', '/weekly'];
       if (role && !hasMinRole(role, 'manager') && restrictedForMember.some((p) => pathname.startsWith(p))) {

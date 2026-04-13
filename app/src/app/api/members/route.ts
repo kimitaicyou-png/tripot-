@@ -1,47 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { auth, type AllowedUser, type UserRole } from '@/auth';
-import membersJson from '@/data/members.json';
+import { auth, type UserRole } from '@/auth';
+import { getDb } from '@/lib/db';
 
-const TMP_PATH = '/tmp/tripot_members.json';
-
-function loadMembers(): AllowedUser[] {
-  try {
-    const { readFileSync } = require('fs');
-    try {
-      const tmp = readFileSync(TMP_PATH, 'utf-8');
-      return JSON.parse(tmp) as AllowedUser[];
-    } catch {}
-  } catch {}
-  return membersJson as AllowedUser[];
-}
-
-function saveMembers(members: AllowedUser[]): void {
-  try {
-    const { writeFileSync } = require('fs');
-    const json = JSON.stringify(members, null, 2);
-    writeFileSync(TMP_PATH, json, 'utf-8');
-    try {
-      const { join } = require('path');
-      writeFileSync(join(process.cwd(), 'src/data/members.json'), json, 'utf-8');
-    } catch {}
-  } catch {}
-}
+type MemberRow = {
+  id: string;
+  email: string;
+  name: string;
+  role: UserRole;
+  invited_by: string | null;
+  invited_at: string | null;
+};
 
 async function getCallerRole(): Promise<{ role: UserRole | null; memberId: string | null }> {
   try {
     const session = await auth();
     if (!session?.user?.email) return { role: null, memberId: null };
-    const members = loadMembers();
-    const me = members.find((m) => m.email === session.user!.email);
-    return { role: me?.role ?? null, memberId: me?.id ?? null };
+    const sql = getDb();
+    const rows = await sql`SELECT id, role FROM members WHERE email = ${session.user.email} LIMIT 1`;
+    if (rows.length === 0) return { role: null, memberId: null };
+    return { role: rows[0].role as UserRole, memberId: rows[0].id };
   } catch {
     return { role: null, memberId: null };
   }
 }
 
 export async function GET() {
-  const members = loadMembers();
-  return NextResponse.json({ members });
+  const sql = getDb();
+  const rows = await sql`SELECT id, email, name, role, invited_by, invited_at FROM members ORDER BY created_at`;
+  return NextResponse.json({ members: rows });
 }
 
 export async function POST(req: NextRequest) {
@@ -50,34 +36,27 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'owner権限が必要です' }, { status: 403 });
   }
 
-  const body = await req.json() as {
-    email: string;
-    name: string;
-    role: UserRole;
-  };
-
+  const body = await req.json() as { email: string; name: string; role: UserRole };
   if (!body.email || !body.name || !body.role) {
     return NextResponse.json({ error: 'email, name, role は必須です' }, { status: 400 });
   }
 
-  const members = loadMembers();
-  if (members.find((m) => m.email === body.email)) {
+  const sql = getDb();
+  const existing = await sql`SELECT id FROM members WHERE email = ${body.email}`;
+  if (existing.length > 0) {
     return NextResponse.json({ error: 'このメールアドレスは既に登録されています' }, { status: 409 });
   }
 
-  const newMember: AllowedUser = {
-    id: body.name.split(' ')[0]?.toLowerCase() ?? `m${Date.now()}`,
-    email: body.email,
-    name: body.name,
-    role: body.role,
-    invitedBy: memberId,
-    invitedAt: new Date().toISOString().slice(0, 10),
-  };
+  const id = body.name.split(' ')[0]?.toLowerCase() ?? `m${Date.now()}`;
+  const invitedAt = new Date().toISOString().slice(0, 10);
 
-  members.push(newMember);
-  saveMembers(members);
+  const rows = await sql`
+    INSERT INTO members (id, email, name, role, invited_by, invited_at)
+    VALUES (${id}, ${body.email}, ${body.name}, ${body.role}, ${memberId}, ${invitedAt})
+    RETURNING id, email, name, role, invited_by, invited_at
+  `;
 
-  return NextResponse.json({ member: newMember });
+  return NextResponse.json({ member: rows[0] });
 }
 
 export async function PUT(req: NextRequest) {
@@ -91,18 +70,18 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'id は必須です' }, { status: 400 });
   }
 
-  const members = loadMembers();
-  const idx = members.findIndex((m) => m.id === body.id);
-  if (idx === -1) {
+  const sql = getDb();
+  const existing = await sql`SELECT id FROM members WHERE id = ${body.id}`;
+  if (existing.length === 0) {
     return NextResponse.json({ error: 'メンバーが見つかりません' }, { status: 404 });
   }
 
-  if (body.role) members[idx].role = body.role;
-  if (body.name) members[idx].name = body.name;
-  if (body.email) members[idx].email = body.email;
-  saveMembers(members);
+  if (body.role) await sql`UPDATE members SET role = ${body.role} WHERE id = ${body.id}`;
+  if (body.name) await sql`UPDATE members SET name = ${body.name} WHERE id = ${body.id}`;
+  if (body.email) await sql`UPDATE members SET email = ${body.email} WHERE id = ${body.id}`;
 
-  return NextResponse.json({ member: members[idx] });
+  const rows = await sql`SELECT id, email, name, role, invited_by, invited_at FROM members WHERE id = ${body.id}`;
+  return NextResponse.json({ member: rows[0] });
 }
 
 export async function DELETE(req: NextRequest) {
@@ -117,17 +96,19 @@ export async function DELETE(req: NextRequest) {
     return NextResponse.json({ error: 'id は必須です' }, { status: 400 });
   }
 
-  const members = loadMembers();
-  const target = members.find((m) => m.id === id);
-  if (!target) {
+  const sql = getDb();
+  const target = await sql`SELECT id, role FROM members WHERE id = ${id}`;
+  if (target.length === 0) {
     return NextResponse.json({ error: 'メンバーが見つかりません' }, { status: 404 });
   }
-  if (target.role === 'owner' && members.filter((m) => m.role === 'owner').length <= 1) {
-    return NextResponse.json({ error: 'ownerは最低1人必要です' }, { status: 400 });
+
+  if (target[0].role === 'owner') {
+    const owners = await sql`SELECT count(*) as cnt FROM members WHERE role = 'owner'`;
+    if (Number(owners[0].cnt) <= 1) {
+      return NextResponse.json({ error: 'ownerは最低1人必要です' }, { status: 400 });
+    }
   }
 
-  const filtered = members.filter((m) => m.id !== id);
-  saveMembers(filtered);
-
+  await sql`DELETE FROM members WHERE id = ${id}`;
   return NextResponse.json({ deleted: id });
 }
