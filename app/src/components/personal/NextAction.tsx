@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useMemberNames } from '@/lib/hooks/useMemberNames';
 
 type NextActionData = {
   date: string;
@@ -32,9 +33,8 @@ function formatDate(date: string): string {
   return `${parseInt(month)}/${parseInt(day)}`;
 }
 
-const ASSIGNEE_OPTIONS: string[] = [];
-
 export default function NextAction({ action, onChange, compact = false, currentStage, stageOptions, onStageChange }: Props) {
+  const memberNames = useMemberNames();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<NextActionData>(
     action ?? { date: '', time: '', content: '', assignee: '', nextStage: currentStage }
@@ -154,7 +154,8 @@ export default function NextAction({ action, onChange, compact = false, currentS
               onChange={(e) => setDraft({ ...draft, assignee: e.target.value })}
               className="w-full px-2 py-1.5 text-sm border border-gray-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white"
             >
-              {ASSIGNEE_OPTIONS.map((name) => (
+              <option value="">選択してください</option>
+              {memberNames.map((name) => (
                 <option key={name} value={name}>{name}</option>
               ))}
             </select>

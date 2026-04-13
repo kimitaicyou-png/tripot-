@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { mockApprovals, companies, type Approval, type ApprovalStatus } from '@/lib/mock-data';
+import { usePersistedState } from '@/lib/hooks/usePersistedState';
+import { companies, type Approval, type ApprovalStatus } from '@/lib/mock-data';
 
 function statusBadge(status: ApprovalStatus) {
   const map: Record<ApprovalStatus, { label: string; cls: string }> = {
@@ -43,7 +44,7 @@ const emptyForm: NewApproval = {
 };
 
 export default function ApprovalPage() {
-  const [approvals, setApprovals] = useState<Approval[]>(mockApprovals);
+  const [approvals, setApprovals] = usePersistedState<Approval[]>('approvals', []);
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState<NewApproval>(emptyForm);
   const [formError, setFormError] = useState('');
@@ -169,7 +170,12 @@ export default function ApprovalPage() {
               <div className="flex items-center justify-between pt-3 border-t border-gray-100">
                 <p className="text-xs text-gray-500">本部の承認待ち</p>
                 <button
-                  className="text-xs font-semibold text-gray-500 hover:text-red-600 transition-colors"
+                  onClick={() => {
+                    const ok = window.confirm('この申請を取り下げますか？');
+                    if (!ok) return;
+                    setApprovals((prev) => prev.filter((a) => a.id !== apv.id));
+                  }}
+                  className="text-xs font-semibold text-gray-500 hover:text-red-600 transition-colors active:scale-[0.98]"
                 >
                   申請を取り下げる
                 </button>

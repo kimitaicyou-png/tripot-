@@ -309,8 +309,8 @@ export default function ProductionDashboardPage() {
         <div className="bg-white border border-dashed border-gray-300 rounded-2xl p-12 text-center">
           <div className="text-4xl mb-3">📥</div>
           <p className="text-base font-semibold text-gray-900 mb-1">制作カードはまだありません</p>
-          <p className="text-sm text-gray-500 mb-4">案件管理から「制作に引き渡す」を実行するとここに表示されます。</p>
-          <Link href="/home/toki/deals" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition">
+          <p className="text-sm text-gray-500 mb-4">案件詳細の「制作カードを作成」ボタンで登録できます。</p>
+          <Link href="/deals" className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition">
             案件管理を開く →
           </Link>
         </div>
