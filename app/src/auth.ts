@@ -16,7 +16,7 @@ export type AllowedUser = {
 async function findUserByEmail(email: string): Promise<AllowedUser | undefined> {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const rows = await sql`SELECT id, email, name, role, invited_by, invited_at FROM members WHERE email = ${email} LIMIT 1`;
+    const rows = await sql`SELECT id, email, name, role, invited_by, invited_at FROM members WHERE email = ${email} AND status = 'active' LIMIT 1`;
     if (rows.length === 0) return undefined;
     const r = rows[0];
     return { id: r.id, email: r.email, name: r.name, role: r.role as UserRole, invitedBy: r.invited_by, invitedAt: r.invited_at ?? '' };

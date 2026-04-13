@@ -26,7 +26,7 @@ async function getCallerRole(): Promise<{ role: UserRole | null; memberId: strin
 
 export async function GET() {
   const sql = getDb();
-  const rows = await sql`SELECT id, email, name, role, invited_by, invited_at FROM members ORDER BY created_at`;
+  const rows = await sql`SELECT id, email, name, role, invited_by, invited_at, status FROM members ORDER BY created_at`;
   return NextResponse.json({ members: rows });
 }
 
@@ -51,9 +51,9 @@ export async function POST(req: NextRequest) {
   const invitedAt = new Date().toISOString().slice(0, 10);
 
   const rows = await sql`
-    INSERT INTO members (id, email, name, role, invited_by, invited_at)
-    VALUES (${id}, ${body.email}, ${body.name}, ${body.role}, ${memberId}, ${invitedAt})
-    RETURNING id, email, name, role, invited_by, invited_at
+    INSERT INTO members (id, email, name, role, invited_by, invited_at, status)
+    VALUES (${id}, ${body.email}, ${body.name}, ${body.role}, ${memberId}, ${invitedAt}, 'pending')
+    RETURNING id, email, name, role, invited_by, invited_at, status
   `;
 
   return NextResponse.json({ member: rows[0] });
@@ -65,7 +65,7 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'owner権限が必要です' }, { status: 403 });
   }
 
-  const body = await req.json() as { id: string; role?: UserRole; name?: string; email?: string };
+  const body = await req.json() as { id: string; role?: UserRole; name?: string; email?: string; status?: string };
   if (!body.id) {
     return NextResponse.json({ error: 'id は必須です' }, { status: 400 });
   }
@@ -79,8 +79,9 @@ export async function PUT(req: NextRequest) {
   if (body.role) await sql`UPDATE members SET role = ${body.role} WHERE id = ${body.id}`;
   if (body.name) await sql`UPDATE members SET name = ${body.name} WHERE id = ${body.id}`;
   if (body.email) await sql`UPDATE members SET email = ${body.email} WHERE id = ${body.id}`;
+  if (body.status) await sql`UPDATE members SET status = ${body.status} WHERE id = ${body.id}`;
 
-  const rows = await sql`SELECT id, email, name, role, invited_by, invited_at FROM members WHERE id = ${body.id}`;
+  const rows = await sql`SELECT id, email, name, role, invited_by, invited_at, status FROM members WHERE id = ${body.id}`;
   return NextResponse.json({ member: rows[0] });
 }
 

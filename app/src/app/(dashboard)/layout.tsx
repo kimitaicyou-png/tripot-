@@ -41,7 +41,7 @@ function useMembers() {
     fetch('/api/members')
       .then((r) => r.json())
       .then((data) => {
-        const raw = data.members ?? [];
+        const raw = (data.members ?? []).filter((m: { status?: string }) => m.status !== 'pending');
         const list = raw.map((m: { id: string; name: string }, i: number) => ({
           id: m.id,
           name: m.name,

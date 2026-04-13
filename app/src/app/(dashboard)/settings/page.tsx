@@ -38,6 +38,7 @@ type MemberRecord = {
   role: 'owner' | 'manager' | 'member';
   invitedBy: string | null;
   invitedAt: string;
+  status: 'active' | 'pending';
 };
 
 const ROLE_BADGE: Record<string, string> = {
@@ -295,22 +296,12 @@ function MemberManagement() {
 
   const [pendingInvite, setPendingInvite] = useState<{ email: string; name: string } | null>(null);
 
-  const sendInvite = async (email: string, name: string) => {
-    try {
-      const inviterName = (await fetch('/api/auth/session').then((r) => r.json()))?.user?.name ?? 'オーナー';
-      const res = await fetch('/api/members/invite', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, name, inviterName }),
-      });
-      const data = await res.json();
-      if (data.gmailUrl) {
-        window.open(data.gmailUrl, '_blank');
-        setMsg(`${name}さんへの招待メールをGmailで開きました`);
-      }
-    } catch {
-      setMsg('招待メールの送信に失敗しました');
-    }
+  const sendInvite = (email: string, name: string) => {
+    const subject = `【トライポット】業務システムへの招待`;
+    const body = `${name}さん\n\nトライポット業務システムへの招待です。\n以下のリンクからGoogleアカウント（${email}）でログインしてください。\n\nhttps://tripot-system.vercel.app/login\n\nトライポット株式会社`;
+    const mailtoUrl = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+    window.location.href = mailtoUrl;
+    setMsg(`${name}さんへの招待メールを作成しました`);
     setPendingInvite(null);
     setTimeout(() => setMsg(null), 3000);
   };
@@ -351,6 +342,19 @@ function MemberManagement() {
       setTimeout(() => setMsg(null), 3000);
     }
     setInviting(false);
+  };
+
+  const handleApprove = async (id: string, name: string) => {
+    try {
+      await fetch('/api/members', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status: 'active' }),
+      });
+      fetchMembers();
+      setMsg(`${name}さんを承認しました。ログインできるようになります。`);
+      setTimeout(() => setMsg(null), 3000);
+    } catch {}
   };
 
   const handleRoleChange = async (id: string, role: string) => {
@@ -462,14 +466,23 @@ function MemberManagement() {
                       {m.name.charAt(0)}
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-semibold text-gray-900 truncate">{m.name}</p>
+                      <div className="flex items-center gap-1.5">
+                        <p className="text-sm font-semibold text-gray-900 truncate">{m.name}</p>
+                        {m.status === 'pending' && (
+                          <span className="text-[10px] font-semibold px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 border border-amber-200 shrink-0">承認待ち</span>
+                        )}
+                      </div>
                       <p className={`text-xs truncate ${m.email ? 'text-gray-500' : 'text-red-500 font-semibold'}`}>
                         {m.email || '← タップしてGmailを設定'}
                       </p>
                     </div>
                   </button>
                   <div className="flex items-center gap-2 shrink-0">
-                    {m.email && (
+                    {m.status === 'pending' && (
+                      <button onClick={() => handleApprove(m.id, m.name)}
+                        className="text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-lg active:scale-[0.98] transition-all">承認</button>
+                    )}
+                    {m.email && m.status === 'active' && (
                       <button onClick={() => sendInvite(m.email, m.name)}
                         className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">招待を送る</button>
                     )}
