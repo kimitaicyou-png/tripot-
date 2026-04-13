@@ -521,6 +521,9 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
                     <SettingsIcon /><span>アカウント一覧</span>
                   </Link>
                 )}
+                <Link href="/guide" className={navLinkClass(pathname === '/guide')}>
+                  <span className="w-5 h-5 flex items-center justify-center text-base">🗺️</span><span>はじめてガイド</span>
+                </Link>
               </div>
               </div>
             </>
@@ -564,6 +567,9 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
                 <Link href="/settings?tab=members" title="アカウント一覧" className={navIconClass(isSettings)}><SettingsIcon /></Link>
               </div>
               )}
+              <div className="flex justify-center">
+                <Link href="/guide" title="はじめてガイド" className={navIconClass(pathname === '/guide')}><span className="text-base">🗺️</span></Link>
+              </div>
             </div>
           )}
         </nav>
