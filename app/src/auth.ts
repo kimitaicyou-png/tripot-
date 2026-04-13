@@ -13,16 +13,23 @@ export type AllowedUser = {
   invitedAt: string;
 };
 
-async function findUserByEmail(email: string): Promise<AllowedUser | undefined> {
+async function findMemberByEmail(email: string): Promise<(AllowedUser & { status: string }) | undefined> {
   try {
     const sql = neon(process.env.DATABASE_URL!);
-    const rows = await sql`SELECT id, email, name, role, invited_by, invited_at FROM members WHERE email = ${email} AND status = 'active' LIMIT 1`;
+    const rows = await sql`SELECT id, email, name, role, invited_by, invited_at, status FROM members WHERE email = ${email} LIMIT 1`;
     if (rows.length === 0) return undefined;
     const r = rows[0];
-    return { id: r.id, email: r.email, name: r.name, role: r.role as UserRole, invitedBy: r.invited_by, invitedAt: r.invited_at ?? '' };
+    return { id: r.id, email: r.email, name: r.name, role: r.role as UserRole, invitedBy: r.invited_by, invitedAt: r.invited_at ?? '', status: r.status };
   } catch {
     return undefined;
   }
+}
+
+async function activateMember(id: string): Promise<void> {
+  try {
+    const sql = neon(process.env.DATABASE_URL!);
+    await sql`UPDATE members SET status = 'active' WHERE id = ${id} AND status = 'pending'`;
+  } catch {}
 }
 
 const ROLE_LEVEL: Record<UserRole, number> = { owner: 3, manager: 2, member: 1 };
@@ -36,15 +43,19 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   callbacks: {
     async signIn({ profile }) {
       if (!profile?.email) return false;
-      const user = await findUserByEmail(profile.email);
-      return !!user;
+      const member = await findMemberByEmail(profile.email);
+      if (!member) return false;
+      if (member.status === 'pending') {
+        await activateMember(member.id);
+      }
+      return true;
     },
     async jwt({ token, profile }) {
       if (profile?.email) {
-        const user = await findUserByEmail(profile.email);
-        if (user) {
-          token.memberId = user.id;
-          token.role = user.role;
+        const member = await findMemberByEmail(profile.email);
+        if (member) {
+          token.memberId = member.id;
+          token.role = member.role;
         }
       }
       return token;

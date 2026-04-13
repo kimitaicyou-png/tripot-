@@ -298,9 +298,26 @@ function MemberManagement() {
   };
 
   const [pendingInvite, setPendingInvite] = useState<{ email: string; name: string } | null>(null);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
 
-  const sendInvite = async (email: string, name: string) => {
-    setMsg(`${name}さんに招待メールを送信中...`);
+  const inviteUrl = 'https://tripot-system.vercel.app/login';
+
+  const copyInviteLink = async (id: string, name: string) => {
+    const text = `【トライポット業務システム】\n${name}さん、招待されました。\n以下のリンクからGoogleアカウントでログインしてください。\n\n${inviteUrl}`;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedId(id);
+      setMsg('招待メッセージをコピーしました。LINE・Slack等で送ってください。');
+      setTimeout(() => setCopiedId(null), 2000);
+      setTimeout(() => setMsg(null), 4000);
+    } catch {
+      setMsg('コピーに失敗しました');
+      setTimeout(() => setMsg(null), 3000);
+    }
+  };
+
+  const sendInviteEmail = async (email: string, name: string) => {
+    setMsg(`${name}さんにメール送信中...`);
     try {
       const inviterName = (await fetch('/api/auth/session').then((r) => r.json()))?.user?.name ?? 'オーナー';
       const res = await fetch('/api/members/invite', {
@@ -310,12 +327,12 @@ function MemberManagement() {
       });
       const data = await res.json();
       if (res.ok && data.sent) {
-        setMsg(`${name}さん（${email}）に招待メールを送信しました`);
+        setMsg(`${name}さんにメール送信しました`);
       } else {
-        setMsg(data.error ?? '招待メールの送信に失敗しました');
+        setMsg(`メール送信失敗: ${data.error ?? '不明なエラー'}。招待リンクをコピーして直接送ってください。`);
       }
     } catch {
-      setMsg('招待メールの送信に失敗しました');
+      setMsg('メール送信失敗。招待リンクをコピーして直接送ってください。');
     }
     setPendingInvite(null);
     setTimeout(() => setMsg(null), 5000);
@@ -343,11 +360,13 @@ function MemberManagement() {
       });
       const data = await res.json();
       if (res.ok) {
-        await sendInvite(inviteEmail, inviteName);
+        const newId = data.member?.id;
+        fetchMembers();
+        setShowInvite(false);
+        if (newId) copyInviteLink(newId, inviteName);
+        sendInviteEmail(inviteEmail, inviteName).catch(() => {});
         setInviteEmail('');
         setInviteName('');
-        setShowInvite(false);
-        fetchMembers();
       } else {
         setMsg(data.error ?? '招待に失敗しました');
         setTimeout(() => setMsg(null), 3000);
@@ -410,7 +429,7 @@ function MemberManagement() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm font-semibold text-gray-900">チームメンバー</p>
-              <p className="text-xs text-gray-500 mt-0.5">Gmailで招待 → そのアカウントでログイン可能に</p>
+              <p className="text-xs text-gray-500 mt-0.5">招待リンクを送る → Googleログインで自動承認</p>
             </div>
             <button onClick={() => setShowInvite(!showInvite)}
               className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1.5 rounded-lg active:scale-[0.98] transition-all">
@@ -423,9 +442,9 @@ function MemberManagement() {
           <div className="px-5 py-2 bg-blue-50 border-b border-blue-100 flex items-center justify-between">
             <span className="text-xs font-semibold text-blue-700">{msg}</span>
             {pendingInvite && (
-              <button onClick={() => sendInvite(pendingInvite.email, pendingInvite.name)}
+              <button onClick={() => sendInviteEmail(pendingInvite.email, pendingInvite.name)}
                 className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-3 py-1 rounded active:scale-[0.98] transition-all">
-                招待メールを送る
+                メールも送る
               </button>
             )}
           </div>
@@ -504,12 +523,10 @@ function MemberManagement() {
                   </button>
                   <div className="flex items-center gap-2 shrink-0">
                     {m.status === 'pending' && (
-                      <button onClick={() => handleApprove(m.id, m.name)}
-                        className="text-xs font-semibold text-white bg-emerald-600 hover:bg-emerald-700 px-2.5 py-1 rounded-lg active:scale-[0.98] transition-all">承認</button>
-                    )}
-                    {m.email && m.status === 'active' && (
-                      <button onClick={() => sendInvite(m.email, m.name)}
-                        className="text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors">招待を送る</button>
+                      <button onClick={() => copyInviteLink(m.id, m.name)}
+                        className="text-xs font-semibold text-white bg-blue-600 hover:bg-blue-700 px-2.5 py-1 rounded-lg active:scale-[0.98] transition-all">
+                        {copiedId === m.id ? '✓ コピー済' : '招待リンク'}
+                      </button>
                     )}
                     <select value={m.role} onChange={(e) => handleRoleChange(m.id, e.target.value)}
                       className={`text-xs font-semibold px-2 py-1 rounded border ${ROLE_BADGE[m.role]} bg-white focus:outline-none`}>
@@ -530,7 +547,7 @@ function MemberManagement() {
       </div>
 
       <div className="bg-gray-50 border border-gray-200 rounded-2xl px-5 py-4">
-        <p className="text-xs text-gray-500">招待されたメンバーは、指定されたGmailアカウントでGoogleログインするとシステムにアクセスできます。権限に応じて閲覧可能な画面が変わります。</p>
+        <p className="text-xs text-gray-500">招待リンクをLINE・Slack・メール等で送ってください。相手がGoogleアカウントでログインすると自動的に有効化されます。権限に応じて閲覧可能な画面が変わります。</p>
       </div>
     </div>
   );
