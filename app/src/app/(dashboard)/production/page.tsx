@@ -45,7 +45,7 @@ function daysUntil(dateStr: string): number | null {
 }
 
 function getDeliveryDate(card: ProductionCard): string {
-  const lastMilestone = [...card.milestones].reverse().find((m) => m.dueDate);
+  const lastMilestone = [...(card.milestones ?? [])].reverse().find((m) => m.dueDate);
   return lastMilestone?.dueDate || '';
 }
 
@@ -96,7 +96,7 @@ export default function ProductionDashboardPage() {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
     const now = new Date().toISOString().slice(0, 10);
-    const tasks = card.tasks.map((t) => {
+    const tasks = (card.tasks ?? []).map((t) => {
       if (t.id !== taskId) return t;
       const merged = { ...t, ...patch };
       if (patch.status === 'done' && !t.completedAt) merged.completedAt = now;
@@ -104,7 +104,13 @@ export default function ProductionDashboardPage() {
       if (patch.status !== 'done' && patch.status !== undefined) merged.completedAt = undefined;
       return merged;
     });
-    await updateProductionCard(cardId, { tasks });
+    const updatePatch: Partial<ProductionCard> = { tasks };
+    if (patch.status !== undefined) {
+      updatePatch.progress = tasks.length > 0
+        ? Math.round(tasks.filter((t) => t.status === 'done').length / tasks.length * 100)
+        : card.progress ?? 0;
+    }
+    await updateProductionCard(cardId, updatePatch);
     fetchProductionCards().then(setCards);
   };
 
@@ -117,14 +123,14 @@ export default function ProductionDashboardPage() {
       status: 'todo',
       assigneeId,
     };
-    await updateProductionCard(cardId, { tasks: [...card.tasks, newTask] });
+    await updateProductionCard(cardId, { tasks: [...(card.tasks ?? []), newTask] });
     fetchProductionCards().then(setCards);
   };
 
   const removeTaskFor = async (cardId: string, taskId: string) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
-    await updateProductionCard(cardId, { tasks: card.tasks.filter((t) => t.id !== taskId) });
+    await updateProductionCard(cardId, { tasks: (card.tasks ?? []).filter((t) => t.id !== taskId) });
     fetchProductionCards().then(setCards);
   };
 
@@ -166,7 +172,7 @@ export default function ProductionDashboardPage() {
         id: `t_${card.id}_${i}`,
         title,
         status: 'todo' as const,
-        assigneeId: i === 0 ? card.pmId : card.teamMemberIds[i % Math.max(card.teamMemberIds.length, 1)] ?? card.pmId,
+        assigneeId: i === 0 ? (card.pmId ?? '') : (card.teamMemberIds ?? [])[i % Math.max((card.teamMemberIds ?? []).length, 1)] ?? (card.pmId ?? ''),
       }));
       await updateProductionCard(card.id, { tasks: newTasks, phase: 'requirements' });
       fetchProductionCards().then(setCards);
@@ -181,7 +187,7 @@ export default function ProductionDashboardPage() {
     return result;
   }, [cards, phaseFilter, hideInactive]);
 
-  const totalRevenue = cards.reduce((s, c) => s + c.amount + (c.amendments ?? []).reduce((a, x) => a + x.amount, 0), 0);
+  const totalRevenue = cards.reduce((s, c) => s + (c.amount ?? 0) + (c.amendments ?? []).reduce((a, x) => a + x.amount, 0), 0);
   const totalBudget = cards.reduce((s, c) => s + (c.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget, 0);
   const grossProfit = totalRevenue - totalBudget;
   const grossMarginRate = totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 100) : 0;
@@ -189,11 +195,14 @@ export default function ProductionDashboardPage() {
 
   const alerts: { level: 'red' | 'amber'; msg: string }[] = [];
   cards.forEach((c) => {
-    const d = daysUntil(getDeliveryDate(c));
+    const incompleteMilestones = (c.milestones ?? []).filter((m) => !m.done);
+    const lastIncomplete = [...incompleteMilestones].reverse().find((m) => m.dueDate);
+    const deliveryDate = lastIncomplete?.dueDate || '';
+    const d = daysUntil(deliveryDate);
     if (d !== null && d >= 0 && d <= 14) alerts.push({ level: 'red', msg: `【納期迫る】${c.dealName} — 残${d}日` });
     if (c.risk === 'high') alerts.push({ level: 'red', msg: `【リスク高】${c.dealName}` });
     else if (c.risk === 'medium') alerts.push({ level: 'amber', msg: `【リスク中】${c.dealName}` });
-    if (c.tasks.length === 0) alerts.push({ level: 'amber', msg: `【未着手】${c.dealName} — タスク未生成` });
+    if ((c.tasks ?? []).length === 0) alerts.push({ level: 'amber', msg: `【未着手】${c.dealName} — タスク未生成` });
   });
 
   return (
@@ -384,13 +393,13 @@ function CardRow({
   generating: boolean;
 }) {
   const pmMember = ALL_MEMBERS.find((m) => m.id === card.pmId);
-  const teamNames = card.teamMemberIds.map((id) => ALL_MEMBERS.find((m) => m.id === id)?.name).filter(Boolean);
+  const teamNames = (card.teamMemberIds ?? []).map((id) => ALL_MEMBERS.find((m) => m.id === id)?.name).filter(Boolean);
   const delivery = getDeliveryDate(card);
   const dl = daysUntil(delivery);
   const dlColor = dl !== null && dl <= 14 ? 'text-red-600' : dl !== null && dl <= 30 ? 'text-blue-600' : 'text-gray-500';
-  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
-  const grossRate = card.amount > 0 ? Math.round((grossProfit / card.amount) * 100) : 0;
-  const needsTasks = card.tasks.length === 0;
+  const grossProfit = (card.amount ?? 0) + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
+  const grossRate = (card.amount ?? 0) > 0 ? Math.round((grossProfit / (card.amount ?? 0)) * 100) : 0;
+  const needsTasks = (card.tasks ?? []).length === 0;
 
   return (
     <div id={`handoff-${card.id}`} className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-blue-300 transition-colors scroll-mt-4">
@@ -434,7 +443,7 @@ function CardRow({
             {teamNames.length > 0 && (
               <span>チーム: <span className="font-semibold text-gray-900">{teamNames.join('・')}</span></span>
             )}
-            <span>タスク: <span className="font-semibold text-gray-900">{card.tasks.length}件</span></span>
+            <span>タスク: <span className="font-semibold text-gray-900">{(card.tasks ?? []).length}件</span></span>
             {delivery && (
               <span className={`font-semibold ${dlColor}`}>
                 納期 {delivery.slice(5)} ({dl !== null && dl >= 0 ? `残${dl}日` : dl !== null ? `${Math.abs(dl)}日超過` : ''})
@@ -483,11 +492,11 @@ function CardRow({
           ) : (
             <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
               <div className="px-3 py-2 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
-                <p className="text-xs font-semibold text-gray-600">タスク ({card.tasks.length}件)</p>
+                <p className="text-xs font-semibold text-gray-600">タスク ({(card.tasks ?? []).length}件)</p>
                 <button onClick={onGenerateTasks} className="text-xs font-medium text-gray-500 hover:text-gray-700">再生成</button>
               </div>
               <div className="p-2 space-y-1">
-                {card.tasks.map((t) => {
+                {(card.tasks ?? []).map((t) => {
                   const a = ALL_MEMBERS.find((m) => m.id === t.assigneeId);
                   return (
                     <div key={t.id} className="flex items-center justify-between gap-2 px-2 py-1.5 rounded hover:bg-gray-50">
@@ -559,14 +568,14 @@ function KanbanView({ cards, onMove, onOpen }: { cards: ProductionCard[]; onMove
 }
 
 function KanbanCard({ card, onOpen, onDragStart, onDragEnd }: { card: ProductionCard; onOpen: () => void; onDragStart: () => void; onDragEnd: () => void }) {
-  const pmMember = ALL_MEMBERS.find((m) => m.id === card.pmId);
+  const pmMember = ALL_MEMBERS.find((m) => m.id === (card.pmId ?? ''));
   const delivery = getDeliveryDate(card);
   const dl = daysUntil(delivery);
   const dlColor = dl !== null && dl <= 14 ? 'text-red-600' : dl !== null && dl <= 30 ? 'text-blue-600' : 'text-gray-700';
-  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
-  const grossRate = card.amount > 0 ? Math.round((grossProfit / card.amount) * 100) : 0;
-  const needsTasks = card.tasks.length === 0;
-  const taskCostTotal = card.tasks.reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
+  const grossProfit = (card.amount ?? 0) + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
+  const grossRate = (card.amount ?? 0) > 0 ? Math.round((grossProfit / (card.amount ?? 0)) * 100) : 0;
+  const needsTasks = (card.tasks ?? []).length === 0;
+  const taskCostTotal = (card.tasks ?? []).reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
   const budgetUsedPct = (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget > 0 ? Math.round((taskCostTotal / (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget) * 100) : 0;
   const budgetBadge =
     budgetUsedPct > 100 ? { label: `🔥 予算超過 ${budgetUsedPct}%`, cls: 'bg-red-50 text-red-700 border-red-300' } :
@@ -734,7 +743,7 @@ function CardDetailModal({
         estimatedCost: t.estimatedCost,
       };
     });
-    onFieldChange({ tasks: [...card.tasks, ...mapped] });
+    onFieldChange({ tasks: [...(card.tasks ?? []), ...mapped] });
   };
   const [actionDraft, setActionDraft] = useState<{ type: ProductionActionType; content: string; date: string; time: string; assignee: string }>({
     type: 'meet',
@@ -749,21 +758,21 @@ function CardDetailModal({
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const pmMember = ALL_MEMBERS.find((m) => m.id === card.pmId);
-  const teamNames = card.teamMemberIds.map((id) => ALL_MEMBERS.find((m) => m.id === id)?.name).filter(Boolean);
+  const pmMember = ALL_MEMBERS.find((m) => m.id === (card.pmId ?? ''));
+  const teamNames = (card.teamMemberIds ?? []).map((id) => ALL_MEMBERS.find((m) => m.id === id)?.name).filter(Boolean);
   const delivery = getDeliveryDate(card);
   const dl = daysUntil(delivery);
   const dlColor = dl !== null && dl <= 14 ? 'text-red-600' : dl !== null && dl <= 30 ? 'text-blue-600' : 'text-gray-700';
-  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
-  const grossRate = card.amount > 0 ? Math.round((grossProfit / card.amount) * 100) : 0;
-  const needsTasks = card.tasks.length === 0;
-  const taskCostTotal = card.tasks.reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
+  const grossProfit = (card.amount ?? 0) + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget;
+  const grossRate = (card.amount ?? 0) > 0 ? Math.round((grossProfit / (card.amount ?? 0)) * 100) : 0;
+  const needsTasks = (card.tasks ?? []).length === 0;
+  const taskCostTotal = (card.tasks ?? []).reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
   const budgetRemaining = (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget - taskCostTotal;
   const budgetUsedPct = (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget > 0 ? Math.round((taskCostTotal / (card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget) * 100) : 0;
   const memberLoad = useMemo(() => {
     const map = new Map<string, { active: number; cost: number }>();
     for (const c of allCards) {
-      for (const t of c.tasks) {
+      for (const t of c.tasks ?? []) {
         if (!t.assigneeId || t.status === 'done') continue;
         const prev = map.get(t.assigneeId) ?? { active: 0, cost: 0 };
         prev.active += 1;
@@ -776,7 +785,7 @@ function CardDetailModal({
   const requirementItems = useMemo(() => parseRequirementItems((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement), [(card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement]);
   const tasksByRequirementId = useMemo(() => {
     const map = new Map<string, ProductionCardTask[]>();
-    for (const t of card.tasks) {
+    for (const t of (card.tasks ?? []) ?? []) {
       for (const ref of t.requirementRefs ?? []) {
         const arr = map.get(ref) ?? [];
         arr.push(t);
@@ -784,7 +793,7 @@ function CardDetailModal({
       }
     }
     return map;
-  }, [card.tasks]);
+  }, [(card.tasks ?? []) ?? []]);
 
   const TABS: { id: Tab; label: string; icon: string }[] = [
     { id: 'requirements', label: '要件',      icon: '📝' },
@@ -1068,13 +1077,13 @@ function CardDetailModal({
 
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
                 <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-900">📋 タスク <span className="text-gray-700 font-normal">({card.tasks.length}件)</span></p>
+                  <p className="text-sm font-semibold text-gray-900">📋 タスク <span className="text-gray-700 font-normal">({(card.tasks ?? []).length}件)</span></p>
                   {!needsTasks && (
                     <div className="flex gap-2">
                       <button
                         onClick={() => {
-                          const dups: ProductionCardTask[] = card.tasks.filter((x) => x.status !== 'done').map((x, i) => ({ ...x, id: `t_${card.id}_bulkdup_${Date.now()}_${i}`, status: 'todo' as const }));
-                          if (dups.length > 0) onFieldChange({ tasks: [...card.tasks, ...dups] });
+                          const dups: ProductionCardTask[] = (card.tasks ?? []).filter((x) => x.status !== 'done').map((x, i) => ({ ...x, id: `t_${card.id}_bulkdup_${Date.now()}_${i}`, status: 'todo' as const }));
+                          if (dups.length > 0) onFieldChange({ tasks: [...(card.tasks ?? []), ...dups] });
                         }}
                         className="text-xs font-semibold text-gray-800 hover:text-blue-600 active:scale-[0.98]"
                       >📋 全タスク複製</button>
@@ -1102,17 +1111,17 @@ function CardDetailModal({
                   </div>
                 ) : (
                   <div className="divide-y divide-gray-100">
-                    {card.tasks.map((t) => (
+                    {(card.tasks ?? []).map((t) => (
                       <div key={t.id} className="px-3 py-2.5 hover:bg-gray-50 space-y-1.5">
                         <div className="flex items-center gap-2">
                           <div className="flex flex-col shrink-0 -mr-0.5">
                             <button
                               type="button"
-                              disabled={card.tasks.indexOf(t) === 0}
+                              disabled={(card.tasks ?? []).indexOf(t) === 0}
                               onClick={() => {
-                                const idx = card.tasks.indexOf(t);
+                                const idx = (card.tasks ?? []).indexOf(t);
                                 if (idx <= 0) return;
-                                const arr = [...card.tasks];
+                                const arr = [...(card.tasks ?? [])];
                                 [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]];
                                 onFieldChange({ tasks: arr });
                               }}
@@ -1120,11 +1129,11 @@ function CardDetailModal({
                             >▲</button>
                             <button
                               type="button"
-                              disabled={card.tasks.indexOf(t) === card.tasks.length - 1}
+                              disabled={(card.tasks ?? []).indexOf(t) === (card.tasks ?? []).length - 1}
                               onClick={() => {
-                                const idx = card.tasks.indexOf(t);
-                                if (idx >= card.tasks.length - 1) return;
-                                const arr = [...card.tasks];
+                                const idx = (card.tasks ?? []).indexOf(t);
+                                if (idx >= (card.tasks ?? []).length - 1) return;
+                                const arr = [...(card.tasks ?? [])];
                                 [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]];
                                 onFieldChange({ tasks: arr });
                               }}
@@ -1150,7 +1159,7 @@ function CardDetailModal({
                           <button
                             onClick={() => {
                               const dup: ProductionCardTask = { ...t, id: `t_${card.id}_dup_${Date.now()}`, status: 'todo' };
-                              onFieldChange({ tasks: [...card.tasks, dup] });
+                              onFieldChange({ tasks: [...(card.tasks ?? []), dup] });
                             }}
                             className="text-gray-700 hover:text-blue-600 text-sm shrink-0 active:scale-[0.98] w-6 h-6 rounded hover:bg-blue-50 flex items-center justify-center"
                             title="複製"
@@ -1371,36 +1380,43 @@ function CardDetailModal({
                   <p className="text-sm font-semibold text-gray-900">📍 マイルストーン</p>
                   <button
                     type="button"
-                    onClick={() => onFieldChange({ milestones: [...card.milestones, { id: `ms_${Date.now()}`, label: '新しいマイルストーン', dueDate: '2026-05-01', done: false }] })}
+                    onClick={() => onFieldChange({ milestones: [...(card.milestones ?? []), { id: `ms_${Date.now()}`, label: '新しいマイルストーン', dueDate: '2026-05-01', done: false }] })}
                     className="text-xs font-semibold text-blue-600 hover:text-blue-800 active:scale-[0.98]"
                   >+ 追加</button>
                 </div>
-                {card.milestones.length === 0 ? (
+                {(card.milestones ?? []).length === 0 ? (
                   <p className="text-xs text-gray-700 text-center py-4">マイルストーンがありません</p>
                 ) : (
                   <div className="divide-y divide-gray-100">
-                    {card.milestones.map((m) => (
+                    {(card.milestones ?? []).map((m) => (
                       <div key={m.id} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50">
                         <button
                           type="button"
-                          onClick={() => onFieldChange({ milestones: card.milestones.map((x) => (x.id === m.id ? { ...x, done: !x.done } : x)) })}
+                          onClick={() => {
+                            const updatedMilestones = (card.milestones ?? []).map((x) => (x.id === m.id ? { ...x, done: !x.done } : x));
+                            const tasks = (card.tasks ?? []) ?? [];
+                            const progress = tasks.length > 0
+                              ? Math.round(tasks.filter((t) => t.status === 'done').length / tasks.length * 100)
+                              : Math.round(updatedMilestones.filter((x) => x.done).length / updatedMilestones.length * 100);
+                            onFieldChange({ milestones: updatedMilestones, progress });
+                          }}
                           className="text-sm shrink-0 active:scale-[0.98]"
                         >{m.done ? '✅' : '○'}</button>
                         <input
                           type="text"
                           value={m.label}
-                          onChange={(e) => onFieldChange({ milestones: card.milestones.map((x) => (x.id === m.id ? { ...x, label: e.target.value } : x)) })}
+                          onChange={(e) => onFieldChange({ milestones: (card.milestones ?? []).map((x) => (x.id === m.id ? { ...x, label: e.target.value } : x)) })}
                           className={`text-xs flex-1 bg-transparent border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white rounded px-1 py-0.5 text-gray-900 ${m.done ? 'line-through text-gray-700' : ''}`}
                         />
                         <input
                           type="date"
                           value={m.dueDate}
-                          onChange={(e) => onFieldChange({ milestones: card.milestones.map((x) => (x.id === m.id ? { ...x, dueDate: e.target.value } : x)) })}
+                          onChange={(e) => onFieldChange({ milestones: (card.milestones ?? []).map((x) => (x.id === m.id ? { ...x, dueDate: e.target.value } : x)) })}
                           className="text-xs bg-white border border-gray-200 rounded px-1.5 py-0.5 focus:ring-2 focus:ring-blue-500 text-gray-900 shrink-0"
                         />
                         <button
                           type="button"
-                          onClick={() => onFieldChange({ milestones: card.milestones.filter((x) => x.id !== m.id) })}
+                          onClick={() => onFieldChange({ milestones: (card.milestones ?? []).filter((x) => x.id !== m.id) })}
                           className="text-gray-600 hover:text-red-600 text-sm shrink-0 active:scale-[0.98] w-6 h-6 rounded hover:bg-red-50 flex items-center justify-center"
                           title="削除"
                         >✕</button>
@@ -1423,7 +1439,7 @@ function CardDetailModal({
               </div>
 
               {(() => {
-                const extVendors = [...new Set(card.tasks.filter((t) => t.assigneeType === 'external' && t.externalPartnerName).map((t) => t.externalPartnerName!))];
+                const extVendors = [...new Set((card.tasks ?? []).filter((t) => t.assigneeType === 'external' && t.externalPartnerName).map((t) => t.externalPartnerName!))];
                 if (extVendors.length === 0) return null;
                 return (
                   <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
@@ -1528,7 +1544,7 @@ function TemplateApplier({ card, onFieldChange }: { card: ProductionCard; onFiel
       const d = new Date(today.getTime() + m.offsetDays * 86400000);
       return { id: `ms_tpl_${Date.now()}_${i}`, label: m.label, dueDate: d.toISOString().slice(0, 10), done: false };
     });
-    onFieldChange({ tasks: [...card.tasks, ...tasks], milestones: [...card.milestones, ...milestones] });
+    onFieldChange({ tasks: [...(card.tasks ?? []), ...tasks], milestones: [...(card.milestones ?? []), ...milestones] });
   };
 
   return (

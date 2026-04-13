@@ -19,9 +19,14 @@ export function ProgressTab({ card, onUpdate }: Props) {
   };
 
   const toggleMilestone = (msId: string) => {
-    onUpdate(card.id, {
-      milestones: milestones.map((m) => m.id === msId ? { ...m, done: !m.done } : m),
-    });
+    const updatedMilestones = milestones.map((m) => m.id === msId ? { ...m, done: !m.done } : m);
+    const tasks = card.tasks ?? [];
+    const newProgress = tasks.length > 0
+      ? Math.round(tasks.filter((t) => t.status === 'done').length / tasks.length * 100)
+      : updatedMilestones.length > 0
+        ? Math.round(updatedMilestones.filter((x) => x.done).length / updatedMilestones.length * 100)
+        : 0;
+    onUpdate(card.id, { milestones: updatedMilestones, progress: newProgress });
   };
 
   const updateMilestone = (msId: string, patch: Partial<Milestone>) => {
