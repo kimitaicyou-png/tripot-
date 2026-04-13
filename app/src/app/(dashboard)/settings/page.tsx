@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
@@ -49,6 +49,14 @@ const ROLE_BADGE: Record<string, string> = {
 };
 
 export default function SettingsPage() {
+  return (
+    <Suspense fallback={<div className="max-w-2xl mx-auto px-4 pt-6 text-sm text-gray-500">読み込み中...</div>}>
+      <SettingsContent />
+    </Suspense>
+  );
+}
+
+function SettingsContent() {
   const { data: session } = useSession();
   const userName = session?.user?.name ?? '---';
   const userEmail = session?.user?.email ?? '---';
