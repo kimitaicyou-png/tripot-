@@ -31,6 +31,7 @@ interface Action {
   id: string;
   content: string;
   client: string;
+  dealName?: string;
   dueDate: string;
   dueLabel: string;
   priority: ActionPriority;
@@ -104,11 +105,21 @@ function buildGoogleCalendarUrl(action: Action): string {
   const end = new Date(start.getTime() + 60 * 60 * 1000);
   const fmt = (d: Date) =>
     d.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}/, '');
+  const title = action.dealName && action.dealName !== action.client
+    ? `${action.client}（${action.dealName}）｜ ${action.content}`
+    : `${action.client} ｜ ${action.content}`;
+  const details = [
+    action.client ? `クライアント: ${action.client}` : '',
+    action.dealName ? `案件: ${action.dealName}` : '',
+    `タスク: ${action.content}`,
+    `優先度: ${action.priority}`,
+    '（コアリスAI 案件管理より）',
+  ].filter(Boolean).join('\n');
   const params = new URLSearchParams({
     action: 'TEMPLATE',
-    text: `${action.client} ｜ ${action.content}`,
+    text: title,
     dates: `${fmt(start)}/${fmt(end)}`,
-    details: `案件: ${action.client}\nタスク: ${action.content}\n優先度: ${action.priority}\n（コアリスAI 案件管理より）`,
+    details,
   });
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
@@ -569,6 +580,7 @@ export default function MemberDashboardPage() {
           id: `prod_${t.id}`,
           content: `[制作] ${t.title}`,
           client: t.projectName,
+          dealName: t.projectName,
           dueDate: t.dueDate,
           dueLabel,
           priority,
@@ -591,7 +603,8 @@ export default function MemberDashboardPage() {
         handoffActions.push({
           id: `handoff_${t.id}`,
           content: `[制作] ${t.title}`,
-          client: card.dealName,
+          client: card.clientName,
+          dealName: card.dealName,
           dueDate,
           dueLabel,
           priority,

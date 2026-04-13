@@ -194,6 +194,9 @@ export function ProposalEditor({ deal, onClose, onCreateEstimate, onAutoAdvance 
   const storedNeeds = typeof window !== 'undefined'
     ? (() => { try { const v = localStorage.getItem(`coaris_needs_${deal.id}`); return v ? (JSON.parse(v) as string[]) : []; } catch { return []; } })()
     : [];
+  const storedMinutes = typeof window !== 'undefined'
+    ? (() => { try { const v = localStorage.getItem(`coaris_minutes_${deal.id}`); return v ? (JSON.parse(v) as string[]) : []; } catch { return []; } })()
+    : [];
   const needsAppend = storedNeeds.length > 0
     ? `\n\n【事前抽出ニーズ（自動反映）】\n${storedNeeds.map((n, i) => `${i + 1}. ${n}`).join('\n')}`
     : '';
@@ -220,7 +223,10 @@ export function ProposalEditor({ deal, onClose, onCreateEstimate, onAutoAdvance 
           industry: deal.industry,
           assignee: deal.assignee,
           amount: deal.amount,
+          memo: deal.memo,
           dealContext,
+          meetingMinutes: storedMinutes.length > 0 ? storedMinutes.slice(0, 3).join('\n---\n') : '',
+          meetingNeeds: storedNeeds,
           researchEnabled,
           userPrompt: prompt,
         }),

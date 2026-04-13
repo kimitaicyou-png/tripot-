@@ -50,19 +50,23 @@ export async function POST(req: NextRequest) {
     const action = body.action as DealAiAction;
 
     if (action === 'generate-proposal') {
-      const { dealName, clientName, industry, assignee, amount, dealContext, researchEnabled, userPrompt } = body;
+      const { dealName, clientName, industry, assignee, amount, memo, dealContext, meetingMinutes, meetingNeeds, researchEnabled, userPrompt } = body;
       const researchNote = researchEnabled
         ? `市場調査も含めてください。${industry}業界の市場規模・成長率・主要トレンド・競合情報を調べて反映してください。`
         : '';
       const raw = await callText(
-        `あなたは${industry}業界のシステム提案のプロフェッショナルです。提案書のスライドデータをJSON配列で出力します。出力はJSON配列のみ。説明文・前置き・マークダウン不要。`,
+        `あなたは${industry}業界のシステム提案のプロフェッショナルです。提案書のスライドデータをJSON配列で出力します。出力はJSON配列のみ。説明文・前置き・マークダウン不要。案件の業種と打ち合わせ内容を正確に読み取り、案件の実態に合った内容を生成してください。デザイン案件をDX案件と間違えないでください。`,
         `${clientName}向け「${dealName}」の提案書を12〜15枚のスライドとして作成してください。
 ${researchNote}
 
+業種: ${industry}
 担当: ${assignee}
 予算感: ${amount > 0 ? `¥${amount.toLocaleString()}` : '未定'}
+${memo ? `メモ: ${memo}` : ''}
 
 ${dealContext ? `【顧客コンテキスト】\n${dealContext}` : ''}
+${meetingMinutes ? `【打ち合わせ議事録】\n${meetingMinutes}` : ''}
+${meetingNeeds?.length > 0 ? `【顧客ニーズ】\n${(meetingNeeds as string[]).map((n: string) => `・${n}`).join('\n')}` : ''}
 ${userPrompt ? `【追加指示】\n${userPrompt}` : ''}
 
 【重要ルール】
@@ -159,17 +163,20 @@ ${requirementText}
     }
 
     if (action === 'generate-estimate') {
-      const { dealName, clientName, industry, amount, dealContext, slideSummary } = body;
+      const { dealName, clientName, industry, amount, memo, dealContext, slideSummary, meetingMinutes, meetingNeeds } = body;
       const raw = await callText(
-        `あなたは${industry}業界のシステム開発の見積もりの専門家です。見積項目をJSON配列で出力します。`,
+        `あなたは${industry}業界のシステム開発の見積もりの専門家です。見積項目をJSON配列で出力します。案件の業種と打ち合わせ内容を正確に読み取り、案件の実態に合った内容を生成してください。デザイン案件をDX案件と間違えないでください。`,
         `以下の案件の見積もりを作成してください。
 
 案件: ${dealName}（${clientName}）
 業種: ${industry}
 予算目安: ${amount > 0 ? `¥${amount.toLocaleString()}` : '未定（300万円前後で見積もってください）'}
+${memo ? `メモ: ${memo}` : ''}
 
 ${slideSummary ? `【提案書の概要】\n${slideSummary}` : ''}
 ${dealContext ? `【顧客コンテキスト】\n${dealContext}` : ''}
+${meetingMinutes ? `【打ち合わせ議事録】\n${meetingMinutes}` : ''}
+${meetingNeeds?.length > 0 ? `【顧客ニーズ】\n${(meetingNeeds as string[]).map((n: string) => `・${n}`).join('\n')}` : ''}
 
 出力フォーマット（JSON配列のみ、説明文不要）:
 [

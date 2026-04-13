@@ -1,8 +1,44 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import type { Deal } from '@/lib/deals/types';
 import { useMemberNames } from '@/lib/hooks/useMemberNames';
+
+const DRAFT_KEY = 'tripot_deal_draft';
+
+type DraftState = {
+  clientName: string;
+  dealName: string;
+  industry: string;
+  amount: string;
+  monthlyAmount: string;
+  probability: string;
+  revenueType: 'shot' | 'running' | 'both';
+  assignee: string;
+  memo: string;
+};
+
+function loadDraft(): DraftState | null {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return null;
+    return JSON.parse(raw) as DraftState;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(state: DraftState) {
+  try {
+    localStorage.setItem(DRAFT_KEY, JSON.stringify(state));
+  } catch {}
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(DRAFT_KEY);
+  } catch {}
+}
 
 type Props = {
   onClose: () => void;
@@ -12,16 +48,25 @@ type Props = {
 
 export function NewDealModal({ onClose, onAdd, existingDeals }: Props) {
   const memberNames = useMemberNames();
-  const [clientName, setClientName] = useState('');
-  const [dealName, setDealName] = useState('');
-  const [industry, setIndustry] = useState('製造業');
-  const [amount, setAmount] = useState('');
-  const [monthlyAmount, setMonthlyAmount] = useState('');
-  const [probability, setProbability] = useState('50');
-  const [revenueType, setRevenueType] = useState<'shot' | 'running' | 'both'>('shot');
-  const [assignee, setAssignee] = useState('');
-  const [memo, setMemo] = useState('');
+  const draft = loadDraft();
+  const [clientName, setClientName] = useState(draft?.clientName ?? '');
+  const [dealName, setDealName] = useState(draft?.dealName ?? '');
+  const [industry, setIndustry] = useState(draft?.industry ?? '製造業');
+  const [amount, setAmount] = useState(draft?.amount ?? '');
+  const [monthlyAmount, setMonthlyAmount] = useState(draft?.monthlyAmount ?? '');
+  const [probability, setProbability] = useState(draft?.probability ?? '50');
+  const [revenueType, setRevenueType] = useState<'shot' | 'running' | 'both'>(draft?.revenueType ?? 'shot');
+  const [assignee, setAssignee] = useState(draft?.assignee ?? '');
+  const [memo, setMemo] = useState(draft?.memo ?? '');
   const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const persistDraft = useCallback(() => {
+    saveDraft({ clientName, dealName, industry, amount, monthlyAmount, probability, revenueType, assignee, memo });
+  }, [clientName, dealName, industry, amount, monthlyAmount, probability, revenueType, assignee, memo]);
+
+  useEffect(() => {
+    persistDraft();
+  }, [persistDraft]);
 
   const existingCustomers: { name: string; industry: string }[] = Array.from(
     new Map(existingDeals.map((d) => [d.clientName, { name: d.clientName, industry: d.industry }])).values()
@@ -70,6 +115,7 @@ export function NewDealModal({ onClose, onAdd, existingDeals }: Props) {
       revenueType,
       ...(revenueType === 'running' || revenueType === 'both' ? { monthlyAmount: Number(monthlyAmount) || 0 } : {}),
     };
+    clearDraft();
     onAdd(deal);
   };
 

@@ -6,6 +6,7 @@ import type { Deal, Stage, Slide, HistoryEvent } from '@/lib/deals/types';
 import { STAGE_LABEL, STAGE_BADGE, SALES_STAGES, PRODUCTION_STAGES, BILLING_STAGES, CLAIM_NEXT_STAGES } from '@/lib/deals/constants';
 import { MOCK_CLAIMS, MOCK_COMMS } from '@/lib/deals/mockData';
 import { appendHistory } from '@/lib/deals/dealOverrides';
+import { updateDeal } from '@/lib/dealsStore';
 import NextAction, { MOCK_NEXT_ACTIONS, type NextActionData } from '@/components/personal/NextAction';
 import LostDealRecord, { type LostReason, REASON_LABEL } from '@/components/personal/LostDealRecord';
 import { ActionSection } from './ActionSection';
@@ -20,9 +21,10 @@ type DealDetailProps = {
   deal: Deal;
   onBack: () => void;
   onStageChange: (id: string, stage: Stage) => void;
+  onUpdate?: (deal: Deal) => void;
 };
 
-export function DealDetail({ deal: initialDeal, onBack, onStageChange }: DealDetailProps) {
+export function DealDetail({ deal: initialDeal, onBack, onStageChange, onUpdate }: DealDetailProps) {
   const [deal, setDeal] = useState(initialDeal);
   const [modal, setModal] = useState<'proposal' | 'estimate' | 'estimate-from-proposal' | 'lost' | null>(null);
   const [proposalSlides, setProposalSlides] = useState<Slide[]>([]);
@@ -176,7 +178,28 @@ export function DealDetail({ deal: initialDeal, onBack, onStageChange }: DealDet
                   onAppendHistory={(event) => appendHistory(deal.id, event, setDeal)} />
               </div>
             )}
-            <div className="h-8" />
+            <div className="sticky bottom-0 bg-white border-t border-gray-200 rounded-b-2xl px-5 py-4 mt-5 flex items-center gap-3">
+              <select
+                value={deal.stage}
+                onChange={(e) => handleStageChange(e.target.value as Stage)}
+                className="flex-1 px-3 py-2.5 border border-gray-200 rounded-xl text-sm font-semibold text-gray-900 bg-white focus:ring-2 focus:ring-blue-600 focus:outline-none"
+              >
+                {(['lead', 'meeting', 'proposal', 'estimate_sent', 'negotiation', 'ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid', 'claim', 'claim_resolved', 'lost'] as Stage[]).map((s) => (
+                  <option key={s} value={s}>{STAGE_LABEL[s]}</option>
+                ))}
+              </select>
+              <button
+                onClick={async () => {
+                  await updateDeal(deal.id, { ...deal });
+                  if (onUpdate) onUpdate(deal);
+                  appendHistory(deal.id, { type: 'note', title: '案件情報を保存', actor: deal.assignee }, setDeal);
+                }}
+                className="px-6 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 active:scale-[0.98] transition-all"
+              >
+                保存
+              </button>
+            </div>
+            <div className="h-4" />
           </>
         )}
 

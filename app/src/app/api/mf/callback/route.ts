@@ -14,15 +14,17 @@ export async function GET(req: NextRequest) {
     ?? 'http://localhost:3100';
   const redirectUri = `${baseUrl}/api/mf/callback`;
 
+  const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
   const tokenRes = await fetch('https://invoice.moneyforward.com/oauth/token', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+      'Authorization': `Basic ${basicAuth}`,
+    },
     body: new URLSearchParams({
       grant_type: 'authorization_code',
       code,
       redirect_uri: redirectUri,
-      client_id: clientId,
-      client_secret: clientSecret,
     }),
   });
 

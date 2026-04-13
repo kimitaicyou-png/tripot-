@@ -63,6 +63,12 @@ export function EstimateEditor({ deal, slides, onClose, onAutoAdvance }: Estimat
   const [budgetGenerating, setBudgetGenerating] = useState(false);
   const [budgetStale, setBudgetStale] = useState(false);
   const dealContext = gatherDealContext(deal);
+  const storedNeeds: string[] = typeof window !== 'undefined'
+    ? (() => { try { const v = localStorage.getItem(`coaris_needs_${deal.id}`); return v ? JSON.parse(v) : []; } catch { return []; } })()
+    : [];
+  const storedMinutes: string[] = typeof window !== 'undefined'
+    ? (() => { try { const v = localStorage.getItem(`coaris_minutes_${deal.id}`); return v ? JSON.parse(v) : []; } catch { return []; } })()
+    : [];
   const [prompt, setPrompt] = useState(
     slides
       ? `提案書の内容に基づいて見積書を作成してください。\n\n${dealContext}\nスケジュール:\n${scheduleSlide?.bullets.join('\n') ?? '（未定）'}\n\n総額目安: ${deal.amount > 0 ? `¥${deal.amount.toLocaleString()}` : '未定'}`
@@ -82,8 +88,11 @@ export function EstimateEditor({ deal, slides, onClose, onAutoAdvance }: Estimat
           clientName: deal.clientName,
           industry: deal.industry,
           amount: deal.amount || 3000000,
+          memo: deal.memo,
           dealContext,
           slideSummary,
+          meetingMinutes: storedMinutes.length > 0 ? storedMinutes.slice(0, 3).join('\n---\n') : '',
+          meetingNeeds: storedNeeds,
         }),
       });
       const data = await res.json();

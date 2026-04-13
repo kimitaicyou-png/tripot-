@@ -46,26 +46,7 @@ const STATUS_NEXT: Record<Contract['status'], Contract['status'][]> = {
   expired: [],
 };
 
-const MOCK_CONTRACTS: Contract[] = [
-  {
-    id: 'con1',
-    name: '業務委託基本契約書',
-    type: 'service',
-    status: 'signed',
-    sentDate: '2026-03-10',
-    signedDate: '2026-03-15',
-    expiryDate: '2027-03-14',
-    memo: '年間自動更新。解約通知は3ヶ月前必要。',
-  },
-  {
-    id: 'con2',
-    name: '秘密保持契約書（NDA）',
-    type: 'nda',
-    status: 'sent',
-    sentDate: '2026-04-01',
-    memo: '先方の法務確認中。',
-  },
-];
+const MOCK_CONTRACTS: Contract[] = [];
 
 function StatusNextButton({
   current,

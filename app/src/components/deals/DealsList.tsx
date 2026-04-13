@@ -72,7 +72,7 @@ export function DealsList() {
   const dealsWithClaims = new Set(Object.entries(MOCK_CLAIMS).filter(([, claims]) => claims.some((c) => c.status !== 'resolved')).map(([id]) => id));
 
   if (selectedDeal) {
-    return <DealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} onStageChange={handleStageChange} />;
+    return <DealDetail deal={selectedDeal} onBack={() => setSelectedDeal(null)} onStageChange={handleStageChange} onUpdate={(updated) => { setDeals((prev) => prev.map((d) => d.id === updated.id ? updated : d)); setSelectedDeal(updated); }} />;
   }
 
   return (
@@ -143,7 +143,7 @@ export function DealsList() {
                           )}
                           {deal.stage === 'paid' && <span className="inline-flex items-center px-1.5 py-0.5 rounded text-xs font-semibold bg-gray-100 text-gray-500 shrink-0">完了</span>}
                         </div>
-                        <p className="text-xs text-gray-500 truncate mt-0.5">{deal.clientName}</p>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">{deal.clientName}{deal.assignee && <span className="ml-2 text-gray-500">担当: {deal.assignee}</span>}</p>
                         {(['in_production', 'delivered', 'acceptance'] as Stage[]).includes(deal.stage) && deal.progress !== undefined && (
                           <div className="mt-1.5">
                             <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden"><div className="h-full bg-blue-600 rounded-full" style={{ width: `${deal.progress}%` }} /></div>

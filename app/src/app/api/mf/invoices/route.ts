@@ -12,14 +12,16 @@ async function getMfToken(): Promise<string | null> {
     if (!refresh_token) return null;
     const clientId = process.env.MF_CLIENT_ID!;
     const clientSecret = process.env.MF_CLIENT_SECRET!;
+    const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
     const res = await fetch('https://invoice.moneyforward.com/oauth/token', {
       method: 'POST',
-      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Authorization': `Basic ${basicAuth}`,
+      },
       body: new URLSearchParams({
         grant_type: 'refresh_token',
         refresh_token: refresh_token as string,
-        client_id: clientId,
-        client_secret: clientSecret,
       }),
     });
     const data = await res.json();
