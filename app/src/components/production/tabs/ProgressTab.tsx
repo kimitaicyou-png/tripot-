@@ -9,27 +9,30 @@ type Props = {
 };
 
 export function ProgressTab({ card, onUpdate }: Props) {
+  const milestones = card.milestones ?? [];
+  const progress = card.progress ?? 0;
+
   const addMilestone = () => {
     onUpdate(card.id, {
-      milestones: [...card.milestones, { id: `ms_${Date.now()}`, label: '新しいマイルストーン', dueDate: '2026-05-01', done: false }],
+      milestones: [...milestones, { id: `ms_${Date.now()}`, label: '新しいマイルストーン', dueDate: '2026-05-01', done: false }],
     });
   };
 
   const toggleMilestone = (msId: string) => {
     onUpdate(card.id, {
-      milestones: card.milestones.map((m) => m.id === msId ? { ...m, done: !m.done } : m),
+      milestones: milestones.map((m) => m.id === msId ? { ...m, done: !m.done } : m),
     });
   };
 
   const updateMilestone = (msId: string, patch: Partial<Milestone>) => {
     onUpdate(card.id, {
-      milestones: card.milestones.map((m) => m.id === msId ? { ...m, ...patch } : m),
+      milestones: milestones.map((m) => m.id === msId ? { ...m, ...patch } : m),
     });
   };
 
   const removeMilestone = (msId: string) => {
     onUpdate(card.id, {
-      milestones: card.milestones.filter((m) => m.id !== msId),
+      milestones: milestones.filter((m) => m.id !== msId),
     });
   };
 
@@ -38,12 +41,12 @@ export function ProgressTab({ card, onUpdate }: Props) {
       <div className="bg-white rounded-xl border border-gray-200 p-4 space-y-3">
         <div className="flex items-center justify-between">
           <p className="text-sm font-semibold text-gray-900">進捗</p>
-          <span className="text-sm font-semibold text-gray-900 tabular-nums">{card.progress}%</span>
+          <span className="text-sm font-semibold text-gray-900 tabular-nums">{progress}%</span>
         </div>
         <input
           type="range"
           min={0} max={100} step={5}
-          value={card.progress}
+          value={progress}
           onChange={(e) => onUpdate(card.id, { progress: Number(e.target.value) })}
           className="w-full accent-blue-600"
         />
@@ -87,11 +90,11 @@ export function ProgressTab({ card, onUpdate }: Props) {
           <p className="text-sm font-semibold text-gray-900">マイルストーン</p>
           <button type="button" onClick={addMilestone} className="text-xs font-medium text-blue-600 hover:text-blue-800 active:scale-[0.98]">+ 追加</button>
         </div>
-        {card.milestones.length === 0 ? (
+        {milestones.length === 0 ? (
           <p className="text-xs text-gray-700 text-center py-4">マイルストーンがありません</p>
         ) : (
           <div className="divide-y divide-gray-100">
-            {card.milestones.map((m) => (
+            {milestones.map((m) => (
               <div key={m.id} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50">
                 <button type="button" onClick={() => toggleMilestone(m.id)} className="text-sm shrink-0 active:scale-[0.98]">{m.done ? '✅' : '○'}</button>
                 <input

@@ -29,14 +29,16 @@ const STATUS_CLS: Record<string, string> = {
 
 export function TaskTab({ card, allCards, onUpdate, onTaskUpdate, onTaskAdd, onTaskRemove, aiBusy, onAiAction }: Props) {
   const [newTitle, setNewTitle] = useState('');
-  const [newAssignee, setNewAssignee] = useState(card.pmId);
+  const [newAssignee, setNewAssignee] = useState(card.pmId ?? '');
 
   const memberLoad = useMemo(() => calcMemberLoad(allCards), [allCards]);
-  const taskCost = card.tasks.reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
-  const budget = card.referenceArtifacts.budget;
+  const tasks = card.tasks ?? [];
+  const refs = card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' };
+  const taskCost = tasks.reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
+  const budget = refs.budget;
   const budgetPct = safePercent(taskCost, budget);
   const budgetRemaining = budget - taskCost;
-  const needsTasks = card.tasks.length === 0;
+  const needsTasks = tasks.length === 0;
 
   const handleAdd = () => {
     if (!newTitle.trim()) return;
@@ -77,13 +79,13 @@ export function TaskTab({ card, allCards, onUpdate, onTaskUpdate, onTaskAdd, onT
 
       <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
         <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-          <p className="text-sm font-semibold text-gray-900">タスク <span className="text-gray-500 font-normal">({card.tasks.length}件)</span></p>
+          <p className="text-sm font-semibold text-gray-900">タスク <span className="text-gray-500 font-normal">({tasks.length}件)</span></p>
           {!needsTasks && (
             <div className="flex gap-2">
               <button
                 onClick={() => {
-                  const dups = card.tasks.filter((x) => x.status !== 'done').map((x, i) => ({ ...x, id: `t_${card.id}_dup_${Date.now()}_${i}`, status: 'todo' as const }));
-                  if (dups.length > 0) onUpdate(card.id, { tasks: [...card.tasks, ...dups] });
+                  const dups = tasks.filter((x) => x.status !== 'done').map((x, i) => ({ ...x, id: `t_${card.id}_dup_${Date.now()}_${i}`, status: 'todo' as const }));
+                  if (dups.length > 0) onUpdate(card.id, { tasks: [...tasks, ...dups] });
                 }}
                 className="text-xs font-medium text-gray-800 hover:text-blue-600 active:scale-[0.98]"
               >全複製</button>
@@ -102,12 +104,12 @@ export function TaskTab({ card, allCards, onUpdate, onTaskUpdate, onTaskAdd, onT
           </div>
         ) : (
           <div className="divide-y divide-gray-100">
-            {card.tasks.map((t, idx) => (
+            {tasks.map((t, idx) => (
               <div key={t.id} className="px-3 py-2.5 hover:bg-gray-50 space-y-1.5">
                 <div className="flex items-center gap-2">
                   <div className="flex flex-col shrink-0 -mr-0.5">
-                    <button disabled={idx === 0} onClick={() => { const arr = [...card.tasks]; [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]; onUpdate(card.id, { tasks: arr }); }} className="text-gray-600 text-xs leading-none disabled:opacity-20 active:scale-[0.9]">▲</button>
-                    <button disabled={idx === card.tasks.length - 1} onClick={() => { const arr = [...card.tasks]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]; onUpdate(card.id, { tasks: arr }); }} className="text-gray-600 text-xs leading-none disabled:opacity-20 active:scale-[0.9]">▼</button>
+                    <button disabled={idx === 0} onClick={() => { const arr = [...tasks]; [arr[idx - 1], arr[idx]] = [arr[idx], arr[idx - 1]]; onUpdate(card.id, { tasks: arr }); }} className="text-gray-600 text-xs leading-none disabled:opacity-20 active:scale-[0.9]">▲</button>
+                    <button disabled={idx === tasks.length - 1} onClick={() => { const arr = [...tasks]; [arr[idx], arr[idx + 1]] = [arr[idx + 1], arr[idx]]; onUpdate(card.id, { tasks: arr }); }} className="text-gray-600 text-xs leading-none disabled:opacity-20 active:scale-[0.9]">▼</button>
                   </div>
                   <select
                     value={t.status}

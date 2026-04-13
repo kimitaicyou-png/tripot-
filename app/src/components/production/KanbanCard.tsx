@@ -15,7 +15,7 @@ type Props = {
 };
 
 function getDeliveryDate(card: ProductionCard): string {
-  const last = [...card.milestones].reverse().find((m) => m.dueDate);
+  const last = [...(card.milestones ?? [])].reverse().find((m) => m.dueDate);
   return last?.dueDate ?? '';
 }
 
@@ -29,17 +29,19 @@ export function KanbanCard({ card, onOpen, onDragStart, onDragEnd }: Props) {
   const dl = daysUntil(delivery);
   const dlColor = dl !== null && dl <= 14 ? 'text-red-600' : dl !== null && dl <= 30 ? 'text-blue-600' : 'text-gray-700';
 
-  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - card.referenceArtifacts.budget;
-  const grossRate = safePercent(grossProfit, card.amount);
+  const refs = card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' };
+  const amt = card.amount ?? 0;
+  const grossProfit = amt + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - refs.budget;
+  const grossRate = safePercent(grossProfit, amt);
 
-  const taskCost = card.tasks.reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
-  const budgetPct = safePercent(taskCost, card.referenceArtifacts.budget);
+  const taskCost = (card.tasks ?? []).reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
+  const budgetPct = safePercent(taskCost, refs.budget);
   const budgetBadge =
     budgetPct > 100 ? { label: `予算超過 ${budgetPct}%`, cls: 'bg-red-50 text-red-700 border-red-300' } :
     budgetPct >= 80 ? { label: `予算 ${budgetPct}%`, cls: 'bg-amber-50 text-amber-700 border-amber-300' } :
     null;
 
-  const needsTasks = card.tasks.length === 0 && card.status === 'active';
+  const needsTasks = (card.tasks ?? []).length === 0 && card.status === 'active';
 
   const cardStyle =
     card.status === 'cancelled' ? 'bg-gray-50 border-red-200 opacity-60' :
@@ -67,15 +69,15 @@ export function KanbanCard({ card, onOpen, onDragStart, onDragEnd }: Props) {
       </div>
       <p className="text-xs text-gray-500 truncate mb-2">{card.clientName}</p>
       <div className="flex items-center gap-1.5 mb-2">
-        <ProgressBar pct={card.progress} height="h-1.5" />
-        <span className="text-xs font-medium text-gray-600 tabular-nums w-7 text-right">{card.progress}%</span>
+        <ProgressBar pct={card.progress ?? 0} height="h-1.5" />
+        <span className="text-xs font-medium text-gray-600 tabular-nums w-7 text-right">{card.progress ?? 0}%</span>
       </div>
       <div className="flex items-center justify-between text-xs">
-        <span className="text-gray-600 truncate">{getMemberName(card.pmId)}</span>
+        <span className="text-gray-600 truncate">{getMemberName(card.pmId ?? '')}</span>
         <span className={`font-medium tabular-nums ${grossRate >= 40 ? 'text-blue-600' : grossRate >= 20 ? 'text-gray-700' : 'text-red-600'}`}>{grossRate}%</span>
       </div>
       <div className="flex items-center justify-between text-xs mt-1">
-        <span className="text-gray-700 font-medium tabular-nums">{formatYen(card.amount)}</span>
+        <span className="text-gray-700 font-medium tabular-nums">{formatYen(amt)}</span>
         {delivery && (
           <span className={`font-medium ${dlColor}`}>
             {delivery.slice(5)}{dl !== null && dl >= 0 ? ` (残${dl})` : dl !== null ? ` (${Math.abs(dl)}超過)` : ''}

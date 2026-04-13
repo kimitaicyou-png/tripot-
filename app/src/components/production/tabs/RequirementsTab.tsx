@@ -14,10 +14,12 @@ type Props = {
 export function RequirementsTab({ card, onUpdate, aiBusy, onAiAction }: Props) {
   const [undoStack, setUndoStack] = useState<string[]>([]);
 
-  const items = useMemo(() => parseRequirementItems(card.referenceArtifacts.requirement), [card.referenceArtifacts.requirement]);
+  const refs = card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' };
+  const tasks = card.tasks ?? [];
+  const items = useMemo(() => parseRequirementItems(refs.requirement), [refs.requirement]);
   const tasksByReq = useMemo(() => {
     const map = new Map<string, ProductionCardTask[]>();
-    for (const t of card.tasks) {
+    for (const t of tasks) {
       for (const ref of t.requirementRefs ?? []) {
         const arr = map.get(ref) ?? [];
         arr.push(t);
@@ -25,13 +27,13 @@ export function RequirementsTab({ card, onUpdate, aiBusy, onAiAction }: Props) {
       }
     }
     return map;
-  }, [card.tasks]);
+  }, [tasks]);
 
-  const pushUndo = () => setUndoStack((s) => [...s, card.referenceArtifacts.requirement ?? '']);
+  const pushUndo = () => setUndoStack((s) => [...s, refs.requirement ?? '']);
   const popUndo = () => {
     const last = undoStack[undoStack.length - 1];
     if (last === undefined) return;
-    onUpdate(card.id, { referenceArtifacts: { ...card.referenceArtifacts, requirement: last } });
+    onUpdate(card.id, { referenceArtifacts: { ...refs, requirement: last } });
     setUndoStack((s) => s.slice(0, -1));
   };
 
@@ -51,19 +53,19 @@ export function RequirementsTab({ card, onUpdate, aiBusy, onAiAction }: Props) {
             >{aiBusy === 'refine-requirements' ? '整形中...' : 'AIで整形'}</button>
             <button
               onClick={() => onAiAction('generate-sitemap')}
-              disabled={aiBusy !== null || !(card.referenceArtifacts.requirement ?? '').trim()}
+              disabled={aiBusy !== null || !(refs.requirement ?? '').trim()}
               className="text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-2 py-1 hover:bg-blue-100 active:scale-[0.98] disabled:opacity-50"
             >{aiBusy === 'generate-sitemap' ? '生成中...' : 'サイトマップ生成'}</button>
             <button
               onClick={() => onAiAction('generate-tasks')}
-              disabled={aiBusy !== null || !(card.referenceArtifacts.requirement ?? '').trim()}
+              disabled={aiBusy !== null || !(refs.requirement ?? '').trim()}
               className="text-xs font-medium bg-emerald-50 text-emerald-700 border border-emerald-200 rounded-lg px-2 py-1 hover:bg-emerald-100 active:scale-[0.98] disabled:opacity-50"
             >{aiBusy === 'generate-tasks' ? '生成中...' : 'タスク自動生成'}</button>
           </div>
         </div>
         <textarea
-          value={card.referenceArtifacts.requirement ?? ''}
-          onChange={(e) => onUpdate(card.id, { referenceArtifacts: { ...card.referenceArtifacts, requirement: e.target.value } })}
+          value={refs.requirement ?? ''}
+          onChange={(e) => onUpdate(card.id, { referenceArtifacts: { ...refs, requirement: e.target.value } })}
           placeholder="# 要件定義書&#10;&#10;## 機能要件&#10;- ..."
           className="w-full min-h-[260px] text-sm p-3 border-0 focus:ring-2 focus:ring-blue-500 focus:outline-none rounded-b-xl resize-y font-mono text-gray-900"
         />

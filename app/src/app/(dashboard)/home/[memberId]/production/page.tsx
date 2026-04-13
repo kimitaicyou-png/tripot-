@@ -28,7 +28,7 @@ export default function MemberProductionPage() {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
     const now = new Date().toISOString().slice(0, 10);
-    const tasks = card.tasks.map((t) => {
+    const tasks = (card.tasks ?? []).map((t) => {
       if (t.id !== taskId) return t;
       const updated = { ...t, status: newStatus };
       if (newStatus === 'done' && !t.completedAt) (updated as Record<string, unknown>).completedAt = now;
@@ -46,7 +46,7 @@ export default function MemberProductionPage() {
     const result: { card: ProductionCard; task: ProductionCardTask }[] = [];
     for (const c of cards) {
       if (c.status === 'cancelled') continue;
-      for (const t of c.tasks) {
+      for (const t of c.tasks ?? []) {
         if (t.assigneeId === memberId) result.push({ card: c, task: t });
       }
     }

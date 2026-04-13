@@ -33,9 +33,11 @@ export function CardDetailModal({ card, onClose, onUpdate, children }: Props) {
     return () => window.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  const grossProfit = card.amount + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - card.referenceArtifacts.budget;
-  const grossRate = safePercent(grossProfit, card.amount);
-  const delivery = [...card.milestones].reverse().find((m) => m.dueDate)?.dueDate ?? '';
+  const refs = card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' };
+  const amt = card.amount ?? 0;
+  const grossProfit = amt + (card.amendments ?? []).reduce((s, a) => s + a.amount, 0) - refs.budget;
+  const grossRate = safePercent(grossProfit, amt);
+  const delivery = [...(card.milestones ?? [])].reverse().find((m) => m.dueDate)?.dueDate ?? '';
   const dl = delivery ? Math.ceil((new Date(delivery).getTime() - new Date('2026-04-05').getTime()) / 86400000) : null;
   const dlColor = dl !== null && dl <= 14 ? 'text-red-600' : dl !== null && dl <= 30 ? 'text-blue-600' : 'text-gray-700';
 
@@ -59,9 +61,9 @@ export function CardDetailModal({ card, onClose, onUpdate, children }: Props) {
 
         <div className="px-5 pt-3 pb-0 bg-white border-b border-gray-200">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-3">
-            <div><p className="text-gray-500 mb-0.5">受注額</p><p className="font-semibold text-gray-900 tabular-nums">{formatYen(card.amount)}</p></div>
+            <div><p className="text-gray-500 mb-0.5">受注額</p><p className="font-semibold text-gray-900 tabular-nums">{formatYen(amt)}</p></div>
             <div><p className="text-gray-500 mb-0.5">粗利</p><p className={`font-semibold tabular-nums ${grossRate >= 40 ? 'text-blue-600' : grossRate >= 20 ? 'text-gray-900' : 'text-red-600'}`}>{formatYen(grossProfit)}（{grossRate}%）</p></div>
-            <div><p className="text-gray-500 mb-0.5">進捗</p><p className="font-semibold text-gray-900 tabular-nums">{card.progress}%</p></div>
+            <div><p className="text-gray-500 mb-0.5">進捗</p><p className="font-semibold text-gray-900 tabular-nums">{card.progress ?? 0}%</p></div>
             <div><p className="text-gray-500 mb-0.5">納期</p><p className={`font-semibold ${dlColor} tabular-nums`}>{delivery || '—'}{dl !== null && dl >= 0 ? ` (残${dl}日)` : dl !== null ? ` (${Math.abs(dl)}日超過)` : ''}</p></div>
           </div>
 
@@ -78,7 +80,7 @@ export function CardDetailModal({ card, onClose, onUpdate, children }: Props) {
             <div className="border border-gray-200 rounded-lg mb-3 divide-y divide-gray-100 text-sm">
               <div className="p-3">
                 <p className="text-xs font-medium text-gray-700 mb-1">提案サマリー</p>
-                <p className="text-gray-900 whitespace-pre-wrap">{card.referenceArtifacts.proposalSummary || '(未記載)'}</p>
+                <p className="text-gray-900 whitespace-pre-wrap">{refs.proposalSummary || '(未記載)'}</p>
               </div>
               <div className="p-3">
                 <p className="text-xs font-medium text-gray-700 mb-1">営業引き継ぎメモ</p>
@@ -92,11 +94,11 @@ export function CardDetailModal({ card, onClose, onUpdate, children }: Props) {
               <div className="p-3">
                 <p className="text-xs font-medium text-gray-700 mb-1">見積・予算</p>
                 <div className="space-y-1 text-gray-900">
-                  <div className="flex justify-between"><span className="text-gray-700">受注金額</span><span className="font-medium tabular-nums">{formatYen(card.amount)}</span></div>
-                  <div className="flex justify-between"><span className="text-gray-700">制作予算</span><span className="font-medium tabular-nums">{formatYen(card.referenceArtifacts.budget)}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-700">受注金額</span><span className="font-medium tabular-nums">{formatYen(amt)}</span></div>
+                  <div className="flex justify-between"><span className="text-gray-700">制作予算</span><span className="font-medium tabular-nums">{formatYen(refs.budget)}</span></div>
                   <div className="flex justify-between border-t border-gray-200 pt-1 mt-1"><span className="text-gray-700">目標粗利</span><span className="font-medium tabular-nums text-blue-600">{formatYen(grossProfit)}（{grossRate}%）</span></div>
                 </div>
-                <p className="text-xs text-gray-700 mt-2">PM: <span className="font-medium text-gray-900">{getMemberName(card.pmId)}</span></p>
+                <p className="text-xs text-gray-700 mt-2">PM: <span className="font-medium text-gray-900">{getMemberName(card.pmId ?? '')}</span></p>
               </div>
             </div>
           )}

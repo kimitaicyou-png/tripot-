@@ -27,7 +27,9 @@ export function CustomerActionPanel({ card, onUpdate }: Props) {
   const [isOpen, setIsOpen] = useState(false);
   const [actionType, setActionType] = useState<ActionType>('phone');
   const [content, setContent] = useState('');
-  const [assignee, setAssignee] = useState(card.pmId);
+  const pmId = card.pmId ?? '';
+  const teamMemberIds = card.teamMemberIds ?? [];
+  const [assignee, setAssignee] = useState(pmId);
   const [incidentStatus, setIncidentStatus] = useState<IncidentStatus>('open');
 
   const actions = card.actions ?? [];
@@ -134,7 +136,7 @@ export function CustomerActionPanel({ card, onUpdate }: Props) {
               onChange={(e) => setAssignee(e.target.value)}
               className="text-xs border border-gray-200 rounded-lg px-2 py-1.5 text-gray-700 bg-white"
             >
-              {[card.pmId, ...card.teamMemberIds.filter((id) => id !== card.pmId)].map((id) => (
+              {[pmId, ...teamMemberIds.filter((id) => id !== pmId)].filter(Boolean).map((id) => (
                 <option key={id} value={id}>{getMemberName(id)}</option>
               ))}
             </select>

@@ -22,7 +22,7 @@ export function StructureTab({ card, onUpdate, aiBusy, onAiAction, undoSitemap, 
           )}
           <button
             onClick={() => onAiAction('generate-sitemap')}
-            disabled={aiBusy !== null || !(card.referenceArtifacts.requirement ?? '').trim()}
+            disabled={aiBusy !== null || !((card.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).requirement ?? '').trim()}
             className="text-xs font-medium bg-blue-50 text-blue-700 border border-blue-200 rounded-lg px-2 py-1 hover:bg-blue-100 active:scale-[0.98] disabled:opacity-50"
           >{aiBusy === 'generate-sitemap' ? '生成中...' : '要件から自動生成'}</button>
         </div>

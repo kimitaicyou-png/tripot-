@@ -29,7 +29,7 @@ export default function MyProductionPage() {
     const result: { card: ProductionCard; task: ProductionCardTask }[] = [];
     for (const c of cards) {
       if (c.status === 'cancelled') continue;
-      for (const t of c.tasks) {
+      for (const t of c.tasks ?? []) {
         if (t.assigneeId === memberId) result.push({ card: c, task: t });
       }
     }
