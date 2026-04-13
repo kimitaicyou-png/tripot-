@@ -13,7 +13,7 @@ async function getMfToken(): Promise<string | null> {
     const clientId = process.env.MF_CLIENT_ID!;
     const clientSecret = process.env.MF_CLIENT_SECRET!;
     const basicAuth = Buffer.from(`${clientId}:${clientSecret}`).toString('base64');
-    const res = await fetch('https://invoice.moneyforward.com/oauth/token', {
+    const res = await fetch('https://api.biz.moneyforward.com/token', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
