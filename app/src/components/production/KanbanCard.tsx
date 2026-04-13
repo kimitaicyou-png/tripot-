@@ -68,9 +68,12 @@ export function KanbanCard({ card, onOpen, onDragStart, onDragEnd }: Props) {
         )}
       </div>
       <p className="text-xs text-gray-500 truncate mb-2">{card.clientName}</p>
-      <div className="flex items-center gap-1.5 mb-2">
+      <div className="flex items-center gap-1.5 mb-1">
         <ProgressBar pct={card.progress ?? 0} height="h-1.5" />
         <span className="text-xs font-medium text-gray-600 tabular-nums w-7 text-right">{card.progress ?? 0}%</span>
+      </div>
+      <div className="flex items-center justify-between text-xs mb-1">
+        <span className="text-gray-500 tabular-nums">{(card.tasks ?? []).filter((t) => t.status === 'done').length}/{(card.tasks ?? []).length} タスク完了</span>
       </div>
       <div className="flex items-center justify-between text-xs">
         <span className="text-gray-600 truncate">{getMemberName(card.pmId ?? '')}</span>

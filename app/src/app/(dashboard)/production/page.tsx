@@ -600,11 +600,14 @@ function KanbanCard({ card, onOpen, onDragStart, onDragEnd }: { card: Production
         <span className={`text-xs font-semibold rounded-full px-1.5 py-0.5 border shrink-0 ${RISK_COLORS[card.risk]}`}>{RISK_LABELS[card.risk]}</span>
       </div>
       <p className="text-xs text-gray-700 truncate mb-2">{card.clientName}</p>
-      <div className="flex items-center gap-1.5 mb-2">
+      <div className="flex items-center gap-1.5 mb-1">
         <div className="flex-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
           <div className="h-full bg-blue-600 rounded-full" style={{ width: `${card.progress}%` }} />
         </div>
         <span className="text-xs font-semibold text-gray-800 tabular-nums w-7 text-right">{card.progress}%</span>
+      </div>
+      <div className="flex items-center justify-between text-xs mb-1">
+        <span className="text-gray-700 tabular-nums">{(card.tasks ?? []).filter((t) => t.status === 'done').length}/{(card.tasks ?? []).length} タスク完了</span>
       </div>
       <div className="flex items-center justify-between text-xs">
         <span className="text-gray-800 truncate">{pmMember?.name ?? card.pmName}</span>
@@ -657,7 +660,7 @@ function CardDetailModal({
   onFieldChange: (patch: Partial<ProductionCard>) => void;
 }) {
   type Tab = 'requirements' | 'structure' | 'tasks' | 'progress';
-  const [tab, setTab] = useState<Tab>('requirements');
+  const [tab, setTab] = useState<Tab>('tasks');
   const [handoffOpen, setHandoffOpen] = useState(false);
   const [newTaskTitle, setNewTaskTitle] = useState('');
   const [newTaskAssignee, setNewTaskAssignee] = useState<string>(card.pmId);
@@ -821,7 +824,7 @@ function CardDetailModal({
           <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs mb-3">
             <div><p className="text-gray-700 mb-0.5">受注額</p><p className="font-semibold text-gray-900 tabular-nums">{yen(card.amount)}</p></div>
             <div><p className="text-gray-700 mb-0.5">粗利</p><p className={`font-semibold tabular-nums ${grossRate >= 40 ? 'text-blue-600' : grossRate >= 20 ? 'text-gray-900' : 'text-red-600'}`}>{yen(grossProfit)}（{grossRate}%）</p></div>
-            <div><p className="text-gray-700 mb-0.5">進捗</p><p className="font-semibold text-gray-900 tabular-nums">{card.progress}%</p></div>
+            <div><p className="text-gray-700 mb-0.5">進捗</p><p className="font-semibold text-gray-900 tabular-nums">{card.progress}% <span className="font-normal text-gray-700">({(card.tasks ?? []).filter((t) => t.status === 'done').length}/{(card.tasks ?? []).length})</span></p></div>
             <div><p className="text-gray-700 mb-0.5">納期</p><p className={`font-semibold ${dlColor} tabular-nums`}>{delivery || '—'}{dl !== null && dl >= 0 ? ` (残${dl}日)` : dl !== null ? ` (${Math.abs(dl)}日超過)` : ''}</p></div>
           </div>
           <div className="flex gap-1">
@@ -1331,15 +1334,18 @@ function CardDetailModal({
                   <p className="text-sm font-semibold text-gray-900">進捗</p>
                   <span className="text-sm font-semibold text-gray-900 tabular-nums">{card.progress}%</span>
                 </div>
-                <input
-                  type="range"
-                  min={0}
-                  max={100}
-                  step={5}
-                  value={card.progress}
-                  onChange={(e) => onFieldChange({ progress: Number(e.target.value) })}
-                  className="w-full accent-blue-600"
-                />
+                <div className="w-full h-3 bg-gray-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-blue-600 rounded-full transition-all" style={{ width: `${card.progress}%` }} />
+                </div>
+                {(card.tasks ?? []).length > 0 && (
+                  <p className="text-xs text-gray-700">
+                    タスク {(card.tasks ?? []).filter((t) => t.status === 'done').length}/{(card.tasks ?? []).length} 完了
+                    {' '}— タスクを完了にすると進捗が自動で進みます
+                  </p>
+                )}
+                {(card.tasks ?? []).length === 0 && (
+                  <p className="text-xs text-gray-700">タスクを追加すると、完了数に応じて進捗が自動計算されます</p>
+                )}
                 <div className="flex items-center gap-3 text-xs flex-wrap">
                   <div className="flex items-center gap-2">
                     <span className="text-gray-800">リスク</span>
@@ -1373,57 +1379,6 @@ function CardDetailModal({
                     </select>
                   </div>
                 </div>
-              </div>
-
-              <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-                <div className="px-3 py-2 bg-gray-50 border-b border-gray-200 flex items-center justify-between">
-                  <p className="text-sm font-semibold text-gray-900">📍 マイルストーン</p>
-                  <button
-                    type="button"
-                    onClick={() => onFieldChange({ milestones: [...(card.milestones ?? []), { id: `ms_${Date.now()}`, label: '新しいマイルストーン', dueDate: '2026-05-01', done: false }] })}
-                    className="text-xs font-semibold text-blue-600 hover:text-blue-800 active:scale-[0.98]"
-                  >+ 追加</button>
-                </div>
-                {(card.milestones ?? []).length === 0 ? (
-                  <p className="text-xs text-gray-700 text-center py-4">マイルストーンがありません</p>
-                ) : (
-                  <div className="divide-y divide-gray-100">
-                    {(card.milestones ?? []).map((m) => (
-                      <div key={m.id} className="flex items-center gap-2 px-3 py-2 hover:bg-gray-50">
-                        <button
-                          type="button"
-                          onClick={() => {
-                            const updatedMilestones = (card.milestones ?? []).map((x) => (x.id === m.id ? { ...x, done: !x.done } : x));
-                            const tasks = (card.tasks ?? []) ?? [];
-                            const progress = tasks.length > 0
-                              ? Math.round(tasks.filter((t) => t.status === 'done').length / tasks.length * 100)
-                              : Math.round(updatedMilestones.filter((x) => x.done).length / updatedMilestones.length * 100);
-                            onFieldChange({ milestones: updatedMilestones, progress });
-                          }}
-                          className="text-sm shrink-0 active:scale-[0.98]"
-                        >{m.done ? '✅' : '○'}</button>
-                        <input
-                          type="text"
-                          value={m.label}
-                          onChange={(e) => onFieldChange({ milestones: (card.milestones ?? []).map((x) => (x.id === m.id ? { ...x, label: e.target.value } : x)) })}
-                          className={`text-xs flex-1 bg-transparent border-0 focus:ring-2 focus:ring-blue-500 focus:bg-white rounded px-1 py-0.5 text-gray-900 ${m.done ? 'line-through text-gray-700' : ''}`}
-                        />
-                        <input
-                          type="date"
-                          value={m.dueDate}
-                          onChange={(e) => onFieldChange({ milestones: (card.milestones ?? []).map((x) => (x.id === m.id ? { ...x, dueDate: e.target.value } : x)) })}
-                          className="text-xs bg-white border border-gray-200 rounded px-1.5 py-0.5 focus:ring-2 focus:ring-blue-500 text-gray-900 shrink-0"
-                        />
-                        <button
-                          type="button"
-                          onClick={() => onFieldChange({ milestones: (card.milestones ?? []).filter((x) => x.id !== m.id) })}
-                          className="text-gray-600 hover:text-red-600 text-sm shrink-0 active:scale-[0.98] w-6 h-6 rounded hover:bg-red-50 flex items-center justify-center"
-                          title="削除"
-                        >✕</button>
-                      </div>
-                    ))}
-                  </div>
-                )}
               </div>
 
               <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">

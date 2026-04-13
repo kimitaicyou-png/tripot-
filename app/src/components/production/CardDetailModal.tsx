@@ -24,7 +24,7 @@ type Props = {
 };
 
 export function CardDetailModal({ card, onClose, onUpdate, children }: Props) {
-  const [tab, setTab] = useState<Tab>('requirements');
+  const [tab, setTab] = useState<Tab>('tasks');
   const [handoffOpen, setHandoffOpen] = useState(false);
 
   useEffect(() => {
