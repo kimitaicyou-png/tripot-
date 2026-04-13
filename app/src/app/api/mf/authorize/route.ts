@@ -15,8 +15,8 @@ export async function GET() {
     response_type: 'code',
     client_id: clientId,
     redirect_uri: redirectUri,
-    scope: 'mfc/invoice/read',
+    scope: 'read',
   });
 
-  return NextResponse.redirect(`https://invoice.moneyforward.com/oauth/authorize?${params.toString()}`);
+  return NextResponse.redirect(`https://api.biz.moneyforward.com/authorize?${params.toString()}`);
 }
