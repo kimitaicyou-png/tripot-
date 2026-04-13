@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { loadProductionCards, type ProductionCard, type ProductionAction } from '@/lib/productionCards';
 import { MEMBERS as ALL_MEMBERS_RAW } from '@/lib/currentMember';
 import { VENDORS } from '@/lib/data/vendors';
-import { loadAllDeals, calcDealKpi } from '@/lib/dealsStore';
+import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
 import { formatYen } from '@/lib/format';
 import {
   LineChart,
@@ -31,7 +31,8 @@ const PHASE_LABELS_W: Record<string, string> = {
 };
 
 function useLiveWeeklyData() {
-  const [deals] = useState(() => loadAllDeals());
+  const [deals, setDealsW] = useState(() => loadAllDeals());
+  useEffect(() => { fetchDeals().then((fresh) => setDealsW(fresh)); }, []);
   const [cards] = useState(() => loadProductionCards());
   const kpi = calcDealKpi(deals);
 
@@ -132,7 +133,8 @@ function NumbersTab() {
 
 function SalesNumbersView() {
   const liveW = useLiveWeeklyData();
-  const [deals] = useState(() => loadAllDeals());
+  const [deals, setDealsS] = useState(() => loadAllDeals());
+  useEffect(() => { fetchDeals().then((fresh) => setDealsS(fresh)); }, []);
   const kpi = calcDealKpi(deals);
   const budgetRevenue = 0;
   const budgetGross = 0;

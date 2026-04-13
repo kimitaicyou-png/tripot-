@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { loadAllDeals, saveAllDeals } from '@/lib/dealsStore';
+import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
 import Link from 'next/link';
 import { KanbanBoard, type KanbanColumn, type KanbanCard } from '@/components/ui/KanbanBoard';
 import NextAction, { MOCK_NEXT_ACTIONS } from '@/components/personal/NextAction';
@@ -40,7 +40,7 @@ export function DealsList() {
     params.set('filter', nextFilter); params.set('view', nextView);
     window.history.replaceState(null, '', `${window.location.pathname}?${params.toString()}`);
   }, []);
-  useEffect(() => { saveAllDeals(deals); }, [deals]);
+  useEffect(() => { fetchDeals().then((fresh) => setDeals(fresh)); }, []);
   const setFilter = (f: Filter) => { setFilterState(f); syncUrl(f, view); };
   const setView = (v: 'list' | 'pipeline') => { setViewState(v); syncUrl(filter, v); };
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());

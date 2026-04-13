@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { type Deal } from '@/components/deals';
-import { loadAllDeals, updateDeal } from '@/lib/dealsStore';
+import { loadAllDeals, updateDeal, fetchDeals } from '@/lib/dealsStore';
 
 type StageOption = 'no_change' | 'meeting' | 'proposal' | 'negotiation' | 'ordered';
 
@@ -33,6 +33,7 @@ export function TodayProgressCTA() {
 
   useEffect(() => {
     setDeals(loadAllDeals());
+    fetchDeals().then((fresh) => setDeals(fresh));
   }, []);
 
   const showToast = (msg: string) => {
@@ -44,7 +45,7 @@ export function TodayProgressCTA() {
     ['lead', 'meeting', 'proposal', 'estimate_sent', 'negotiation', 'ordered'].includes(d.stage)
   );
 
-  const handleRevenueSubmit = () => {
+  const handleRevenueSubmit = async () => {
     const deal = deals.find((d) => d.id === selectedDealId);
     if (!deal) return;
     const amount = parseInt(revenueAmount.replace(/,/g, ''), 10);
@@ -54,7 +55,7 @@ export function TodayProgressCTA() {
       amount,
       lastDate: new Date().toISOString().slice(0, 10),
     };
-    updateDeal(deal.id, patch);
+    await updateDeal(deal.id, patch);
     setDeals((prev) => prev.map((d) => d.id === deal.id ? { ...d, ...patch } : d));
     setModal(null);
     setSelectedDealId('');
@@ -62,7 +63,7 @@ export function TodayProgressCTA() {
     showToast(`「${deal.dealName}」を受注に更新しました`);
   };
 
-  const handleMeetingSubmit = () => {
+  const handleMeetingSubmit = async () => {
     const deal = deals.find((d) => d.id === selectedDealId);
     if (!deal) return;
     const patch: Partial<Deal> = {
@@ -70,7 +71,7 @@ export function TodayProgressCTA() {
       lastDate: new Date().toISOString().slice(0, 10),
       ...(meetingStage !== 'no_change' ? { stage: meetingStage } : {}),
     };
-    updateDeal(deal.id, patch);
+    await updateDeal(deal.id, patch);
     setDeals((prev) => prev.map((d) => d.id === deal.id ? { ...d, ...patch } : d));
     setModal(null);
     setSelectedDealId('');

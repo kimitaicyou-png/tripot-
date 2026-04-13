@@ -5,7 +5,7 @@ import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import Link from 'next/link';
 import { useSession } from 'next-auth/react';
 import { useSearchParams } from 'next/navigation';
-import { loadAllDeals, calcDealKpi } from '@/lib/dealsStore';
+import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
 
 function formatYen(n: number): string {
   return `¥${Math.round(n / 10000).toLocaleString()}万`;
@@ -70,7 +70,8 @@ function SettingsContent() {
 
   const fiscalPeriods = getFiscalPeriods(fiscalStartMonth);
 
-  const [deals] = useState(() => typeof window !== 'undefined' ? loadAllDeals() : []);
+  const [deals, setDeals] = useState(() => typeof window !== 'undefined' ? loadAllDeals() : []);
+  useEffect(() => { fetchDeals().then((fresh) => setDeals(fresh)); }, []);
   const kpi = calcDealKpi(deals);
 
   const budgetPlan = (() => {

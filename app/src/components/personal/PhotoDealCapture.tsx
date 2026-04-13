@@ -61,8 +61,8 @@ function generateId(): string {
   return `photo_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
 }
 
-function saveDeal(deal: Deal): void {
-  addDealToStore(deal);
+async function saveDeal(deal: Deal): Promise<void> {
+  await addDealToStore(deal);
 }
 
 function saveContact(contact: RecentContact): boolean {
@@ -273,7 +273,7 @@ export default function PhotoDealCapture({ onClose, onSaved }: Props) {
     }
   }, [imageBase64, mediaType, showToast]);
 
-  const performSave = useCallback((currentForm: FormValues): { contactAdded: boolean; customerAdded: boolean | null } => {
+  const performSave = useCallback(async (currentForm: FormValues): Promise<{ contactAdded: boolean; customerAdded: boolean | null }> => {
     if (!currentForm.dealName.trim()) { setFormError('案件名は必須です'); return { contactAdded: false, customerAdded: null }; }
     if (!currentForm.clientName.trim()) { setFormError('顧客名は必須です'); return { contactAdded: false, customerAdded: null }; }
 
@@ -291,7 +291,7 @@ export default function PhotoDealCapture({ onClose, onSaved }: Props) {
       industry: 'その他',
     };
 
-    saveDeal(deal);
+    await saveDeal(deal);
 
     let contactAdded = false;
     if (currentForm.contactName || currentForm.clientName) {
@@ -330,8 +330,8 @@ export default function PhotoDealCapture({ onClose, onSaved }: Props) {
     return { contactAdded, customerAdded };
   }, []);
 
-  const handleSave = useCallback(() => {
-    const { contactAdded, customerAdded } = performSave(form);
+  const handleSave = useCallback(async () => {
+    const { contactAdded, customerAdded } = await performSave(form);
     if (formError) return;
 
     const parts = ['案件'];
@@ -344,8 +344,8 @@ export default function PhotoDealCapture({ onClose, onSaved }: Props) {
     }, 1200);
   }, [form, performSave, formError, showToast, onSaved, onClose]);
 
-  const handleSaveAndNext = useCallback(() => {
-    const { contactAdded, customerAdded } = performSave(form);
+  const handleSaveAndNext = useCallback(async () => {
+    const { contactAdded, customerAdded } = await performSave(form);
     if (formError) return;
 
     setSessionCount((n) => n + 1);

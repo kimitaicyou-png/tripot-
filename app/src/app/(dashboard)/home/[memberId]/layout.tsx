@@ -3,26 +3,31 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { loadAllDeals } from '@/lib/dealsStore';
+import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
 import { loadProductionCards } from '@/lib/productionCards';
+
+function computeKpi(deals: ReturnType<typeof loadAllDeals>, cards: ReturnType<typeof loadProductionCards>, memberId: string) {
+  const memberNames: Record<string, string> = {};
+  const name = memberNames[memberId] ?? '';
+  const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
+  const myDeals = deals.filter((d) => d.assignee === name);
+  const myOrdered = myDeals.filter((d) => orderedStages.includes(d.stage));
+  const rev = myOrdered.reduce((s, d) => s + d.amount, 0);
+  const gross = Math.round(rev * 0.457);
+  const meetings = myDeals.filter((d) => d.stage === 'meeting').length;
+  const newDeals = myDeals.filter((d) => d.stage === 'lead').length;
+  const myTasks = cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === memberId && t.status !== 'done');
+  const urgent = myTasks.filter((t) => t.dueDate && t.dueDate < '2026-04-05').length;
+  return { revenue: Math.round(rev / 10000), revenueTarget: 0, gross: Math.round(gross / 10000), grossTarget: 0, meetings, newDeals, tasks: myTasks.length, urgent };
+}
 
 function useMemberKpi(memberId: string) {
   const [kpi, setKpi] = useState<{ revenue: number; revenueTarget: number; gross: number; grossTarget: number; meetings: number; newDeals: number; tasks: number; urgent: number }>({ revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0 });
   useEffect(() => {
     const deals = loadAllDeals();
     const cards = loadProductionCards();
-    const memberNames: Record<string, string> = {};
-    const name = memberNames[memberId] ?? '';
-    const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
-    const myDeals = deals.filter((d) => d.assignee === name);
-    const myOrdered = myDeals.filter((d) => orderedStages.includes(d.stage));
-    const rev = myOrdered.reduce((s, d) => s + d.amount, 0);
-    const gross = Math.round(rev * 0.457);
-    const meetings = myDeals.filter((d) => d.stage === 'meeting').length;
-    const newDeals = myDeals.filter((d) => d.stage === 'lead').length;
-    const myTasks = cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === memberId && t.status !== 'done');
-    const urgent = myTasks.filter((t) => t.dueDate && t.dueDate < '2026-04-05').length;
-    setKpi({ revenue: Math.round(rev / 10000), revenueTarget: 0, gross: Math.round(gross / 10000), grossTarget: 0, meetings, newDeals, tasks: myTasks.length, urgent });
+    setKpi(computeKpi(deals, cards, memberId));
+    fetchDeals().then((fresh) => setKpi(computeKpi(fresh, cards, memberId)));
   }, [memberId]);
   return kpi;
 }

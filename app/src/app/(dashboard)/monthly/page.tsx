@@ -28,14 +28,14 @@ import { loadProductionCards, type ProductionCard } from '@/lib/productionCards'
 import { MEMBERS as ALL_MEMBERS_M } from '@/lib/currentMember';
 import { VENDORS as ALL_VENDORS_M } from '@/lib/data/vendors';
 import { ProfitAnalysisDemo } from '@/components/finance/ProfitAnalysis';
-import { loadAllDeals, calcDealKpi } from '@/lib/dealsStore';
+import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
 
 const MONTHS = ['2026年1月', '2026年2月', '2026年3月', '2026年4月', '2026年5月', '2026年6月'];
 
 function useLiveFinancials() {
   const [deals, setDeals] = useState<ReturnType<typeof loadAllDeals>>([]);
   const [prodCards, setProdCards] = useState<ProductionCard[]>([]);
-  useEffect(() => { setDeals(loadAllDeals()); setProdCards(loadProductionCards()); }, []);
+  useEffect(() => { setDeals(loadAllDeals()); setProdCards(loadProductionCards()); fetchDeals().then((fresh) => setDeals(fresh)); }, []);
 
   const kpi = calcDealKpi(deals);
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
@@ -423,7 +423,8 @@ function MonthlyTrendChart() {
 
 
 function CustomerRanking() {
-  const [deals] = useState(() => loadAllDeals());
+  const [deals, setDealsC] = useState(() => loadAllDeals());
+  useEffect(() => { fetchDeals().then((fresh) => setDealsC(fresh)); }, []);
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
   const ordered = deals.filter((d) => orderedStages.includes(d.stage));
   const clientMap = new Map<string, number>();
@@ -661,7 +662,8 @@ function NextMonthForecast({ live }: { live: ReturnType<typeof useLiveFinancials
 }
 
 function CashShortActionBoard() {
-  const [deals] = useState(() => loadAllDeals());
+  const [deals, setDealsCS] = useState(() => loadAllDeals());
+  useEffect(() => { fetchDeals().then((fresh) => setDealsCS(fresh)); }, []);
   const ordStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting'];
   const recLive = deals.filter((d) => ordStages.includes(d.stage) && d.amount > 0).slice(0, 3);
   const shortAmount = Math.max(0, Math.round((12000000 * 0.15 - recLive.reduce((s, d) => s + d.amount, 0)) / 10000));
@@ -730,7 +732,8 @@ function CashShortActionBoard() {
 }
 
 function CfTab() {
-  const [deals] = useState(() => loadAllDeals());
+  const [deals, setDealsCf] = useState(() => loadAllDeals());
+  useEffect(() => { fetchDeals().then((fresh) => setDealsCf(fresh)); }, []);
   const invoiceStages = ['invoiced', 'accounting', 'paid', 'delivered', 'acceptance'];
   const defaultInvoices: InvoiceStatus[] = deals
     .filter((d) => invoiceStages.includes(d.stage) && d.amount > 0)

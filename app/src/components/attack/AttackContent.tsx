@@ -177,17 +177,17 @@ export function AttackContent() {
     return targets.filter((t) => t.priority === filterPriority);
   })();
 
-  const promoteToDealIfNeeded = (target: AttackTarget, status: AttackTarget['status']) => {
+  const promoteToDealIfNeeded = async (target: AttackTarget, status: AttackTarget['status']) => {
     if (status !== 'meeting' && status !== 'dealt') return;
     if (typeof window === 'undefined') return;
     try {
       const deals = loadAllDealsForAttack();
       const dealId = `att-${target.id}`;
       if (deals.some((d: { id: string }) => d.id === dealId)) {
-        if (status === 'dealt') updateDealForAttack(dealId, { stage: 'proposal' });
+        if (status === 'dealt') await updateDealForAttack(dealId, { stage: 'proposal' });
         return;
       }
-      addDealForAttack({
+      await addDealForAttack({
         id: dealId, clientName: target.company, dealName: `${target.company} 新規案件`,
         revenueType: 'shot' as const, industry: target.industry || 'その他',
         stage: status === 'dealt' ? 'proposal' as const : 'meeting' as const,

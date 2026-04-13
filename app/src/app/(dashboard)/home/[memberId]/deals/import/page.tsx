@@ -53,8 +53,8 @@ function loadExisting(): Deal[] {
   }
 }
 
-function saveDeals(deals: Deal[]): void {
-  for (const d of deals) addDealToStore(d);
+async function saveDeals(deals: Deal[]): Promise<void> {
+  for (const d of deals) await addDealToStore(d);
 }
 
 type FormValues = {
@@ -174,11 +174,11 @@ export default function DealsImportPage() {
     []
   );
 
-  const handleSaveAndNext = useCallback(() => {
+  const handleSaveAndNext = useCallback(async () => {
     if (!form.dealName.trim()) { setFormError('案件名は必須です'); return; }
     if (!form.clientName.trim()) { setFormError('顧客名は必須です'); return; }
     const deal = formToDeal(form);
-    saveDeals([deal]);
+    await saveDeals([deal]);
     setSavedCount((n) => n + 1);
     setForm(EMPTY_FORM);
     setJustSaved(true);
@@ -199,7 +199,7 @@ export default function DealsImportPage() {
     [handleSaveAndNext]
   );
 
-  const handleSaveAndFinish = useCallback(() => {
+  const handleSaveAndFinish = useCallback(async () => {
     if (!form.dealName.trim() && !form.clientName.trim()) {
       router.push(`/home/${memberId}/deals`);
       return;
@@ -207,7 +207,7 @@ export default function DealsImportPage() {
     if (!form.dealName.trim()) { setFormError('案件名は必須です'); return; }
     if (!form.clientName.trim()) { setFormError('顧客名は必須です'); return; }
     const deal = formToDeal(form);
-    saveDeals([deal]);
+    await saveDeals([deal]);
     router.push(`/home/${memberId}/deals`);
   }, [form, memberId, router]);
 
@@ -231,9 +231,9 @@ export default function DealsImportPage() {
     reader.readAsText(file, 'utf-8');
   }, []);
 
-  const handleCsvImport = useCallback(() => {
+  const handleCsvImport = useCallback(async () => {
     const deals = csvRows.map(csvRowToDeal);
-    saveDeals(deals);
+    await saveDeals(deals);
     setCsvImported(true);
   }, [csvRows]);
 

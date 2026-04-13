@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback } from 'react';
 import { logEmailSent } from '@/lib/emailLog';
 import { useRouter } from 'next/navigation';
 import { type Deal } from '@/components/deals';
-import { loadAllDeals, addDeal } from '@/lib/dealsStore';
+import { loadAllDeals, addDeal, fetchDeals } from '@/lib/dealsStore';
 import type { CustomerMaster } from '@/components/personal/PhotoDealCapture';
 
 const ACTIVE_STAGES = new Set([
@@ -48,7 +48,8 @@ function useAllDeals(): Deal[] {
     }
   }, []);
 
-  const [base] = useState(() => typeof window !== 'undefined' ? loadAllDeals() : []);
+  const [base, setBase] = useState(() => typeof window !== 'undefined' ? loadAllDeals() : []);
+  useEffect(() => { fetchDeals().then((fresh) => setBase(fresh)); }, []);
   return useMemo(() => [...base, ...extra.filter((d) => !base.some((b) => b.id === d.id))], [base, extra]);
 }
 
@@ -161,7 +162,7 @@ function DealCreateModal({
     memo: '',
   });
 
-  const handleSubmit = useCallback(() => {
+  const handleSubmit = useCallback(async () => {
     const today = new Date().toISOString().slice(0, 10);
     const newDeal: Deal = {
       id: `deal-cust-${Date.now()}_${Math.random().toString(36).slice(2, 6)}`,
@@ -177,7 +178,7 @@ function DealCreateModal({
       revenueType: 'shot',
     };
 
-    addDeal(newDeal);
+    await addDeal(newDeal);
 
     onCreated();
     onClose();

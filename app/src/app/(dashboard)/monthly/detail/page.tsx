@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatYen } from '@/lib/format';
-import { loadAllDeals, calcDealKpi } from '@/lib/dealsStore';
+import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
 
 
 function Accordion({
@@ -126,7 +126,7 @@ export default function MonthlyDetailPage() {
   const [tab, setTab] = useState<'pl' | 'cf'>('pl');
   const [month, setMonth] = useState<string>('2026-04');
   const [deals, setDeals] = useState<ReturnType<typeof loadAllDeals>>([]);
-  useEffect(() => { setDeals(loadAllDeals()); }, []);
+  useEffect(() => { setDeals(loadAllDeals()); fetchDeals().then((fresh) => setDeals(fresh)); }, []);
 
   const kpi = calcDealKpi(deals);
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];

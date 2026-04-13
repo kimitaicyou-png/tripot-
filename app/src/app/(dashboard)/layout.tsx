@@ -8,7 +8,7 @@ import { useSession, signOut } from 'next-auth/react';
 import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { NotificationCenter } from '@/components/ui/NotificationCenter';
 import { setCurrentMember, cacheMembersFromApi } from '@/lib/currentMember';
-import { loadAllDeals } from '@/lib/dealsStore';
+import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
 import { loadProductionCards } from '@/lib/productionCards';
 import type { UserRole } from '@/auth';
 
@@ -80,24 +80,27 @@ function MemberContextPanel({ memberId }: { memberId: string }) {
   const meta = getMemberKpi(memberId, memberIdx);
   const [kpi, setKpi] = useState({ revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: meta?.quote ?? '', role: meta?.role ?? '' });
   useEffect(() => {
-    const deals = loadAllDeals();
-    const cards = loadProductionCards();
-    const nameMap: Record<string, string> = {};
-    const name = nameMap[memberId] ?? '';
-    const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
-    const myDeals = deals.filter((d) => d.assignee === name);
-    const rev = myDeals.filter((d) => orderedStages.includes(d.stage)).reduce((s, d) => s + d.amount, 0);
-    const gross = Math.round(rev * 0.457);
-    const myTasks = cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === memberId && t.status !== 'done');
-    setKpi((prev) => ({
-      ...prev,
-      revenue: Math.round(rev / 10000),
-      gross: Math.round(gross / 10000),
-      meetings: myDeals.filter((d) => d.stage === 'meeting').length,
-      newDeals: myDeals.filter((d) => d.stage === 'lead').length,
-      tasks: myTasks.length,
-      urgent: myTasks.filter((t) => t.dueDate && t.dueDate < '2026-04-05').length,
-    }));
+    const computeAndSet = (deals: ReturnType<typeof loadAllDeals>) => {
+      const cards = loadProductionCards();
+      const nameMap: Record<string, string> = {};
+      const name = nameMap[memberId] ?? '';
+      const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
+      const myDeals = deals.filter((d) => d.assignee === name);
+      const rev = myDeals.filter((d) => orderedStages.includes(d.stage)).reduce((s, d) => s + d.amount, 0);
+      const gross = Math.round(rev * 0.457);
+      const myTasks = cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === memberId && t.status !== 'done');
+      setKpi((prev) => ({
+        ...prev,
+        revenue: Math.round(rev / 10000),
+        gross: Math.round(gross / 10000),
+        meetings: myDeals.filter((d) => d.stage === 'meeting').length,
+        newDeals: myDeals.filter((d) => d.stage === 'lead').length,
+        tasks: myTasks.length,
+        urgent: myTasks.filter((t) => t.dueDate && t.dueDate < '2026-04-05').length,
+      }));
+    };
+    computeAndSet(loadAllDeals());
+    fetchDeals().then((fresh) => computeAndSet(fresh));
   }, [memberId]);
   if (!member) return null;
   const revPct = kpi.revenueTarget > 0 ? Math.round((kpi.revenue / kpi.revenueTarget) * 100) : 0;

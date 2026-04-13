@@ -1,72 +1,86 @@
-import { MOCK_DEALS_INIT, type Deal } from '@/components/deals';
+import { type Deal } from '@/components/deals';
 
-const DEALS_KEY = 'tripot_deals_all';
-const ATTACK_KEY = 'coaris_attack_to_deals';
-const OVERRIDE_KEY = 'coaris_deals_override';
-const RESET_KEY = 'tripot_data_reset';
+const CACHE_KEY = 'tripot_deals_cache';
+const CACHE_TS_KEY = 'tripot_deals_cache_ts';
+const CACHE_TTL = 10_000;
+
+let memoryCache: Deal[] | null = null;
+
+function readCache(): Deal[] {
+  if (memoryCache) return memoryCache;
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    memoryCache = Array.isArray(parsed) ? parsed : [];
+    return memoryCache;
+  } catch { return []; }
+}
+
+function writeCache(deals: Deal[]): void {
+  memoryCache = deals;
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(CACHE_KEY, JSON.stringify(deals));
+    localStorage.setItem(CACHE_TS_KEY, String(Date.now()));
+  } catch {}
+}
 
 export function loadAllDeals(): Deal[] {
-  if (typeof window === 'undefined') return [];
-
-  const mainDeals: Deal[] = (() => {
-    const saved = localStorage.getItem(DEALS_KEY);
-    if (!saved) return [];
-    try { const p = JSON.parse(saved); return Array.isArray(p) ? p : []; } catch { return []; }
-  })();
-
-  const attacks = loadAttacks();
-  const mainIds = new Set(mainDeals.map((d) => d.id));
-  const merged = [...mainDeals, ...attacks.filter((d) => !mainIds.has(d.id))];
-  return merged;
+  return readCache();
 }
 
-export function addDeal(deal: Deal): void {
-  if (typeof window === 'undefined') return;
-  const saved = localStorage.getItem(DEALS_KEY);
-  const mainDeals: Deal[] = saved ? (() => { try { const p = JSON.parse(saved); return Array.isArray(p) ? p : []; } catch { return []; } })() : [];
-  if (mainDeals.some((d) => d.id === deal.id)) return;
-  mainDeals.push(deal);
-  localStorage.setItem(DEALS_KEY, JSON.stringify(mainDeals));
-}
-
-export function updateDeal(id: string, patch: Partial<Deal>): void {
-  const deals = loadAllDeals();
-  const idx = deals.findIndex((d) => d.id === id);
-  if (idx === -1) return;
-  deals[idx] = { ...deals[idx], ...patch };
-  saveAllDeals(deals);
-  removeFromAttacks(id);
-}
-
-function removeFromAttacks(id: string): void {
+export async function fetchDeals(): Promise<Deal[]> {
   try {
-    const raw = localStorage.getItem(ATTACK_KEY);
-    if (!raw) return;
-    const attacks = JSON.parse(raw) as Deal[];
-    const filtered = attacks.filter((d) => d.id !== id);
-    if (filtered.length !== attacks.length) {
-      localStorage.setItem(ATTACK_KEY, JSON.stringify(filtered));
+    const res = await fetch('/api/deals');
+    const data = await res.json();
+    const deals: Deal[] = data.deals ?? [];
+    writeCache(deals);
+    return deals;
+  } catch {
+    return readCache();
+  }
+}
+
+export async function addDeal(deal: Deal): Promise<void> {
+  try {
+    await fetch('/api/deals', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(deal),
+    });
+    const cache = readCache();
+    if (!cache.some((d) => d.id === deal.id)) {
+      writeCache([deal, ...cache]);
     }
   } catch {}
 }
 
-export function saveAllDeals(deals: Deal[]): void {
-  if (typeof window === 'undefined') return;
-  try { localStorage.setItem(DEALS_KEY, JSON.stringify(deals)); } catch {}
+export async function updateDeal(id: string, patch: Partial<Deal>): Promise<void> {
+  try {
+    await fetch('/api/deals', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...patch }),
+    });
+    const cache = readCache();
+    const idx = cache.findIndex((d) => d.id === id);
+    if (idx !== -1) {
+      cache[idx] = { ...cache[idx], ...patch };
+      writeCache([...cache]);
+    }
+  } catch {}
 }
 
-function loadOverrides(): Record<string, Partial<Deal>> {
+export async function removeDeal(id: string): Promise<void> {
   try {
-    const raw = localStorage.getItem(OVERRIDE_KEY);
-    return raw ? (JSON.parse(raw) as Record<string, Partial<Deal>>) : {};
-  } catch { return {}; }
+    await fetch(`/api/deals?id=${id}`, { method: 'DELETE' });
+    writeCache(readCache().filter((d) => d.id !== id));
+  } catch {}
 }
 
-function loadAttacks(): Deal[] {
-  try {
-    const raw = localStorage.getItem(ATTACK_KEY);
-    return raw ? (JSON.parse(raw) as Deal[]) : [];
-  } catch { return []; }
+export function saveAllDeals(_deals: Deal[]): void {
 }
 
 export type DealKpiSummary = {

@@ -6,7 +6,7 @@ import { TodayProgressCTA } from '@/components/personal/TodayProgressCTA';
 import RecentContactsStrip from '@/components/personal/RecentContactsStrip';
 import { MEMBER_KPIS, getDaysSinceJoined } from '@/lib/data/aggregation';
 import { loadProductionCards } from '@/lib/productionCards';
-import { loadAllDeals } from '@/lib/dealsStore';
+import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
 
 const MEMBERS: Record<string, { firstName: string; role: string; accent: string; joinedAt: string }> = {};
 
@@ -489,10 +489,11 @@ export default function MemberDashboardPage() {
     : false;
   const showWelcomeCard = newbie && isZeroKpi;
 
-  const [liveDeals] = useState(() => {
+  const [liveDeals, setLiveDeals] = useState(() => {
     if (typeof window === 'undefined') return [];
     try { return loadAllDeals(); } catch { return []; }
   });
+  useEffect(() => { fetchDeals().then((fresh) => setLiveDeals(fresh)); }, []);
   const [liveCards] = useState(() => {
     if (typeof window === 'undefined') return [];
     try { return loadProductionCards(); } catch { return []; }
