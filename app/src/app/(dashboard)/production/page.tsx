@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import { formatYen } from '@/lib/format';
-import { loadProductionCards, updateProductionCard, parseRequirementItems, PROJECT_TEMPLATES, type ProductionCard, type ProductionCardTask, type ProductionNextAction, type ProductionAction, type ProductionActionType, type ProductionAttachment, type ProductionAttachmentKind, type RequirementItem, type RevenueAmendment, type SentLogEntry, type ProjectTemplate } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards, updateProductionCard, parseRequirementItems, PROJECT_TEMPLATES, type ProductionCard, type ProductionCardTask, type ProductionNextAction, type ProductionAction, type ProductionActionType, type ProductionAttachment, type ProductionAttachmentKind, type RequirementItem, type RevenueAmendment, type SentLogEntry, type ProjectTemplate } from '@/lib/productionCards';
 import { MEMBERS as ALL_MEMBERS } from '@/lib/currentMember';
 import NextAction, { type NextActionData } from '@/components/personal/NextAction';
 import { VENDORS } from '@/lib/data/vendors';
@@ -66,6 +66,7 @@ export default function ProductionDashboardPage() {
 
   useEffect(() => {
     setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
   }, []);
 
   useEffect(() => {
@@ -81,17 +82,17 @@ export default function ProductionDashboardPage() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
-  const movePhase = (cardId: string, to: ProductionCard['phase']) => {
-    updateProductionCard(cardId, { phase: to });
+  const movePhase = async (cardId: string, to: ProductionCard['phase']) => {
+    await updateProductionCard(cardId, { phase: to });
     setCards(loadProductionCards());
   };
 
-  const setNextActionFor = (cardId: string, next: ProductionNextAction | null) => {
-    updateProductionCard(cardId, { nextAction: next });
+  const setNextActionFor = async (cardId: string, next: ProductionNextAction | null) => {
+    await updateProductionCard(cardId, { nextAction: next });
     setCards(loadProductionCards());
   };
 
-  const updateTaskFor = (cardId: string, taskId: string, patch: Partial<ProductionCardTask>) => {
+  const updateTaskFor = async (cardId: string, taskId: string, patch: Partial<ProductionCardTask>) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
     const now = new Date().toISOString().slice(0, 10);
@@ -103,11 +104,11 @@ export default function ProductionDashboardPage() {
       if (patch.status !== 'done' && patch.status !== undefined) merged.completedAt = undefined;
       return merged;
     });
-    updateProductionCard(cardId, { tasks });
+    await updateProductionCard(cardId, { tasks });
     setCards(loadProductionCards());
   };
 
-  const addTaskFor = (cardId: string, title: string, assigneeId?: string) => {
+  const addTaskFor = async (cardId: string, title: string, assigneeId?: string) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card || !title.trim()) return;
     const newTask: ProductionCardTask = {
@@ -116,18 +117,18 @@ export default function ProductionDashboardPage() {
       status: 'todo',
       assigneeId,
     };
-    updateProductionCard(cardId, { tasks: [...card.tasks, newTask] });
+    await updateProductionCard(cardId, { tasks: [...card.tasks, newTask] });
     setCards(loadProductionCards());
   };
 
-  const removeTaskFor = (cardId: string, taskId: string) => {
+  const removeTaskFor = async (cardId: string, taskId: string) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
-    updateProductionCard(cardId, { tasks: card.tasks.filter((t) => t.id !== taskId) });
+    await updateProductionCard(cardId, { tasks: card.tasks.filter((t) => t.id !== taskId) });
     setCards(loadProductionCards());
   };
 
-  const addActionFor = (cardId: string, action: Omit<ProductionAction, 'id' | 'createdAt'>) => {
+  const addActionFor = async (cardId: string, action: Omit<ProductionAction, 'id' | 'createdAt'>) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
     const entry: ProductionAction = {
@@ -136,25 +137,25 @@ export default function ProductionDashboardPage() {
       createdAt: new Date().toISOString(),
     };
     const actions = [entry, ...(card.actions ?? [])];
-    updateProductionCard(cardId, { actions });
+    await updateProductionCard(cardId, { actions });
     setCards(loadProductionCards());
   };
 
-  const removeActionFor = (cardId: string, actionId: string) => {
+  const removeActionFor = async (cardId: string, actionId: string) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
-    updateProductionCard(cardId, { actions: (card.actions ?? []).filter((a) => a.id !== actionId) });
+    await updateProductionCard(cardId, { actions: (card.actions ?? []).filter((a) => a.id !== actionId) });
     setCards(loadProductionCards());
   };
 
-  const updateCardFields = (cardId: string, patch: Partial<ProductionCard>) => {
-    updateProductionCard(cardId, patch);
+  const updateCardFields = async (cardId: string, patch: Partial<ProductionCard>) => {
+    await updateProductionCard(cardId, patch);
     setCards(loadProductionCards());
   };
 
   const handleGenerateTasks = (card: ProductionCard) => {
     setTasksGenerating(card.id);
-    setTimeout(() => {
+    setTimeout(async () => {
       const lines = card.referenceArtifacts.requirement
         .split('\n')
         .filter((l) => l.trim().startsWith('- ') || /^\d+\./.test(l.trim()))
@@ -167,7 +168,7 @@ export default function ProductionDashboardPage() {
         status: 'todo' as const,
         assigneeId: i === 0 ? card.pmId : card.teamMemberIds[i % Math.max(card.teamMemberIds.length, 1)] ?? card.pmId,
       }));
-      updateProductionCard(card.id, { tasks: newTasks, phase: 'requirements' });
+      await updateProductionCard(card.id, { tasks: newTasks, phase: 'requirements' });
       setCards(loadProductionCards());
       setTasksGenerating(null);
     }, 900);

@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import type { Deal, ProcessTask, HistoryEvent } from '@/lib/deals/types';
 import { RESOURCES } from '@/lib/deals/constants';
-import { addProductionCard, buildProductionCard, updateProductionCard } from '@/lib/productionCards';
+import { addProductionCard, buildProductionCard, updateProductionCard, fetchProductionCards } from '@/lib/productionCards';
 import { MEMBERS } from '@/lib/currentMember';
 import { sendNotification } from '@/lib/notifications';
 import { getPartners, addPartner, type ExternalPartner } from '@/lib/externalPartners';
@@ -31,7 +31,7 @@ export function ProcessTab({ deal, onUpdate, onAppendHistory }: {
   useEffect(() => {
     if (!proc.committedToProduction || !proc.handoffCardId) return;
     const pmMember = MEMBERS.find((m) => m.id === pmId);
-    updateProductionCard(proc.handoffCardId, { pmId, pmName: pmMember?.name ?? deal.assignee, teamMemberIds });
+    (async () => { await updateProductionCard(proc.handoffCardId!, { pmId, pmName: pmMember?.name ?? deal.assignee, teamMemberIds }); })();
   }, [pmId, teamMemberIds, proc.committedToProduction, proc.handoffCardId, deal.assignee]);
 
   const showToast = (msg: string) => { setToast(msg); setTimeout(() => setToast(''), 3000); };
@@ -103,7 +103,7 @@ export function ProcessTab({ deal, onUpdate, onAppendHistory }: {
   const allAssigned = (proc.tasks ?? []).length > 0 && (proc.tasks ?? []).every((t) => t.assigneeType !== 'unassigned');
   const lockedByHandoff = proc.committedToProduction;
 
-  const handleCommit = () => {
+  const handleCommit = async () => {
     const now = new Date().toISOString();
     const internalTasks = (proc.tasks ?? []).filter((t) => t.assigneeType === 'internal' && t.internalMemberId);
     const pmMember = MEMBERS.find((m) => m.id === pmId);
@@ -121,7 +121,7 @@ export function ProcessTab({ deal, onUpdate, onAppendHistory }: {
     const autoTaskTitles = reqLines.length > 0 ? reqLines.map((l) => l.replace(/^[-\d.)\s]+/, '').trim()) : fallbackTitles;
     card.tasks = autoTaskTitles.map((title, i) => ({ id: `t_${card.id}_${i}`, title, status: 'todo' as const, assigneeId: i === 0 ? pmId : teamMemberIds[i % Math.max(teamMemberIds.length, 1)] ?? pmId }));
     card.phase = 'requirements';
-    addProductionCard(card);
+    await addProductionCard(card);
 
     sendNotification({ toMemberId: pmId, fromMemberId: 'system', fromName: 'システム', type: 'task_assigned', title: `制作引き渡し: ${deal.dealName}`, body: `${deal.clientName} の案件が制作に引き渡されました。PM: ${pmMember?.name ?? ''}`, link: '/production' });
     internalTasks.forEach((t) => {

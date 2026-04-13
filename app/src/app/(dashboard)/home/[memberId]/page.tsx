@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { TodayProgressCTA } from '@/components/personal/TodayProgressCTA';
 import RecentContactsStrip from '@/components/personal/RecentContactsStrip';
 import { MEMBER_KPIS, getDaysSinceJoined } from '@/lib/data/aggregation';
-import { loadProductionCards } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards } from '@/lib/productionCards';
 import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
 
 const MEMBERS: Record<string, { firstName: string; role: string; accent: string; joinedAt: string }> = {};
@@ -494,10 +494,11 @@ export default function MemberDashboardPage() {
     try { return loadAllDeals(); } catch { return []; }
   });
   useEffect(() => { fetchDeals().then((fresh) => setLiveDeals(fresh)); }, []);
-  const [liveCards] = useState(() => {
+  const [liveCards, setLiveCards] = useState(() => {
     if (typeof window === 'undefined') return [];
     try { return loadProductionCards(); } catch { return []; }
   });
+  useEffect(() => { fetchProductionCards().then(setLiveCards); }, []);
 
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
   const [apiMembers, setApiMembers] = useState<Array<{ id: string; name: string }>>([]);
@@ -578,10 +579,9 @@ export default function MemberDashboardPage() {
         };
       });
 
-    const cards = loadProductionCards();
     const handoffTasksForMe: typeof myHandoffTasks = [];
     const handoffActions: Action[] = [];
-    cards.forEach((card) => {
+    liveCards.forEach((card) => {
       card.tasks.forEach((t) => {
         if (t.assigneeId !== memberId) return;
         handoffTasksForMe.push({ cardId: card.id, dealName: card.dealName, taskId: t.id, title: t.title, status: t.status });
@@ -611,7 +611,7 @@ export default function MemberDashboardPage() {
       const newOnes = combined.filter((a) => !existingIds.has(a.id));
       return newOnes.length > 0 ? [...prev, ...newOnes] : prev;
     });
-  }, [memberId, newbie, isZeroKpi]);
+  }, [memberId, newbie, isZeroKpi, liveCards]);
 
   const handleCheck = (id: string) => {
     setActions((prev) => prev.map((a) => {

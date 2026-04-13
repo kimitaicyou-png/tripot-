@@ -218,50 +218,76 @@ export type ProductionCard = {
   updatedAt: string;
 };
 
-const STORAGE_KEY = 'tripot_production_cards';
+const CACHE_KEY = 'tripot_production_cache';
+let memoryCache: ProductionCard[] | null = null;
 
-const SEED_CARDS: ProductionCard[] = [];
+function readCache(): ProductionCard[] {
+  if (memoryCache) return memoryCache;
+  if (typeof window === 'undefined') return [];
+  try {
+    const raw = localStorage.getItem(CACHE_KEY);
+    if (!raw) return [];
+    memoryCache = JSON.parse(raw) as ProductionCard[];
+    return memoryCache;
+  } catch { return []; }
+}
+
+function writeCache(cards: ProductionCard[]): void {
+  memoryCache = cards;
+  if (typeof window === 'undefined') return;
+  try { localStorage.setItem(CACHE_KEY, JSON.stringify(cards)); } catch {}
+}
 
 export function loadProductionCards(): ProductionCard[] {
-  if (typeof window === 'undefined') return [];
-  const isReset = localStorage.getItem('tripot_data_reset') === '1';
+  return readCache();
+}
+
+export async function fetchProductionCards(): Promise<ProductionCard[]> {
   try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (Array.isArray(parsed)) return parsed as ProductionCard[];
-    return [];
-  } catch {
-    return [];
-  }
+    const res = await fetch('/api/production');
+    const data = await res.json();
+    const cards: ProductionCard[] = data.cards ?? [];
+    writeCache(cards);
+    return cards;
+  } catch { return readCache(); }
 }
 
-export function saveProductionCards(cards: ProductionCard[]): void {
-  if (typeof window === 'undefined') return;
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(cards));
+export function saveProductionCards(_cards: ProductionCard[]): void {
 }
 
-export function addProductionCard(card: ProductionCard): ProductionCard[] {
-  const cards = loadProductionCards();
-  // 同じ dealId のカードが既にあれば上書き（idempotent な引き渡し）
-  const filtered = cards.filter((c) => c.dealId !== card.dealId);
-  const next = [card, ...filtered];
-  saveProductionCards(next);
-  return next;
+export async function addProductionCard(card: ProductionCard): Promise<ProductionCard[]> {
+  try {
+    await fetch('/api/production', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(card),
+    });
+    const cache = readCache().filter((c) => c.dealId !== card.dealId);
+    const next = [card, ...cache];
+    writeCache(next);
+    return next;
+  } catch { return readCache(); }
 }
 
 export function getProductionCardByDealId(dealId: string): ProductionCard | undefined {
-  return loadProductionCards().find((c) => c.dealId === dealId);
+  return readCache().find((c) => c.dealId === dealId);
 }
 
-export function updateProductionCard(id: string, patch: Partial<ProductionCard>): ProductionCard | undefined {
-  const cards = loadProductionCards();
-  const idx = cards.findIndex((c) => c.id === id);
-  if (idx === -1) return undefined;
-  const updated = { ...cards[idx], ...patch, updatedAt: new Date().toISOString() };
-  cards[idx] = updated;
-  saveProductionCards(cards);
-  return updated;
+export async function updateProductionCard(id: string, patch: Partial<ProductionCard>): Promise<ProductionCard | undefined> {
+  try {
+    await fetch('/api/production', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ id, ...patch }),
+    });
+    const cache = readCache();
+    const idx = cache.findIndex((c) => c.id === id);
+    if (idx === -1) return undefined;
+    const updated = { ...cache[idx], ...patch, updatedAt: new Date().toISOString() };
+    cache[idx] = updated;
+    writeCache([...cache]);
+    return updated;
+  } catch { return undefined; }
 }
 
 type BuildInput = {

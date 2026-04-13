@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import { loadProductionCards, type ProductionCard, type ProductionAction } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards, type ProductionCard, type ProductionAction } from '@/lib/productionCards';
 import { MEMBERS as ALL_MEMBERS_RAW } from '@/lib/currentMember';
 import { VENDORS } from '@/lib/data/vendors';
 import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
@@ -33,7 +33,8 @@ const PHASE_LABELS_W: Record<string, string> = {
 function useLiveWeeklyData() {
   const [deals, setDealsW] = useState(() => loadAllDeals());
   useEffect(() => { fetchDeals().then((fresh) => setDealsW(fresh)); }, []);
-  const [cards] = useState(() => loadProductionCards());
+  const [cards, setCardsW] = useState(() => loadProductionCards());
+  useEffect(() => { fetchProductionCards().then(setCardsW); }, []);
   const kpi = calcDealKpi(deals);
 
   const activeCards = cards.filter((c) => c.status === 'active');
@@ -319,7 +320,10 @@ function SalesNumbersView() {
 
 function ProductionNumbersView() {
   const [cards, setCards] = useState<ProductionCard[]>([]);
-  useEffect(() => { setCards(loadProductionCards()); }, []);
+  useEffect(() => {
+    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
+  }, []);
 
   const active = cards.filter((c) => c.status === 'active' || c.status === 'paused');
   const totalRevenue = active.reduce((s, c) => s + c.amount + (c.amendments ?? []).reduce((a, x) => a + x.amount, 0), 0);
@@ -553,7 +557,10 @@ function ProgressRow({ label, current, total, color }: { label: string; current:
 
 function ProductionStatusSection() {
   const [cards, setCards] = useState<ProductionCard[]>([]);
-  useEffect(() => { setCards(loadProductionCards()); }, []);
+  useEffect(() => {
+    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
+  }, []);
 
   const active = cards.filter((c) => c.status === 'active' || c.status === 'paused');
   if (active.length === 0) return null;
@@ -779,7 +786,10 @@ const WEEK_START = new Date('2026-03-30');
 
 function ProductionActivitySection() {
   const [cards, setCards] = useState<ProductionCard[]>([]);
-  useEffect(() => { setCards(loadProductionCards()); }, []);
+  useEffect(() => {
+    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
+  }, []);
 
   const thisWeekActions = useMemo(() => {
     const result: { card: ProductionCard; action: ProductionAction }[] = [];

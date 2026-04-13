@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'next/navigation';
 import Link from 'next/link';
 import { formatYen } from '@/lib/format';
-import { loadProductionCards, updateProductionCard, type ProductionCard, type ProductionCardTask } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards, updateProductionCard, type ProductionCard, type ProductionCardTask } from '@/lib/productionCards';
 import { MEMBERS } from '@/lib/currentMember';
 
 const STATUS_STYLE: Record<string, string> = {
@@ -19,9 +19,12 @@ export default function MemberProductionPage() {
   const [cards, setCards] = useState<ProductionCard[]>([]);
   const [filter, setFilter] = useState<'all' | 'todo' | 'doing' | 'review' | 'done'>('all');
 
-  useEffect(() => { setCards(loadProductionCards()); }, []);
+  useEffect(() => {
+    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
+  }, []);
 
-  const changeTaskStatus = (cardId: string, taskId: string, newStatus: ProductionCardTask['status']) => {
+  const changeTaskStatus = async (cardId: string, taskId: string, newStatus: ProductionCardTask['status']) => {
     const card = cards.find((c) => c.id === cardId);
     if (!card) return;
     const now = new Date().toISOString().slice(0, 10);
@@ -33,7 +36,7 @@ export default function MemberProductionPage() {
       if (newStatus !== 'done') (updated as Record<string, unknown>).completedAt = undefined;
       return updated;
     });
-    updateProductionCard(cardId, { tasks });
+    await updateProductionCard(cardId, { tasks });
     setCards(loadProductionCards());
   };
 

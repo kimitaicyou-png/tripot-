@@ -24,7 +24,7 @@ import { PaymentReconciliationDemo } from '@/components/finance/PaymentReconcili
 import MonthlyReportGenerator from '@/components/monthly/MonthlyReportGenerator';
 import { PaymentScheduleDemo } from '@/components/finance/PaymentSchedule';
 import { InvoiceTracker, MOCK_INVOICES, type InvoiceStatus } from '@/components/finance/InvoiceTracker';
-import { loadProductionCards, type ProductionCard } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards, type ProductionCard } from '@/lib/productionCards';
 import { MEMBERS as ALL_MEMBERS_M } from '@/lib/currentMember';
 import { VENDORS as ALL_VENDORS_M } from '@/lib/data/vendors';
 import { ProfitAnalysisDemo } from '@/components/finance/ProfitAnalysis';
@@ -35,7 +35,7 @@ const MONTHS = ['2026年1月', '2026年2月', '2026年3月', '2026年4月', '202
 function useLiveFinancials() {
   const [deals, setDeals] = useState<ReturnType<typeof loadAllDeals>>([]);
   const [prodCards, setProdCards] = useState<ProductionCard[]>([]);
-  useEffect(() => { setDeals(loadAllDeals()); setProdCards(loadProductionCards()); fetchDeals().then((fresh) => setDeals(fresh)); }, []);
+  useEffect(() => { setDeals(loadAllDeals()); setProdCards(loadProductionCards()); fetchDeals().then((fresh) => setDeals(fresh)); fetchProductionCards().then(setProdCards); }, []);
 
   const kpi = calcDealKpi(deals);
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
@@ -1392,7 +1392,10 @@ export default function MonthlyPage() {
 
 function MonthlyProductionTab() {
   const [cards, setCards] = useState<ProductionCard[]>([]);
-  useEffect(() => { setCards(loadProductionCards()); }, []);
+  useEffect(() => {
+    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
+  }, []);
 
   const active = cards.filter((c) => c.status !== 'cancelled');
   const completed = cards.filter((c) => c.status === 'done');

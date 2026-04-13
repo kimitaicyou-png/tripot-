@@ -9,7 +9,7 @@ import { GlobalSearch } from '@/components/ui/GlobalSearch';
 import { NotificationCenter } from '@/components/ui/NotificationCenter';
 import { setCurrentMember, cacheMembersFromApi } from '@/lib/currentMember';
 import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
-import { loadProductionCards } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards } from '@/lib/productionCards';
 import type { UserRole } from '@/auth';
 
 type CurrentUser = {
@@ -80,8 +80,7 @@ function MemberContextPanel({ memberId }: { memberId: string }) {
   const meta = getMemberKpi(memberId, memberIdx);
   const [kpi, setKpi] = useState({ revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: meta?.quote ?? '', role: meta?.role ?? '' });
   useEffect(() => {
-    const computeAndSet = (deals: ReturnType<typeof loadAllDeals>) => {
-      const cards = loadProductionCards();
+    const computeAndSet = (deals: ReturnType<typeof loadAllDeals>, cards: ReturnType<typeof loadProductionCards>) => {
       const nameMap: Record<string, string> = {};
       const name = nameMap[memberId] ?? '';
       const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
@@ -99,8 +98,9 @@ function MemberContextPanel({ memberId }: { memberId: string }) {
         urgent: myTasks.filter((t) => t.dueDate && t.dueDate < '2026-04-05').length,
       }));
     };
-    computeAndSet(loadAllDeals());
-    fetchDeals().then((fresh) => computeAndSet(fresh));
+    const cachedCards = loadProductionCards();
+    computeAndSet(loadAllDeals(), cachedCards);
+    Promise.all([fetchDeals(), fetchProductionCards()]).then(([freshDeals, freshCards]) => computeAndSet(freshDeals, freshCards));
   }, [memberId]);
   if (!member) return null;
   const revPct = kpi.revenueTarget > 0 ? Math.round((kpi.revenue / kpi.revenueTarget) * 100) : 0;

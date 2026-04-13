@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { usePersistedState } from '@/lib/hooks/usePersistedState';
 import Link from 'next/link';
 import { LeaveCalendar, MOCK_LEAVE_ENTRIES } from '@/components/team/LeaveCalendar';
-import { loadProductionCards } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards } from '@/lib/productionCards';
 import { MEMBERS as MEMBERS_RAW } from '@/lib/currentMember';
 
 type Project = {
@@ -37,7 +37,8 @@ type Member = {
 };
 
 function useLiveTeam() {
-  const [cards] = useState(() => typeof window !== 'undefined' ? loadProductionCards() : []);
+  const [cards, setCards] = useState(() => typeof window !== 'undefined' ? loadProductionCards() : []);
+  useEffect(() => { fetchProductionCards().then(setCards); }, []);
   const members = MEMBERS_RAW;
   return members.map((m) => {
     const myTasks = cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === m.id);

@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { formatYen } from '@/lib/format';
-import { loadProductionCards, type ProductionCard, type ProductionCardTask } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards, type ProductionCard, type ProductionCardTask } from '@/lib/productionCards';
 import { getCurrentMemberId, MEMBERS } from '@/lib/currentMember';
 
 const STATUS_STYLE: Record<string, string> = {
@@ -17,7 +17,10 @@ export default function MyProductionPage() {
   const [cards, setCards] = useState<ProductionCard[]>([]);
   const [filter, setFilter] = useState<'all' | 'todo' | 'doing' | 'review' | 'done'>('all');
 
-  useEffect(() => { setCards(loadProductionCards()); }, []);
+  useEffect(() => {
+    setCards(loadProductionCards());
+    fetchProductionCards().then(setCards);
+  }, []);
 
   const memberId = getCurrentMemberId();
   const member = MEMBERS.find((m) => m.id === memberId);

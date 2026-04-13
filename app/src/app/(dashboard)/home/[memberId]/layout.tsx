@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
 import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
-import { loadProductionCards } from '@/lib/productionCards';
+import { loadProductionCards, fetchProductionCards } from '@/lib/productionCards';
 
 function computeKpi(deals: ReturnType<typeof loadAllDeals>, cards: ReturnType<typeof loadProductionCards>, memberId: string) {
   const memberNames: Record<string, string> = {};
@@ -27,7 +27,7 @@ function useMemberKpi(memberId: string) {
     const deals = loadAllDeals();
     const cards = loadProductionCards();
     setKpi(computeKpi(deals, cards, memberId));
-    fetchDeals().then((fresh) => setKpi(computeKpi(fresh, cards, memberId)));
+    Promise.all([fetchDeals(), fetchProductionCards()]).then(([freshDeals, freshCards]) => setKpi(computeKpi(freshDeals, freshCards, memberId)));
   }, [memberId]);
   return kpi;
 }
