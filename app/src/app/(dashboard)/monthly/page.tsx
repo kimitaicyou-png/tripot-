@@ -29,13 +29,29 @@ import { MEMBERS as ALL_MEMBERS_M } from '@/lib/currentMember';
 import { VENDORS as ALL_VENDORS_M } from '@/lib/data/vendors';
 import { ProfitAnalysisDemo } from '@/components/finance/ProfitAnalysis';
 import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
+import { STAGE_LABEL, STAGE_BADGE } from '@/lib/deals/constants';
+import type { Stage } from '@/lib/deals/types';
 
 const MONTHS = ['2026年1月', '2026年2月', '2026年3月', '2026年4月', '2026年5月', '2026年6月'];
 
-function useLiveFinancials() {
-  const [deals, setDeals] = useState<ReturnType<typeof loadAllDeals>>([]);
+function parseSelectedMonth(label: string): { year: number; month: number } {
+  const m = label.match(/(\d{4})年(\d{1,2})月/);
+  if (!m) return { year: new Date().getFullYear(), month: new Date().getMonth() + 1 };
+  return { year: Number(m[1]), month: Number(m[2]) };
+}
+
+function filterDealsByMonth(deals: ReturnType<typeof loadAllDeals>, selectedMonth: string) {
+  const { year, month } = parseSelectedMonth(selectedMonth);
+  const prefix = `${year}-${String(month).padStart(2, '0')}`;
+  return deals.filter((d) => d.lastDate.startsWith(prefix));
+}
+
+function useLiveFinancials(selectedMonth?: string) {
+  const [allDeals, setAllDeals] = useState<ReturnType<typeof loadAllDeals>>([]);
   const [prodCards, setProdCards] = useState<ProductionCard[]>([]);
-  useEffect(() => { setDeals(loadAllDeals()); setProdCards(loadProductionCards()); fetchDeals().then((fresh) => setDeals(fresh)); fetchProductionCards().then(setProdCards); }, []);
+  useEffect(() => { setAllDeals(loadAllDeals()); setProdCards(loadProductionCards()); fetchDeals().then((fresh) => setAllDeals(fresh)); fetchProductionCards().then(setProdCards); }, []);
+
+  const deals = selectedMonth ? filterDealsByMonth(allDeals, selectedMonth) : allDeals;
 
   const kpi = calcDealKpi(deals);
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
@@ -47,7 +63,14 @@ function useLiveFinancials() {
   const prodCost = prodCards.reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
   const cogs = prodCost > 0 ? prodCost : Math.round(totalRevenue * 0.54);
   const grossProfit = totalRevenue - cogs;
-  const currentMonthIdx = new Date().getMonth() >= 4 ? new Date().getMonth() - 4 : new Date().getMonth() + 8;
+  const currentMonthIdx = (() => {
+    if (selectedMonth) {
+      const { month } = parseSelectedMonth(selectedMonth);
+      const m = month - 1;
+      return m >= 4 ? m - 4 : m + 8;
+    }
+    return new Date().getMonth() >= 4 ? new Date().getMonth() - 4 : new Date().getMonth() + 8;
+  })();
   const budgetPlan = (() => {
     if (typeof window === 'undefined') return null;
     try {
@@ -465,8 +488,59 @@ function CustomerRanking() {
   );
 }
 
-function PlTab() {
-  const live = useLiveFinancials();
+function DealListSection({ deals, defaultOpen = false }: { deals: ReturnType<typeof loadAllDeals>; defaultOpen?: boolean }) {
+  const [open, setOpen] = useState(defaultOpen);
+  if (deals.length === 0) return null;
+  return (
+    <Card>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between active:scale-[0.98] transition-all"
+      >
+        <SectionLabel>案件一覧（{deals.length}件）</SectionLabel>
+        <span className="text-xs text-gray-500 -mt-2">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="overflow-x-auto mt-2">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                {['案件名', 'クライアント', '担当者', 'ステージ', '金額'].map((h) => (
+                  <th key={h} className="text-left py-2 pr-3 text-[11px] font-semibold text-gray-500 uppercase tracking-widest last:text-right whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {deals.map((d) => (
+                <tr key={d.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-2.5 pr-3 font-semibold text-gray-900 text-sm">{d.dealName}</td>
+                  <td className="py-2.5 pr-3 text-gray-700 text-sm">{d.clientName}</td>
+                  <td className="py-2.5 pr-3 text-gray-700 text-sm whitespace-nowrap">{d.assignee}</td>
+                  <td className="py-2.5 pr-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold ${STAGE_BADGE[d.stage as Stage] ?? 'bg-gray-100 text-gray-700'}`}>
+                      {STAGE_LABEL[d.stage as Stage] ?? d.stage}
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-right font-semibold text-gray-900 tabular-nums whitespace-nowrap">{formatYen(d.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-gray-200">
+                <td colSpan={4} className="py-2.5 pr-3 font-semibold text-gray-900 text-sm">合計</td>
+                <td className="py-2.5 text-right font-semibold text-gray-900 tabular-nums whitespace-nowrap">{formatYen(deals.reduce((s, d) => s + d.amount, 0))}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+    </Card>
+  );
+}
+
+function PlTab({ selectedMonth }: { selectedMonth: string }) {
+  const live = useLiveFinancials(selectedMonth);
   const [showProfitAnalysis, setShowProfitAnalysis] = useState(false);
   const opRate = live.PL_ROWS[1] ? achieveRate(live.PL_ROWS[1].budget, live.PL_ROWS[1].actual) : 0;
   const grossRate = live.PL_ROWS[0] ? achieveRate(live.PL_ROWS[0].budget, live.PL_ROWS[0].actual) : 0;
@@ -587,6 +661,8 @@ function PlTab() {
       </div>
 
       <NextMonthForecast live={live} />
+
+      <DealListSection deals={live.deals} />
     </div>
   );
 }
@@ -1208,7 +1284,7 @@ export default function MonthlyPage() {
   const [selectedMonth, setSelectedMonth] = useState('2026年4月');
   const [showReportModal, setShowReportModal] = useState(false);
 
-  const headerLive = useLiveFinancials();
+  const headerLive = useLiveFinancials(selectedMonth);
   const rh = (v: number) => Math.round(v / 10000);
   const headerGrossActual = rh(headerLive.grossProfit);
   const headerOpActual = rh(headerLive.grossProfit - 0);
@@ -1362,7 +1438,7 @@ export default function MonthlyPage() {
         </div>
       </div>
 
-      {activeTab === 'pl' && <PlTab />}
+      {activeTab === 'pl' && <PlTab selectedMonth={selectedMonth} />}
       {activeTab === 'cf' && <CfTab />}
       {activeTab === 'yearly' && <YearlyTab />}
       {activeTab === 'production' && <MonthlyProductionTab />}

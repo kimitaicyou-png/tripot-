@@ -81,10 +81,9 @@ function MemberContextPanel({ memberId }: { memberId: string }) {
   const [kpi, setKpi] = useState({ revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: meta?.quote ?? '', role: meta?.role ?? '' });
   useEffect(() => {
     const computeAndSet = (deals: ReturnType<typeof loadAllDeals>, cards: ReturnType<typeof loadProductionCards>) => {
-      const nameMap: Record<string, string> = {};
-      const name = nameMap[memberId] ?? '';
+      const memberName = allMembers.find((m) => m.id === memberId)?.name ?? '';
       const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
-      const myDeals = deals.filter((d) => d.assignee === name);
+      const myDeals = memberName ? deals.filter((d) => d.assignee === memberName || !d.assignee) : deals;
       const rev = myDeals.filter((d) => orderedStages.includes(d.stage)).reduce((s, d) => s + d.amount, 0);
       const gross = Math.round(rev * 0.457);
       const myTasks = cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === memberId && t.status !== 'done');

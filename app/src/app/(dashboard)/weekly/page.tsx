@@ -7,6 +7,8 @@ import { MEMBERS as ALL_MEMBERS_RAW } from '@/lib/currentMember';
 import { VENDORS } from '@/lib/data/vendors';
 import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
 import { formatYen } from '@/lib/format';
+import { STAGE_LABEL, STAGE_BADGE } from '@/lib/deals/constants';
+import type { Stage } from '@/lib/deals/types';
 import {
   LineChart,
   Line,
@@ -129,6 +131,57 @@ function NumbersTab() {
       {numView === 'sales' && <SalesNumbersView />}
       {numView === 'production' && <ProductionNumbersView />}
     </div>
+  );
+}
+
+function WeeklyDealListSection({ deals }: { deals: ReturnType<typeof loadAllDeals> }) {
+  const [open, setOpen] = useState(false);
+  if (deals.length === 0) return null;
+  return (
+    <Card>
+      <button
+        type="button"
+        onClick={() => setOpen((v) => !v)}
+        className="w-full flex items-center justify-between active:scale-[0.98] transition-all"
+      >
+        <SectionLabel>案件一覧（{deals.length}件）</SectionLabel>
+        <span className="text-xs text-gray-500 -mt-2">{open ? '▲' : '▼'}</span>
+      </button>
+      {open && (
+        <div className="overflow-x-auto mt-2">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="border-b border-gray-200">
+                {['案件名', 'クライアント', '担当者', 'ステージ', '金額'].map((h) => (
+                  <th key={h} className="text-left py-2 pr-3 text-[11px] font-semibold text-gray-500 uppercase tracking-widest last:text-right whitespace-nowrap">{h}</th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {deals.map((d) => (
+                <tr key={d.id} className="border-b border-gray-100 hover:bg-gray-50">
+                  <td className="py-2.5 pr-3 font-semibold text-gray-900 text-sm">{d.dealName}</td>
+                  <td className="py-2.5 pr-3 text-gray-700 text-sm">{d.clientName}</td>
+                  <td className="py-2.5 pr-3 text-gray-700 text-sm whitespace-nowrap">{d.assignee}</td>
+                  <td className="py-2.5 pr-3">
+                    <span className={`inline-flex items-center px-2 py-0.5 rounded-lg text-[11px] font-semibold ${STAGE_BADGE[d.stage as Stage] ?? 'bg-gray-100 text-gray-700'}`}>
+                      {STAGE_LABEL[d.stage as Stage] ?? d.stage}
+                    </span>
+                  </td>
+                  <td className="py-2.5 text-right font-semibold text-gray-900 tabular-nums whitespace-nowrap">{formatYen(d.amount)}</td>
+                </tr>
+              ))}
+            </tbody>
+            <tfoot>
+              <tr className="border-t-2 border-gray-200">
+                <td colSpan={4} className="py-2.5 pr-3 font-semibold text-gray-900 text-sm">合計</td>
+                <td className="py-2.5 text-right font-semibold text-gray-900 tabular-nums whitespace-nowrap">{formatYen(deals.reduce((s, d) => s + d.amount, 0))}</td>
+              </tr>
+            </tfoot>
+          </table>
+        </div>
+      )}
+    </Card>
   );
 }
 
@@ -313,6 +366,8 @@ function SalesNumbersView() {
           </table>
         </div>
       </Card>
+
+      <WeeklyDealListSection deals={deals} />
 
     </div>
   );
