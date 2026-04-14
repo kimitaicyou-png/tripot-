@@ -76,14 +76,16 @@ export function aggregateWeekly(memberIds: string[]): WeeklyKpi {
   };
 }
 
-export function aggregateMonthly(companyId: string, companyName: string, monthLabel: string): MonthlyKpi {
+export function aggregateMonthly(companyId: string, companyName: string, monthLabel: string, sgaBudget?: number): MonthlyKpi {
   const all = MEMBER_KPIS;
   const revenue = all.reduce((s, m) => s + m.revenue, 0);
   const revenueTarget = all.reduce((s, m) => s + m.revenueTarget, 0);
   const gross = all.reduce((s, m) => s + m.gross, 0);
   const grossTarget = all.reduce((s, m) => s + m.grossTarget, 0);
-  const op = Math.round(gross * 0.33);
-  const opTarget = Math.round(grossTarget * 0.42);
+  const sga = sgaBudget ?? Math.round(gross * 0.67);
+  const op = gross - sga;
+  const sgaTarget = sgaBudget ?? Math.round(grossTarget * 0.58);
+  const opTarget = grossTarget - sgaTarget;
   const opRate = (op / opTarget) * 100;
   const alertLevel = opRate < 70 ? 'danger' : opRate < 85 ? 'caution' : 'normal';
   const alerts: string[] = [];
@@ -123,7 +125,7 @@ const COMPANY_OVERRIDES: Partial<Record<string, Partial<CompanyKpi>>> = {
 };
 
 export function getCompanyKpis(): CompanyKpi[] {
-  const tripotMonthly = aggregateMonthly('tripot', 'トライポット', '2026年4月');
+  const tripotMonthly = aggregateMonthly('tripot', 'トライポット', '2026年4月', undefined);
   const tripot: CompanyKpi = {
     id: 'tripot',
     name: 'トライポット',

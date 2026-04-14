@@ -35,14 +35,15 @@ export function calculateRunningRevenue(deals: Deal[], month: string): number {
     .reduce((sum, d) => sum + (d.monthlyAmount ?? 0), 0);
 }
 
-export function calculateMonthlyActual(month: string): MonthlyActual {
+export function calculateMonthlyActual(month: string, sgaOverride?: number): MonthlyActual {
   const shotRevenue     = calculateShotRevenue(DEALS, month);
   const runningRevenue  = calculateRunningRevenue(DEALS, month);
   const totalRevenue    = shotRevenue + runningRevenue;
   const cogs            = Math.round(totalRevenue * 0.543);
   const grossProfit     = totalRevenue - cogs;
   const grossMarginRate = totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 100) : 0;
-  const sga             = 3200000;
+  const target          = MONTHLY_TARGETS[month];
+  const sga             = sgaOverride ?? target?.sga ?? 3200000;
   const operatingProfit = grossProfit - sga;
   const ordinaryProfit  = operatingProfit - 100000;
 

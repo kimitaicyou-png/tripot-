@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { aggregateMonthly, MEMBER_KPIS } from '@/lib/data/aggregation';
+import { MONTHLY_TARGETS } from '@/lib/data/company';
 
 // トライポット → 本部 ブリッジエンドポイント
 // 本部 (hq/coaris-main) がこのURLを叩いて月次KPIを吸い上げる
@@ -13,7 +14,8 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
 
-  const monthly = aggregateMonthly('tripot', 'トライポット', '2026年4月');
+  const target = MONTHLY_TARGETS['2026-04'];
+  const monthly = aggregateMonthly('tripot', 'トライポット', '2026年4月', target?.sga);
   const members = MEMBER_KPIS.length;
 
   const payload = {

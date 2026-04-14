@@ -96,7 +96,18 @@ function useLiveFinancials(selectedMonth?: string) {
        budgetPlan.admin.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0)) * 10000
     : 0;
   const budgetOp = budgetGross - budgetSga;
-  const sga = 0;
+  const sgaOverride = (() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('tripot_sga_actual');
+      if (!raw) return null;
+      const data = JSON.parse(raw) as Record<string, number>;
+      const now = selectedMonth ? parseSelectedMonth(selectedMonth) : { year: new Date().getFullYear(), month: new Date().getMonth() + 1 };
+      const key = `${now.year}-${String(now.month).padStart(2, '0')}`;
+      return data[key] ?? null;
+    } catch { return null; }
+  })();
+  const sga = sgaOverride !== null ? sgaOverride : budgetSga;
   const operatingProfit = grossProfit - sga;
   const ordinaryProfit = operatingProfit;
 
@@ -217,6 +228,75 @@ const PL_TOOLTIPS: Record<string, string> = {
   '営業利益': '本業の利益（粗利 − 販管費）',
   '経常利益': '本業 + 営業外損益を含めた利益',
 };
+
+function SgaActualEditor({ selectedMonth, budgetSga, currentSga }: { selectedMonth: string; budgetSga: number; currentSga: number }) {
+  const [editing, setEditing] = useState(false);
+  const [inputValue, setInputValue] = useState('');
+  const isOverridden = currentSga !== budgetSga;
+
+  const getMonthKey = () => {
+    const parsed = parseSelectedMonth(selectedMonth);
+    return `${parsed.year}-${String(parsed.month).padStart(2, '0')}`;
+  };
+
+  const handleSave = () => {
+    const value = Math.round(Number(inputValue) * 10000);
+    if (isNaN(value) || value < 0) return;
+    const key = getMonthKey();
+    const raw = localStorage.getItem('tripot_sga_actual');
+    const data: Record<string, number> = raw ? JSON.parse(raw) : {};
+    data[key] = value;
+    localStorage.setItem('tripot_sga_actual', JSON.stringify(data));
+    setEditing(false);
+    window.location.reload();
+  };
+
+  const handleReset = () => {
+    const key = getMonthKey();
+    const raw = localStorage.getItem('tripot_sga_actual');
+    if (!raw) return;
+    const data: Record<string, number> = JSON.parse(raw);
+    delete data[key];
+    localStorage.setItem('tripot_sga_actual', JSON.stringify(data));
+    window.location.reload();
+  };
+
+  if (editing) {
+    return (
+      <div className="mt-3 flex items-center gap-2 p-3 bg-blue-50 rounded-lg">
+        <span className="text-xs text-gray-600">販管費実績（万円）:</span>
+        <input
+          type="number"
+          value={inputValue}
+          onChange={(e) => setInputValue(e.target.value)}
+          placeholder={String(Math.round(budgetSga / 10000))}
+          className="w-28 px-2 py-1 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 tabular-nums"
+          autoFocus
+          onKeyDown={(e) => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false); }}
+        />
+        <button onClick={handleSave} className="px-3 py-1 text-xs text-white bg-blue-600 rounded-md active:scale-[0.98]">保存</button>
+        <button onClick={() => setEditing(false)} className="px-3 py-1 text-xs text-gray-600 bg-gray-200 rounded-md active:scale-[0.98]">キャンセル</button>
+      </div>
+    );
+  }
+
+  return (
+    <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+      {isOverridden ? (
+        <>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-green-50 text-green-700 rounded-full">実績入力済</span>
+          <button onClick={() => { setInputValue(String(Math.round(currentSga / 10000))); setEditing(true); }} className="text-blue-600 hover:underline active:scale-[0.98]">変更</button>
+          <button onClick={handleReset} className="text-gray-400 hover:text-red-500 hover:underline active:scale-[0.98]">リセット</button>
+        </>
+      ) : (
+        <>
+          <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full">販管費は予算値ベース</span>
+          <button onClick={() => { setInputValue(''); setEditing(true); }} className="text-blue-600 hover:underline active:scale-[0.98]">実績を入力</button>
+        </>
+      )}
+    </div>
+  );
+}
 
 type PlRow = { label: string; budget: number; actual: number; ytdBudget: number; ytdActual: number; momDir: 'up' | 'down' | 'flat'; reverse: boolean; kind: 'flow' | 'fixed' };
 function PlTable({ rows }: { rows: PlRow[] }) {
@@ -561,6 +641,7 @@ function PlTab({ selectedMonth }: { selectedMonth: string }) {
       <Card>
         <SectionLabel>予実管理</SectionLabel>
         <PlTable rows={live.PL_ROWS} />
+        <SgaActualEditor selectedMonth={selectedMonth} budgetSga={live.budgetSga} currentSga={live.sga} />
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
