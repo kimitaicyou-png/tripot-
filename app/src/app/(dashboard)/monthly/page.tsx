@@ -21,6 +21,7 @@ import { Card } from '@/components/ui/Card';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { formatYen } from '@/lib/format';
 import { syncBudgetPlan } from '@/lib/budget';
+import { collectBudgetAlerts } from '@/lib/budgetAlerts';
 import { PaymentReconciliationDemo } from '@/components/finance/PaymentReconciliation';
 import MonthlyReportGenerator from '@/components/monthly/MonthlyReportGenerator';
 import { PaymentScheduleDemo } from '@/components/finance/PaymentSchedule';
@@ -158,7 +159,18 @@ function useLiveFinancials(selectedMonth?: string) {
     grossProfit: r(m.grossProfit),
   }));
 
-  return { PL_ROWS, SHOT_RUNNING, MEMBER_STATS: MEMBER_STATS_LIVE, kpi, deals, prodCards, totalRevenue, grossProfit, budgetRevenue, budgetGross, budgetOp, sga, budgetSga, shotRevenue, runningRevenue };
+  const budgetAlerts = collectBudgetAlerts({
+    budgetRevenue,
+    actualRevenue: totalRevenue,
+    budgetGross,
+    actualGross: grossProfit,
+    budgetOp,
+    actualOp: operatingProfit,
+    budgetSga,
+    actualSga: sga,
+  });
+
+  return { PL_ROWS, SHOT_RUNNING, MEMBER_STATS: MEMBER_STATS_LIVE, kpi, deals, prodCards, totalRevenue, grossProfit, budgetRevenue, budgetGross, budgetOp, sga, budgetSga, shotRevenue, runningRevenue, budgetAlerts };
 }
 
 

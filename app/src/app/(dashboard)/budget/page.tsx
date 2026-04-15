@@ -2,6 +2,8 @@
 
 import { useState, useCallback, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { parseMfCsv, aggregateByCategory } from '@/lib/mfCsvParser';
+import { simulate13WeekCf, calcEffectiveTax } from '@/lib/cashflow';
 import {
   BarChart,
   Bar,
@@ -30,8 +32,8 @@ const LY_SGA     = LAST_YEAR_MONTHLY.sga.reduce((a, b) => a + b, 0);
 const LY_GROSS   = LY_REVENUE - LY_COGS;
 const LY_OP      = LY_GROSS - LY_SGA;
 
-const STEPS = ['データ取り込み', '昨年実績', 'ヒアリング', 'AI生成中', '予算提案'] as const;
-type Step = 0 | 1 | 2 | 3 | 4;
+const STEPS = ['取込＆確認', 'ヒアリング', 'AI提案＋CF予測'] as const;
+type Step = 0 | 1 | 2;
 
 function fmt(n: number) {
   return Math.round(n).toLocaleString();
@@ -125,19 +127,23 @@ type HearingData = {
   planningHire: boolean;
   hireCount: number;
   hireTimeline: '今期中' | '来期' | '未定';
-  revenueBase: '昨年実績ベース' | '新規事業含む' | '既存深耕のみ' | 'その他';
-  fixedCostTrend: '増加見込み（移転・設備等）' | '現状維持' | '削減予定';
-  investmentAreas: string[];
+  targetGrowthPct: number;
+  currentCash: number;
+  arDays: number;
+  apDays: number;
+  loanMonthlyRepayment: number;
 };
 
 const DEFAULT_HEARING: HearingData = {
-  currentHeadcount: 8,
+  currentHeadcount: 4,
   planningHire: false,
   hireCount: 1,
   hireTimeline: '今期中',
-  revenueBase: '昨年実績ベース',
-  fixedCostTrend: '現状維持',
-  investmentAreas: [],
+  targetGrowthPct: 15,
+  currentCash: 0,
+  arDays: 45,
+  apDays: 30,
+  loanMonthlyRepayment: 0,
 };
 
 const INVESTMENT_AREA_OPTIONS = ['人材採用', '設備投資', 'マーケティング', 'システム開発', 'なし'];
@@ -666,27 +672,71 @@ function StepIndicator({ current }: { current: Step }) {
   );
 }
 
-function Step1({ onNext }: { onNext: () => void }) {
+type ImportedLastYear = {
+  revenue: number[];
+  cogs: number[];
+  labor: number[];
+  admin: number[];
+  otherIncome: number[];
+  otherExpense: number[];
+} | null;
+
+function Step1({ onNext, onImport }: { onNext: () => void; onImport: (data: NonNullable<ImportedLastYear>) => void }) {
   const [dragging, setDragging] = useState(false);
   const [fileName, setFileName] = useState<string | null>(null);
+  const [imported, setImported] = useState<NonNullable<ImportedLastYear> | null>(null);
+  const [warnings, setWarnings] = useState<string[]>([]);
+  const [manual, setManual] = useState({ revenue: 0, cogs: 0, labor: 0, admin: 0 });
   const inputRef = useRef<HTMLInputElement>(null);
+
+  async function handleFile(file: File) {
+    setFileName(file.name);
+    const text = await file.text();
+    const parsed = parseMfCsv(text);
+    const agg = aggregateByCategory(parsed.rows);
+    setImported(agg);
+    setWarnings(parsed.warnings);
+    onImport(agg);
+  }
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault();
     setDragging(false);
     const file = e.dataTransfer.files[0];
-    if (file) setFileName(file.name);
+    if (file) handleFile(file);
   }, []);
+
+  function applyManualFallback() {
+    const monthly = (annual: number) => Array.from({ length: 12 }, () => Math.round(annual / 12));
+    const data = {
+      revenue: monthly(manual.revenue),
+      cogs: monthly(manual.cogs),
+      labor: monthly(manual.labor),
+      admin: monthly(manual.admin),
+      otherIncome: Array(12).fill(0),
+      otherExpense: Array(12).fill(0),
+    };
+    setImported(data);
+    onImport(data);
+  }
+
+  const hasData = !!imported && imported.revenue.reduce((s, v) => s + v, 0) > 0;
+  const totalRev = imported ? imported.revenue.reduce((s, v) => s + v, 0) : 0;
+  const totalCogs = imported ? imported.cogs.reduce((s, v) => s + v, 0) : 0;
+  const totalSga = imported ? imported.labor.reduce((s, v) => s + v, 0) + imported.admin.reduce((s, v) => s + v, 0) : 0;
+  const totalGross = totalRev - totalCogs;
+  const totalOp = totalGross - totalSga;
+  const grossRate = totalRev > 0 ? Math.round((totalGross / totalRev) * 100) : 0;
 
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-xl font-semibold text-gray-900">事業計画を作成</h2>
-        <p className="text-sm text-gray-500 mt-1">MFクラウドの昨年データからAIが予算の叩き台を自動生成します</p>
+        <h2 className="text-xl font-semibold text-gray-900">昨年実績の取り込み</h2>
+        <p className="text-sm text-gray-500 mt-1">MFクラウドCSVをアップロードするか、年間合計を手入力してください</p>
       </div>
 
       <div
-        className={`border-2 border-dashed rounded-xl p-10 text-center cursor-pointer transition-all ${
+        className={`border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-all ${
           dragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
         }`}
         onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
@@ -701,53 +751,88 @@ function Step1({ onNext }: { onNext: () => void }) {
           className="hidden"
           onChange={(e) => {
             const file = e.target.files?.[0];
-            if (file) setFileName(file.name);
+            if (file) handleFile(file);
           }}
         />
-        <div className="text-3xl mb-3">📎</div>
+        <div className="text-3xl mb-2">📎</div>
         {fileName ? (
           <p className="text-sm font-semibold text-blue-600">{fileName}</p>
         ) : (
           <>
-            <p className="text-sm font-semibold text-gray-700">CSVファイルをドロップ</p>
-            <p className="text-xs text-gray-500 mt-1">または クリックしてアップロード</p>
+            <p className="text-sm font-semibold text-gray-700">MFクラウド CSVファイルをドロップ</p>
+            <p className="text-xs text-gray-500 mt-1">月別試算表（勘定科目×12ヶ月）形式</p>
           </>
         )}
       </div>
 
-      <div className="flex items-center gap-3">
-        <div className="flex-1 h-px bg-gray-200" />
-        <span className="text-xs text-gray-500">または</span>
-        <div className="flex-1 h-px bg-gray-200" />
-      </div>
+      {warnings.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-800 space-y-1">
+          <p className="font-semibold">⚠ 警告 ({warnings.length}件)</p>
+          {warnings.slice(0, 5).map((w, i) => <p key={i}>・{w}</p>)}
+          {warnings.length > 5 && <p className="text-gray-500">...他 {warnings.length - 5} 件</p>}
+        </div>
+      )}
 
-      <button
-        disabled
-        className="w-full py-2.5 rounded-lg border border-gray-200 text-sm text-gray-500 bg-gray-50 cursor-not-allowed flex items-center justify-center gap-2"
-      >
-        <span>🔗</span>
-        MFクラウドから自動取得（将来連携予定）
-      </button>
+      {!hasData && (
+        <div className="border border-gray-200 rounded-xl p-4 space-y-3">
+          <p className="text-sm font-semibold text-gray-700">または 年間合計を手入力</p>
+          <div className="grid grid-cols-2 gap-3">
+            {([
+              { key: 'revenue', label: '売上高' },
+              { key: 'cogs', label: '売上原価' },
+              { key: 'labor', label: '人件費（年間）' },
+              { key: 'admin', label: '管理費（年間）' },
+            ] as const).map((f) => (
+              <div key={f.key}>
+                <label className="block text-xs text-gray-500 mb-1">{f.label}</label>
+                <input
+                  type="number"
+                  value={manual[f.key]}
+                  onChange={(e) => setManual((prev) => ({ ...prev, [f.key]: Number(e.target.value) || 0 }))}
+                  className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm text-right tabular-nums"
+                  placeholder="0"
+                />
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={applyManualFallback}
+            disabled={manual.revenue === 0}
+            className="w-full py-2 text-sm font-semibold text-white bg-blue-600 rounded-lg hover:bg-blue-700 disabled:opacity-40 active:scale-[0.98] transition-all"
+          >
+            手入力値で確定
+          </button>
+        </div>
+      )}
 
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1.5">取り込み期間</label>
-        <select className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500">
-          <option>2025年1月〜12月</option>
-          <option>2024年1月〜12月</option>
-        </select>
-      </div>
-
-      <button
-        onClick={onNext}
-        className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all"
-      >
-        読み込む（モックデータを使用）
-      </button>
+      {hasData && (
+        <>
+          <div className="grid grid-cols-3 gap-3">
+            {[
+              { label: '売上', value: totalRev, sub: null },
+              { label: '粗利', value: totalGross, sub: `粗利率${grossRate}%` },
+              { label: '営業利益', value: totalOp, sub: null },
+            ].map(({ label, value, sub }) => (
+              <div key={label} className="bg-gray-50 rounded-xl p-4 text-center">
+                <div className="text-xs text-gray-500 mb-1">{label}</div>
+                <div className="text-base font-semibold text-gray-900 tabular-nums">¥{Math.round(value).toLocaleString()}</div>
+                {sub && <div className="text-[11px] text-blue-600 mt-0.5 font-medium">{sub}</div>}
+              </div>
+            ))}
+          </div>
+          <button
+            onClick={onNext}
+            className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all"
+          >
+            次へ: ヒアリング
+          </button>
+        </>
+      )}
     </div>
   );
 }
 
-function Step2({ onNext }: { onNext: () => void }) {
+function LegacyStep2Unused({ onNext }: { onNext: () => void }) {
   const chartData = LAST_YEAR_MONTHLY.labels.map((label, i) => ({
     month: label,
     売上:  LAST_YEAR_MONTHLY.revenue[i],
@@ -839,32 +924,16 @@ function StepHearing({
   onChange: (d: HearingData) => void;
   onNext: () => void;
 }) {
-  function toggleArea(area: string) {
-    const current = data.investmentAreas;
-    if (area === 'なし') {
-      onChange({ ...data, investmentAreas: current.includes('なし') ? [] : ['なし'] });
-      return;
-    }
-    const without = current.filter((a) => a !== 'なし');
-    if (without.includes(area)) {
-      onChange({ ...data, investmentAreas: without.filter((a) => a !== area) });
-    } else {
-      onChange({ ...data, investmentAreas: [...without, area] });
-    }
-  }
-
   return (
     <div className="space-y-6">
       <div>
         <h2 className="text-xl font-semibold text-gray-900">ヒアリング</h2>
-        <p className="text-sm text-gray-500 mt-1">事業の状況を教えてください。AIがより精度の高い予算を生成します。</p>
+        <p className="text-sm text-gray-500 mt-1">予算とCF予測に必要な最小項目のみ</p>
       </div>
 
       <div className="space-y-5">
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">
-            現在のメンバー数（正社員＋業務委託）
-          </label>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">現在のメンバー数（正社員＋業務委託）</label>
           <div className="flex items-center gap-2">
             <input
               type="number"
@@ -915,68 +984,73 @@ function StepHearing({
                 />
                 <span className="text-sm text-gray-500">人増やす</span>
               </div>
-              <div>
-                <label className="block text-xs text-gray-500 mb-1">いつまでに？</label>
-                <select
-                  value={data.hireTimeline}
-                  onChange={(e) => onChange({ ...data, hireTimeline: e.target.value as HearingData['hireTimeline'] })}
-                  className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="今期中">今期中</option>
-                  <option value="来期">来期</option>
-                  <option value="未定">未定</option>
-                </select>
-              </div>
+              <select
+                value={data.hireTimeline}
+                onChange={(e) => onChange({ ...data, hireTimeline: e.target.value as HearingData['hireTimeline'] })}
+                className="px-3 py-2 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              >
+                <option value="今期中">今期中</option>
+                <option value="来期">来期</option>
+                <option value="未定">未定</option>
+              </select>
             </div>
           )}
         </div>
 
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">売上目標の根拠</label>
-          <select
-            value={data.revenueBase}
-            onChange={(e) => onChange({ ...data, revenueBase: e.target.value as HearingData['revenueBase'] })}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="昨年実績ベース">昨年実績ベース</option>
-            <option value="新規事業含む">新規事業含む</option>
-            <option value="既存深耕のみ">既存深耕のみ</option>
-            <option value="その他">その他</option>
-          </select>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">目標成長率</label>
+          <div className="flex items-center gap-2">
+            <input
+              type="number"
+              value={data.targetGrowthPct}
+              min={-50}
+              max={200}
+              onChange={(e) => onChange({ ...data, targetGrowthPct: Number(e.target.value) || 0 })}
+              className="w-24 px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 tabular-nums"
+            />
+            <span className="text-sm text-gray-500">%</span>
+          </div>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">固定費の変動予定</label>
-          <select
-            value={data.fixedCostTrend}
-            onChange={(e) => onChange({ ...data, fixedCostTrend: e.target.value as HearingData['fixedCostTrend'] })}
-            className="w-full px-3 py-2.5 border border-gray-200 rounded-lg text-sm text-gray-700 bg-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-          >
-            <option value="増加見込み（移転・設備等）">増加見込み（移転・設備等）</option>
-            <option value="現状維持">現状維持</option>
-            <option value="削減予定">削減予定</option>
-          </select>
-        </div>
-
-        <div>
-          <label className="block text-sm font-medium text-gray-700 mb-2">重点投資分野</label>
-          <div className="flex flex-wrap gap-2">
-            {INVESTMENT_AREA_OPTIONS.map((area) => {
-              const checked = data.investmentAreas.includes(area);
-              return (
-                <button
-                  key={area}
-                  onClick={() => toggleArea(area)}
-                  className={`px-3 py-1.5 rounded-lg text-sm font-medium border transition-all active:scale-[0.98] ${
-                    checked
-                      ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
-                  }`}
-                >
-                  {checked ? '✓ ' : ''}{area}
-                </button>
-              );
-            })}
+        <div className="pt-3 border-t border-gray-100">
+          <p className="text-sm font-semibold text-gray-700 mb-3">キャッシュフロー設定</p>
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">現預金残高（円）</label>
+              <input
+                type="number"
+                value={data.currentCash}
+                onChange={(e) => onChange({ ...data, currentCash: Number(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm tabular-nums"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">借入月次返済（円）</label>
+              <input
+                type="number"
+                value={data.loanMonthlyRepayment}
+                onChange={(e) => onChange({ ...data, loanMonthlyRepayment: Number(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm tabular-nums"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">売掛金回収日数（日）</label>
+              <input
+                type="number"
+                value={data.arDays}
+                onChange={(e) => onChange({ ...data, arDays: Number(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm tabular-nums"
+              />
+            </div>
+            <div>
+              <label className="block text-xs text-gray-500 mb-1">買掛金支払日数（日）</label>
+              <input
+                type="number"
+                value={data.apDays}
+                onChange={(e) => onChange({ ...data, apDays: Number(e.target.value) || 0 })}
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm tabular-nums"
+              />
+            </div>
           </div>
         </div>
       </div>
@@ -985,91 +1059,12 @@ function StepHearing({
         onClick={onNext}
         className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all"
       >
-        次へ（AI生成）
+        次へ: AI提案＋CF予測
       </button>
     </div>
   );
 }
 
-function Step3({ onDone, hearingData }: { onDone: () => void; hearingData: HearingData }) {
-  const [progress, setProgress] = useState(0);
-  const [taskIndex, setTaskIndex] = useState(0);
-
-  const tasks = [
-    '昨年の売上トレンドを分析',
-    '季節変動パターンを検出',
-    '固定費・変動費を分離',
-    '成長率を適用して予算を計算中...',
-  ];
-
-  useEffect(() => {
-    let p = 0;
-    let t = 0;
-    const interval = setInterval(() => {
-      p += 5;
-      if (p >= 25 * (t + 1) && t < tasks.length - 1) {
-        t += 1;
-        setTaskIndex(t);
-      }
-      setProgress(p);
-      if (p >= 100) {
-        clearInterval(interval);
-        setTimeout(onDone, 300);
-      }
-    }, 40);
-    return () => clearInterval(interval);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-xl font-semibold text-gray-900">AIが予算を生成中...</h2>
-        <p className="text-sm text-gray-500 mt-1">昨年の実績データを分析しています</p>
-      </div>
-
-      <div className="bg-gray-100 rounded-full h-3 overflow-hidden">
-        <div
-          className="bg-blue-600 h-3 rounded-full transition-all duration-100"
-          style={{ width: `${Math.min(progress, 100)}%` }}
-        />
-      </div>
-      <div className="text-right text-sm font-semibold text-gray-600">{Math.min(progress, 100)}%</div>
-
-      <div className="bg-gray-50 rounded-xl p-4 space-y-1.5 text-sm text-gray-600">
-        <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">ヒアリング内容を反映してAI生成中…</p>
-        <p>・現在の人数: {hearingData.currentHeadcount}人</p>
-        <p>・増員予定: {hearingData.planningHire ? `あり（${hearingData.hireCount}人、${hearingData.hireTimeline}）` : 'なし'}</p>
-        <p>・売上根拠: {hearingData.revenueBase}</p>
-        <p>・固定費: {hearingData.fixedCostTrend}</p>
-        {hearingData.investmentAreas.length > 0 && (
-          <p>・重点投資: {hearingData.investmentAreas.join('、')}</p>
-        )}
-      </div>
-
-      <div className="space-y-3">
-        {tasks.map((task, i) => (
-          <div key={i} className="flex items-center gap-3">
-            <div className={`w-5 h-5 rounded-full flex items-center justify-center flex-shrink-0 ${
-              i < taskIndex ? 'bg-green-500 text-white' :
-              i === taskIndex ? 'bg-blue-600 text-white' :
-              'bg-gray-200 text-gray-500'
-            }`}>
-              {i < taskIndex ? (
-                <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                </svg>
-              ) : (
-                <div className={`w-1.5 h-1.5 rounded-full ${i === taskIndex ? 'bg-white animate-pulse' : 'bg-gray-300'}`} />
-              )}
-            </div>
-            <span className={`text-sm ${i <= taskIndex ? 'text-gray-800 font-medium' : 'text-gray-500'}`}>{task}</span>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
 
 type BudgetNumbers = {
   revenue: number;
@@ -1090,20 +1085,20 @@ function computeBudget(growthRate: number): BudgetNumbers {
   };
 }
 
-function computeFeasibility(annualRevenue: number, totalHeadcount: number): {
+function computeFeasibility(annualGross: number, totalHeadcount: number): {
   level: '高' | '中' | '低';
-  revenuePerPersonMonthly: number;
+  grossPerPersonMonthly: number;
 } {
-  const monthly = totalHeadcount === 0 ? 0 : Math.round(annualRevenue / totalHeadcount / 12);
+  const monthly = totalHeadcount === 0 ? 0 : Math.round(annualGross / totalHeadcount / 12);
   let level: '高' | '中' | '低';
-  if (monthly > 500) {
+  if (monthly > 120) {
     level = '低';
-  } else if (monthly > 300) {
+  } else if (monthly >= 50) {
     level = '中';
   } else {
     level = '高';
   }
-  return { level, revenuePerPersonMonthly: monthly };
+  return { level, grossPerPersonMonthly: monthly };
 }
 
 function FeasibilityBadge({ level }: { level: '高' | '中' | '低' }) {
@@ -1160,37 +1155,81 @@ function EditableCell({
   );
 }
 
-function Step4({ hearingData }: { hearingData: HearingData }) {
-  const [growthRate, setGrowthRate] = useState(15);
+function Step4({ hearingData, importedLastYear, onApply }: { hearingData: HearingData; importedLastYear: NonNullable<ImportedLastYear>; onApply: (plan: { segments: MonthlyRow[]; cogs: MonthlyRow[]; labor: MonthlyRow[]; admin: MonthlyRow[]; otherIncome: MonthlyRow[]; otherExpense: MonthlyRow[]; headcount: MonthlyRow[] }) => Promise<void> }) {
+  const [growthRate, setGrowthRate] = useState(hearingData.targetGrowthPct);
   const [reflected, setReflected] = useState(false);
-  const [budget, setBudget] = useState<BudgetNumbers>(() => computeBudget(15));
+  const [applying, setApplying] = useState(false);
 
-  const handleGrowthChange = (v: number) => {
-    setGrowthRate(v);
-    setBudget(computeBudget(v));
+  const lyRevenue = importedLastYear.revenue.reduce((s, v) => s + v, 0);
+  const lyCogs = importedLastYear.cogs.reduce((s, v) => s + v, 0);
+  const lyLabor = importedLastYear.labor.reduce((s, v) => s + v, 0);
+  const lyAdmin = importedLastYear.admin.reduce((s, v) => s + v, 0);
+  const lySga = lyLabor + lyAdmin;
+  const lyGross = lyRevenue - lyCogs;
+  const lyOp = lyGross - lySga;
+  const lyGrossRate = lyRevenue > 0 ? Math.round((lyGross / lyRevenue) * 100) : 0;
+  const cogsRate = lyRevenue > 0 ? lyCogs / lyRevenue : 0;
+
+  const g = 1 + growthRate / 100;
+  const sgaGrowth = hearingData.planningHire ? 1 + (hearingData.hireCount * 0.12) : 1.03;
+
+  const budget = {
+    revenue: Math.round(lyRevenue * g),
+    cogs: Math.round(lyRevenue * g * cogsRate),
+    sga: Math.round(lySga * sgaGrowth),
   };
+  const [budgetOverride, setBudgetOverride] = useState<{ revenue: number; cogs: number; sga: number } | null>(null);
+  const effBudget = budgetOverride ?? budget;
 
-  const gross  = budget.revenue - budget.cogs;
-  const op     = gross - budget.sga;
-  const lyGrossRate = Math.round((LY_GROSS / LY_REVENUE) * 100);
-  const budgetGrossRate = Math.round((gross / budget.revenue) * 100);
-
-  const updateSegment = (i: number, v: number) => {
-    setBudget((prev) => {
-      const segments = prev.segments.map((s, idx) => idx === i ? { ...s, budget: v } : s);
-      return { ...prev, segments };
-    });
-  };
+  const gross = effBudget.revenue - effBudget.cogs;
+  const op = gross - effBudget.sga;
+  const budgetGrossRate = effBudget.revenue > 0 ? Math.round((gross / effBudget.revenue) * 100) : 0;
+  const tax = calcEffectiveTax(op, 0.34);
+  const netProfit = op - tax;
 
   const totalHeadcount = hearingData.currentHeadcount + (hearingData.planningHire ? hearingData.hireCount : 0);
-  const { level, revenuePerPersonMonthly } = computeFeasibility(budget.revenue, totalHeadcount);
+  const { level, grossPerPersonMonthly } = computeFeasibility(gross, totalHeadcount);
+
+  const monthlyBudgetRevenue = importedLastYear.revenue.map((v) => Math.round(v * g));
+  const monthlyBudgetCogs = importedLastYear.cogs.map((v) => Math.round(v * g));
+  const monthlyBudgetSga = importedLastYear.labor.map((v, i) => Math.round((v + importedLastYear.admin[i]) * sgaGrowth));
+
+  const cf = simulate13WeekCf({
+    currentCash: hearingData.currentCash,
+    arDays: hearingData.arDays,
+    apDays: hearingData.apDays,
+    loanMonthlyRepayment: hearingData.loanMonthlyRepayment,
+    taxRate: 0.34,
+    monthlyRevenue: monthlyBudgetRevenue,
+    monthlyCogs: monthlyBudgetCogs,
+    monthlySga: monthlyBudgetSga,
+  });
+  const minBalance = Math.min(...cf.map((w) => w.balance));
+
+  async function handleApply() {
+    setApplying(true);
+    const toMonthlyRow = (name: string, values: number[]): MonthlyRow => ({ id: crypto.randomUUID(), name, values: values.map((v) => Math.round(v / 10000)) });
+    const plan = {
+      segments: [toMonthlyRow('売上', monthlyBudgetRevenue)],
+      cogs: [toMonthlyRow('売上原価', monthlyBudgetCogs)],
+      labor: [toMonthlyRow('人件費', importedLastYear.labor.map((v) => Math.round(v * sgaGrowth)))],
+      admin: [toMonthlyRow('管理費', importedLastYear.admin.map((v) => Math.round(v * sgaGrowth)))],
+      otherIncome: [toMonthlyRow('営業外収益', importedLastYear.otherIncome)],
+      otherExpense: [toMonthlyRow('営業外費用', importedLastYear.otherExpense)],
+      headcount: [toMonthlyRow('正社員', Array(12).fill(totalHeadcount))],
+    };
+    await onApply(plan);
+    setReflected(true);
+    setApplying(false);
+    setTimeout(() => setReflected(false), 2000);
+  }
 
   return (
     <div className="space-y-6">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <h2 className="text-xl font-semibold text-gray-900">AIの予算提案</h2>
-          <p className="text-sm text-gray-500 mt-1">数値を直接クリックして編集できます</p>
+          <h2 className="text-xl font-semibold text-gray-900">AIの予算提案＋CF予測</h2>
+          <p className="text-sm text-gray-500 mt-1">成長率を動かすと即時反映。「反映する」で事業計画に保存</p>
         </div>
         <div className="flex-shrink-0 bg-blue-50 rounded-xl px-4 py-3 text-center min-w-[100px]">
           <div className="text-xs text-gray-500 mb-1">成長率</div>
@@ -1198,10 +1237,10 @@ function Step4({ hearingData }: { hearingData: HearingData }) {
             <input
               type="number"
               value={growthRate}
-              min={-20}
-              max={100}
-              onChange={(e) => handleGrowthChange(Number(e.target.value))}
-              className="w-12 text-right text-lg font-semibold text-blue-700 bg-transparent border-0 focus:outline-none focus:ring-0"
+              min={-50}
+              max={200}
+              onChange={(e) => { setGrowthRate(Number(e.target.value)); setBudgetOverride(null); }}
+              className="w-14 text-right text-lg font-semibold text-blue-700 bg-transparent border-0 focus:outline-none focus:ring-0"
             />
             <span className="text-lg font-semibold text-blue-700">%</span>
           </div>
@@ -1219,19 +1258,21 @@ function Step4({ hearingData }: { hearingData: HearingData }) {
           </thead>
           <tbody>
             {[
-              { label: '売上',   ly: LY_REVENUE, editable: true,  budgetVal: budget.revenue, key: 'revenue' as const },
-              { label: '原価',   ly: LY_COGS,    editable: true,  budgetVal: budget.cogs,    key: 'cogs' as const },
-              { label: '粗利',   ly: LY_GROSS,   editable: false, budgetVal: gross,           key: null },
-              { label: '粗利率', ly: lyGrossRate, editable: false, budgetVal: budgetGrossRate, key: null, isPct: true },
-              { label: '販管費', ly: LY_SGA,     editable: true,  budgetVal: budget.sga,     key: 'sga' as const },
-              { label: '営業利益', ly: LY_OP,    editable: false, budgetVal: op,              key: null },
-            ].map(({ label, ly, editable, budgetVal, key, isPct }) => {
-              const isOp = label === '営業利益';
+              { label: '売上',     ly: lyRevenue, editable: true,  budgetVal: effBudget.revenue, key: 'revenue' as const },
+              { label: '原価',     ly: lyCogs,    editable: true,  budgetVal: effBudget.cogs,    key: 'cogs' as const },
+              { label: '粗利',     ly: lyGross,   editable: false, budgetVal: gross,              key: null },
+              { label: '粗利率',   ly: lyGrossRate, editable: false, budgetVal: budgetGrossRate, key: null, isPct: true },
+              { label: '販管費',   ly: lySga,     editable: true,  budgetVal: effBudget.sga,     key: 'sga' as const },
+              { label: '営業利益', ly: lyOp,      editable: false, budgetVal: op,                 key: null },
+              { label: '法人税等(34%)', ly: Math.max(0, Math.round(lyOp * 0.34)), editable: false, budgetVal: tax, key: null },
+              { label: '税引後利益', ly: lyOp - Math.max(0, Math.round(lyOp * 0.34)), editable: false, budgetVal: netProfit, key: null, final: true },
+            ].map(({ label, ly, editable, budgetVal, key, isPct, final }) => {
+              const isOp = label === '営業利益' || final;
               return (
                 <tr key={label} className={`border-t border-gray-100 ${isOp ? 'bg-blue-50 font-semibold' : ''}`}>
                   <td className={`px-4 py-2.5 ${isOp ? 'text-blue-800 font-semibold' : 'text-gray-700 font-medium'}`}>{label}</td>
                   <td className="px-4 py-2.5 text-right text-gray-500 tabular-nums">
-                    {isPct ? `${ly}%` : fmtYen(ly as number)}
+                    {isPct ? `${ly}%` : `¥${Math.round(ly as number).toLocaleString()}`}
                   </td>
                   <td className="px-2 py-1.5 pr-2">
                     {isPct ? (
@@ -1239,11 +1280,11 @@ function Step4({ hearingData }: { hearingData: HearingData }) {
                     ) : editable && key ? (
                       <EditableCell
                         value={budgetVal as number}
-                        onChange={(v) => setBudget((prev) => ({ ...prev, [key]: v }))}
+                        onChange={(v) => setBudgetOverride({ ...(budgetOverride ?? budget), [key]: v })}
                       />
                     ) : (
                       <div className={`text-right px-2 py-1 text-sm font-semibold tabular-nums ${isOp ? 'text-blue-700' : 'text-gray-900'}`}>
-                        {fmtYen(budgetVal as number)}
+                        ¥{Math.round(budgetVal as number).toLocaleString()}
                       </div>
                     )}
                   </td>
@@ -1257,32 +1298,65 @@ function Step4({ hearingData }: { hearingData: HearingData }) {
       <div className="border border-gray-100 rounded-xl overflow-hidden">
         <div className="px-4 py-3 bg-gray-50 border-b border-gray-100">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-semibold text-gray-700">実現可能性チェック</span>
+            <span className="text-sm font-semibold text-gray-700">実現可能性チェック（粗利/人ベース）</span>
             <FeasibilityBadge level={level} />
           </div>
         </div>
         <div className="p-4 space-y-2">
           <p className="text-sm text-gray-700">
-            1人あたり月商 <span className="font-semibold tabular-nums">{revenuePerPersonMonthly.toLocaleString()}万円</span>（{totalHeadcount}名ベース）
-            {revenuePerPersonMonthly > 0 && (
-              <span className="text-gray-500 ml-1">
-                — 業界平均（約150万円）の
-                <span className="font-semibold ml-0.5">{(revenuePerPersonMonthly / 150).toFixed(1)}倍</span>
-              </span>
-            )}
+            1人あたり月次粗利 <span className="font-semibold tabular-nums">¥{grossPerPersonMonthly.toLocaleString()}万円</span>（{totalHeadcount}名ベース）
+            <span className="text-gray-500 ml-1">— 損益分岐目安 50万円／月・人</span>
           </p>
           {level === '低' && (
             <div className="bg-red-50 border border-red-100 rounded-lg px-3 py-2.5 text-sm text-red-700">
-              この計画は無理がある可能性があります。人員を{Math.ceil(budget.revenue / 12 / 300) - totalHeadcount}人増やすか、売上目標を{Math.round((1 - (totalHeadcount * 300 * 12) / budget.revenue) * 100)}%下げることを検討してください。
+              1人あたり粗利が120万円/月を超えており、無理があります。原価構造または人員を見直してください。
             </div>
           )}
           {level === '中' && (
-            <p className="text-sm text-gray-500">達成には高い営業効率が必要です。実行計画の精度を高めてください。</p>
+            <p className="text-sm text-gray-500">現実的な水準です。稼働率と単価をモニターしましょう。</p>
           )}
           {level === '高' && (
-            <p className="text-sm text-gray-500">現在の人員規模で現実的な目標水準です。</p>
+            <p className="text-sm text-gray-500">低めの水準です。単価アップや稼働率改善の余地があります。</p>
           )}
         </div>
+      </div>
+
+      <div className="border border-gray-100 rounded-xl overflow-hidden">
+        <div className="px-4 py-3 bg-gray-50 border-b border-gray-100 flex items-center justify-between">
+          <span className="text-sm font-semibold text-gray-700">13週キャッシュフロー予測</span>
+          <span className={`text-xs font-semibold ${minBalance < 0 ? 'text-red-600' : minBalance < hearingData.currentCash * 0.3 ? 'text-amber-600' : 'text-blue-600'}`}>
+            最低残高 ¥{minBalance.toLocaleString()}
+          </span>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="bg-gray-50 text-gray-500">
+                <th className="px-2 py-2 text-left">週</th>
+                <th className="px-2 py-2 text-right">入金</th>
+                <th className="px-2 py-2 text-right">支払</th>
+                <th className="px-2 py-2 text-right">残高</th>
+              </tr>
+            </thead>
+            <tbody>
+              {cf.map((w) => (
+                <tr key={w.weekIdx} className="border-t border-gray-100">
+                  <td className="px-2 py-1.5 text-gray-700 whitespace-nowrap">{w.label}</td>
+                  <td className="px-2 py-1.5 text-right tabular-nums text-blue-600">¥{w.inflow.toLocaleString()}</td>
+                  <td className="px-2 py-1.5 text-right tabular-nums text-red-600">¥{w.outflow.toLocaleString()}</td>
+                  <td className={`px-2 py-1.5 text-right tabular-nums font-semibold ${w.alert === 'danger' ? 'text-red-600' : w.alert === 'caution' ? 'text-amber-600' : 'text-gray-900'}`}>
+                    ¥{w.balance.toLocaleString()}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {minBalance < 0 && (
+          <div className="bg-red-50 border-t border-red-100 px-4 py-2.5 text-sm text-red-700">
+            ⚠ 13週以内に資金ショートの見込み。入金サイト短縮・借入・支払交渉を検討してください。
+          </div>
+        )}
       </div>
 
       <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
@@ -1291,51 +1365,21 @@ function Step4({ hearingData }: { hearingData: HearingData }) {
           <div>
             <div className="text-xs font-semibold text-amber-800 mb-1">AIコメント</div>
             <p className="text-sm text-amber-900 leading-relaxed">
-              昨年の成長率12%を踏まえ、{growthRate}%成長を想定。原価率は昨年並みの{Math.round(LY_COGS / LY_REVENUE * 100)}%を維持。販管費は人員増を見込み6%増。
+              昨年売上 ¥{lyRevenue.toLocaleString()} に対し {growthRate}%成長を想定。原価率は昨年並みの{Math.round(cogsRate * 100)}%維持。
+              販管費は{hearingData.planningHire ? `${hearingData.hireCount}名増員で` : ''}{Math.round((sgaGrowth - 1) * 100)}%増を見込み、
+              営業利益 ¥{op.toLocaleString()}、法人税 ¥{tax.toLocaleString()}、税引後 ¥{netProfit.toLocaleString()}。
             </p>
           </div>
         </div>
       </div>
 
-      <div className="border border-gray-100 rounded-xl overflow-hidden">
-        <div className="bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">セグメント別内訳</div>
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-t border-gray-100 text-xs text-gray-600">
-              <th className="text-left px-4 py-2 font-medium">セグメント</th>
-              <th className="text-right px-4 py-2 font-medium">昨年（万円）</th>
-              <th className="text-right px-4 py-2 font-medium pr-4">今年予算</th>
-            </tr>
-          </thead>
-          <tbody>
-            {LAST_YEAR_SEGMENTS.map((s, i) => (
-              <tr key={s.name} className="border-t border-gray-100">
-                <td className="px-4 py-2.5 text-gray-700 font-medium">{s.name}</td>
-                <td className="px-4 py-2.5 text-right text-gray-500 tabular-nums">{s.amount.toLocaleString()}</td>
-                <td className="px-2 py-1.5 pr-2">
-                  <EditableCell
-                    value={budget.segments[i].budget}
-                    onChange={(v) => updateSegment(i, v)}
-                  />
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-
       <div className="space-y-3 pt-2">
         <button
-          onClick={() => { setReflected(true); setTimeout(() => setReflected(false), 2000); }}
-          className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 active:scale-[0.98] transition-all"
+          onClick={handleApply}
+          disabled={applying}
+          className="w-full py-3 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 active:scale-[0.98] transition-all"
         >
-          {reflected ? '✓ 反映しました' : '事業計画に反映する'}
-        </button>
-        <button
-          onClick={() => setBudget(computeBudget(growthRate))}
-          className="w-full py-3 bg-white text-gray-700 font-semibold rounded-xl border border-gray-200 hover:bg-gray-50 active:scale-[0.98] transition-all"
-        >
-          もう一度AIに生成させる
+          {applying ? '保存中...' : reflected ? '✓ 反映しました' : '事業計画に反映する'}
         </button>
       </div>
     </div>
@@ -1348,6 +1392,16 @@ export default function BudgetPage() {
   const [activeTab, setActiveTab] = useState<ActiveTab>('mf');
   const [step, setStep] = useState<Step>(0);
   const [hearingData, setHearingData] = useState<HearingData>(DEFAULT_HEARING);
+  const [importedLastYear, setImportedLastYear] = useState<NonNullable<ImportedLastYear> | null>(null);
+
+  async function handleWizardApply(plan: SavedPlan) {
+    const fiscalYear = new Date().getFullYear();
+    const ok = await savePlanToApi(plan, fiscalYear);
+    if (ok) {
+      try { localStorage.setItem('budget_plan', JSON.stringify(plan)); } catch {}
+      setActiveTab('plan');
+    }
+  }
 
   return (
     <div className="min-h-full bg-gray-50 py-8 px-4">
@@ -1388,19 +1442,22 @@ export default function BudgetPage() {
           <>
             <StepIndicator current={step} />
             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 max-w-2xl mx-auto">
-              {step === 0 && <Step1 onNext={() => setStep(1)} />}
-              {step === 1 && <Step2 onNext={() => setStep(2)} />}
-              {step === 2 && (
+              {step === 0 && <Step1 onNext={() => setStep(1)} onImport={setImportedLastYear} />}
+              {step === 1 && (
                 <StepHearing
                   data={hearingData}
                   onChange={setHearingData}
-                  onNext={() => setStep(3)}
+                  onNext={() => setStep(2)}
                 />
               )}
-              {step === 3 && <Step3 onDone={() => setStep(4)} hearingData={hearingData} />}
-              {step === 4 && <Step4 hearingData={hearingData} />}
+              {step === 2 && importedLastYear && <Step4 hearingData={hearingData} importedLastYear={importedLastYear} onApply={handleWizardApply} />}
+              {step === 2 && !importedLastYear && (
+                <div className="text-center text-sm text-gray-500 py-10">
+                  昨年実績が必要です。<button onClick={() => setStep(0)} className="text-blue-600 font-semibold">取込に戻る</button>
+                </div>
+              )}
             </div>
-            {step > 0 && step < 4 && (
+            {step > 0 && step < 3 && (
               <div className="max-w-2xl mx-auto">
                 <button
                   onClick={() => setStep((s) => (s - 1) as Step)}
