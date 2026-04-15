@@ -141,7 +141,17 @@ export default function MonthlyDetailPage() {
   const cogs = prodCost;
   const grossProfit = prodCost > 0 ? totalRevenue - cogs : 0;
 
-  const currentMonthIdx = new Date().getMonth() >= 4 ? new Date().getMonth() - 4 : new Date().getMonth() + 8;
+  const currentMonthIdx = (() => {
+    const start = (() => {
+      if (typeof window === 'undefined') return 4;
+      try {
+        const raw = localStorage.getItem('fiscal_start_month');
+        const n = raw ? Number(raw) : 4;
+        return Number.isInteger(n) && n >= 1 && n <= 12 ? n : 4;
+      } catch { return 4; }
+    })();
+    return (new Date().getMonth() + 1 - start + 12) % 12;
+  })();
   const budgetPlan = (() => {
     if (typeof window === 'undefined') return null;
     try {

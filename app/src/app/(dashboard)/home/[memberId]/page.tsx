@@ -8,6 +8,7 @@ import RecentContactsStrip from '@/components/personal/RecentContactsStrip';
 import { MEMBER_KPIS, getDaysSinceJoined } from '@/lib/data/aggregation';
 import { loadProductionCards, fetchProductionCards } from '@/lib/productionCards';
 import { loadAllDeals, fetchDeals, matchesAssignee } from '@/lib/dealsStore';
+import { syncBudgetPlan } from '@/lib/budget';
 
 const MEMBERS: Record<string, { firstName: string; role: string; accent: string; joinedAt: string }> = {};
 
@@ -505,7 +506,7 @@ export default function MemberDashboardPage() {
     if (typeof window === 'undefined') return [];
     try { return loadAllDeals(); } catch { return []; }
   });
-  useEffect(() => { fetchDeals().then((fresh) => setLiveDeals(fresh)); }, []);
+  useEffect(() => { fetchDeals().then((fresh) => setLiveDeals(fresh)); syncBudgetPlan(); }, []);
   const [liveCards, setLiveCards] = useState(() => {
     if (typeof window === 'undefined') return [];
     try { return loadProductionCards(); } catch { return []; }
@@ -536,8 +537,15 @@ export default function MemberDashboardPage() {
     .reduce((s, c) => s + c.tasks.reduce((a, t) => a + num(t.estimatedCost), 0), 0);
 
   const currentMonthIdx = (() => {
-    const m = new Date().getMonth();
-    return m >= 4 ? m - 4 : m + 8;
+    const start = (() => {
+      if (typeof window === 'undefined') return 4;
+      try {
+        const raw = localStorage.getItem('fiscal_start_month');
+        const n = raw ? Number(raw) : 4;
+        return Number.isInteger(n) && n >= 1 && n <= 12 ? n : 4;
+      } catch { return 4; }
+    })();
+    return (new Date().getMonth() + 1 - start + 12) % 12;
   })();
   const budgetPlan = (() => {
     if (typeof window === 'undefined') return null;

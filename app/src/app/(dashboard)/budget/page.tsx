@@ -70,10 +70,10 @@ function totalSum(rows: MonthlyRow[]): number {
 const ZEROS12 = [0,0,0,0,0,0,0,0,0,0,0,0];
 
 const INITIAL_SEGMENTS: MonthlyRow[] = [
+  makeRow('制作・デザイン',   [...ZEROS12]),
   makeRow('システム開発',     [...ZEROS12]),
   makeRow('保守・運用',       [...ZEROS12]),
   makeRow('コンサルティング', [...ZEROS12]),
-  makeRow('AI導入支援',       [...ZEROS12]),
   makeRow('その他',           [...ZEROS12]),
 ];
 
@@ -336,32 +336,55 @@ function PLSummary({
   );
 }
 
-function loadSavedPlan(): { segments: MonthlyRow[]; cogs: MonthlyRow[]; labor: MonthlyRow[]; admin: MonthlyRow[]; otherIncome: MonthlyRow[]; otherExpense: MonthlyRow[]; headcount: MonthlyRow[] } | null {
-  if (typeof window === 'undefined') return null;
+type SavedPlan = { segments: MonthlyRow[]; cogs: MonthlyRow[]; labor: MonthlyRow[]; admin: MonthlyRow[]; otherIncome: MonthlyRow[]; otherExpense: MonthlyRow[]; headcount: MonthlyRow[] };
+
+async function fetchSavedPlan(): Promise<SavedPlan | null> {
   try {
-    const raw = localStorage.getItem('budget_plan');
-    if (raw) return JSON.parse(raw);
-  } catch {}
-  return null;
+    const r = await fetch('/api/budget');
+    if (!r.ok) return null;
+    const data = await r.json();
+    return (data.plan as SavedPlan | null) ?? null;
+  } catch { return null; }
+}
+
+async function savePlanToApi(plan: SavedPlan, fiscalYear: number): Promise<boolean> {
+  try {
+    const r = await fetch('/api/budget', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ plan, fiscalYear }),
+    });
+    return r.ok;
+  } catch { return false; }
 }
 
 function BudgetPlanTab() {
-  const savedPlan = loadSavedPlan();
-  const [segments, setSegments] = useState<MonthlyRow[]>(savedPlan?.segments ?? INITIAL_SEGMENTS);
-  const [cogs, setCogs] = useState<MonthlyRow[]>(savedPlan?.cogs ?? INITIAL_COGS);
-  const [labor, setLabor] = useState<MonthlyRow[]>(savedPlan?.labor ?? INITIAL_LABOR);
-  const [admin, setAdmin] = useState<MonthlyRow[]>(savedPlan?.admin ?? INITIAL_ADMIN);
-  const [otherIncome, setOtherIncome] = useState<MonthlyRow[]>(savedPlan?.otherIncome ?? INITIAL_OTHER_INCOME);
-  const [otherExpense, setOtherExpense] = useState<MonthlyRow[]>(savedPlan?.otherExpense ?? INITIAL_OTHER_EXPENSE);
-  const [headcount, setHeadcount] = useState<MonthlyRow[]>(savedPlan?.headcount ?? INITIAL_HEADCOUNT);
+  const [segments, setSegments] = useState<MonthlyRow[]>(INITIAL_SEGMENTS);
+  const [cogs, setCogs] = useState<MonthlyRow[]>(INITIAL_COGS);
+  const [labor, setLabor] = useState<MonthlyRow[]>(INITIAL_LABOR);
+  const [admin, setAdmin] = useState<MonthlyRow[]>(INITIAL_ADMIN);
+  const [otherIncome, setOtherIncome] = useState<MonthlyRow[]>(INITIAL_OTHER_INCOME);
+  const [otherExpense, setOtherExpense] = useState<MonthlyRow[]>(INITIAL_OTHER_EXPENSE);
+  const [headcount, setHeadcount] = useState<MonthlyRow[]>(INITIAL_HEADCOUNT);
   const [saved, setSaved] = useState(false);
-  const [pdfMsg, setPdfMsg] = useState(false);
+  const [loaded, setLoaded] = useState(false);
+  const [saveError, setSaveError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!savedPlan) {
-      const data = { segments: INITIAL_SEGMENTS, cogs: INITIAL_COGS, labor: INITIAL_LABOR, admin: INITIAL_ADMIN, otherIncome: INITIAL_OTHER_INCOME, otherExpense: INITIAL_OTHER_EXPENSE, headcount: INITIAL_HEADCOUNT };
-      try { localStorage.setItem('budget_plan', JSON.stringify(data)); } catch {}
-    }
+    (async () => {
+      const plan = await fetchSavedPlan();
+      if (plan) {
+        if (plan.segments) setSegments(plan.segments);
+        if (plan.cogs) setCogs(plan.cogs);
+        if (plan.labor) setLabor(plan.labor);
+        if (plan.admin) setAdmin(plan.admin);
+        if (plan.otherIncome) setOtherIncome(plan.otherIncome);
+        if (plan.otherExpense) setOtherExpense(plan.otherExpense);
+        if (plan.headcount) setHeadcount(plan.headcount);
+        try { localStorage.setItem('budget_plan', JSON.stringify(plan)); } catch {}
+      }
+      setLoaded(true);
+    })();
   }, []);
 
   function updateRow(
@@ -415,13 +438,18 @@ function BudgetPlanTab() {
   const bep         = marginalRate === 0 ? 0 : Math.round(fixedCost / marginalRate);
   const safetyMargin = totalRevenue === 0 ? 0 : Math.round(((totalRevenue - bep) / totalRevenue) * 100);
 
-  function handleSave() {
-    try {
-      const data = { segments, cogs, labor, admin, otherIncome, otherExpense, headcount };
-      localStorage.setItem('budget_plan', JSON.stringify(data));
+  async function handleSave() {
+    setSaveError(null);
+    const data: SavedPlan = { segments, cogs, labor, admin, otherIncome, otherExpense, headcount };
+    const fiscalYear = new Date().getFullYear();
+    const ok = await savePlanToApi(data, fiscalYear);
+    if (ok) {
+      try { localStorage.setItem('budget_plan', JSON.stringify(data)); } catch {}
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
-    } catch {}
+    } else {
+      setSaveError('保存に失敗しました（権限がないか、ネットワークエラー）');
+    }
   }
 
   return (
@@ -434,16 +462,12 @@ function BudgetPlanTab() {
       />
 
       <div className="flex items-center gap-3 justify-end">
-        <button
-          onClick={() => { setPdfMsg(true); setTimeout(() => setPdfMsg(false), 2000); }}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors"
-        >
-          <span>🖨</span> PDF出力
-        </button>
-        {pdfMsg && <span className="text-xs text-gray-500">PDF出力はモックです</span>}
+        {saveError && <span className="text-xs text-red-600 font-semibold">{saveError}</span>}
+        {!loaded && <span className="text-xs text-gray-500">読込中...</span>}
         <button
           onClick={handleSave}
-          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+          disabled={!loaded}
+          className="flex items-center gap-1.5 px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50"
         >
           {saved ? <span>✓ 保存済み</span> : <><span>💾</span> 保存</>}
         </button>

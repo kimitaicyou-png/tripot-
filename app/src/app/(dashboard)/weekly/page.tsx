@@ -7,6 +7,7 @@ import { MEMBERS as ALL_MEMBERS_RAW } from '@/lib/currentMember';
 import { VENDORS } from '@/lib/data/vendors';
 import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
 import { formatYen } from '@/lib/format';
+import { syncBudgetPlan } from '@/lib/budget';
 import { STAGE_LABEL, STAGE_BADGE } from '@/lib/deals/constants';
 import type { Stage } from '@/lib/deals/types';
 import {
@@ -207,7 +208,7 @@ function WeeklyDealListSection({ deals }: { deals: ReturnType<typeof loadAllDeal
 function SalesNumbersView() {
   const liveW = useLiveWeeklyData();
   const [deals, setDealsS] = useState(() => loadAllDeals());
-  useEffect(() => { fetchDeals().then((fresh) => setDealsS(fresh)); }, []);
+  useEffect(() => { fetchDeals().then((fresh) => setDealsS(fresh)); syncBudgetPlan(); }, []);
   const [cards, setCards] = useState(() => { try { return loadProductionCards(); } catch { return []; } });
   useEffect(() => { fetchProductionCards().then(setCards); }, []);
 
@@ -219,8 +220,15 @@ function SalesNumbersView() {
   const kpi = calcDealKpi(deals, { dealCostById });
 
   const currentMonthIdx = (() => {
-    const m = new Date().getMonth();
-    return m >= 4 ? m - 4 : m + 8;
+    const start = (() => {
+      if (typeof window === 'undefined') return 4;
+      try {
+        const raw = localStorage.getItem('fiscal_start_month');
+        const n = raw ? Number(raw) : 4;
+        return Number.isInteger(n) && n >= 1 && n <= 12 ? n : 4;
+      } catch { return 4; }
+    })();
+    return (new Date().getMonth() + 1 - start + 12) % 12;
   })();
   const budgetPlan = (() => {
     if (typeof window === 'undefined') return null;

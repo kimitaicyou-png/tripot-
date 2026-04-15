@@ -20,6 +20,7 @@ import {
 import { Card } from '@/components/ui/Card';
 import { SectionLabel } from '@/components/ui/SectionLabel';
 import { formatYen } from '@/lib/format';
+import { syncBudgetPlan } from '@/lib/budget';
 import { PaymentReconciliationDemo } from '@/components/finance/PaymentReconciliation';
 import MonthlyReportGenerator from '@/components/monthly/MonthlyReportGenerator';
 import { PaymentScheduleDemo } from '@/components/finance/PaymentSchedule';
@@ -49,7 +50,7 @@ function filterDealsByMonth(deals: ReturnType<typeof loadAllDeals>, selectedMont
 function useLiveFinancials(selectedMonth?: string) {
   const [allDeals, setAllDeals] = useState<ReturnType<typeof loadAllDeals>>([]);
   const [prodCards, setProdCards] = useState<ProductionCard[]>([]);
-  useEffect(() => { setAllDeals(loadAllDeals()); setProdCards(loadProductionCards()); fetchDeals().then((fresh) => setAllDeals(fresh)); fetchProductionCards().then(setProdCards); }, []);
+  useEffect(() => { setAllDeals(loadAllDeals()); setProdCards(loadProductionCards()); fetchDeals().then((fresh) => setAllDeals(fresh)); fetchProductionCards().then(setProdCards); syncBudgetPlan(); }, []);
 
   const deals = selectedMonth ? filterDealsByMonth(allDeals, selectedMonth) : allDeals;
 
@@ -65,12 +66,19 @@ function useLiveFinancials(selectedMonth?: string) {
   const shotRevenue = assignedOrdered.filter((d) => d.revenueType === 'shot').reduce((s, d) => s + d.amount, 0);
   const runningRevenue = assignedOrdered.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
   const currentMonthIdx = (() => {
+    const start = (() => {
+      if (typeof window === 'undefined') return 4;
+      try {
+        const raw = localStorage.getItem('fiscal_start_month');
+        const n = raw ? Number(raw) : 4;
+        return Number.isInteger(n) && n >= 1 && n <= 12 ? n : 4;
+      } catch { return 4; }
+    })();
     if (selectedMonth) {
       const { month } = parseSelectedMonth(selectedMonth);
-      const m = month - 1;
-      return m >= 4 ? m - 4 : m + 8;
+      return (month - start + 12) % 12;
     }
-    return new Date().getMonth() >= 4 ? new Date().getMonth() - 4 : new Date().getMonth() + 8;
+    return (new Date().getMonth() + 1 - start + 12) % 12;
   })();
   const budgetPlan = (() => {
     if (typeof window === 'undefined') return null;
