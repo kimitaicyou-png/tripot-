@@ -523,16 +523,17 @@ export default function MemberDashboardPage() {
       : [['toki', '土岐 公人'], ['ono', '小野 隆士']]
   );
   const myName = memberNames[memberId] ?? '';
+  const num = (v: unknown): number => { const n = typeof v === 'number' ? v : Number(v); return Number.isFinite(n) ? n : 0; };
   const myDeals = myName ? liveDeals.filter((d: { assignee: string }) => matchesAssignee(d.assignee, myName)) : [];
   const myOrdered = myDeals.filter((d: { stage: string }) => orderedStages.includes(d.stage));
   const myRevenue = myOrdered.reduce((s: number, d: { amount: number; revenueType?: string; monthlyAmount?: number }) => {
-    const running = (d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount ? d.monthlyAmount : 0;
-    return s + d.amount + running;
+    const running = (d.revenueType === 'running' || d.revenueType === 'both') ? num(d.monthlyAmount) : 0;
+    return s + num(d.amount) + running;
   }, 0);
   const myDealIds = new Set(myOrdered.map((d: { id: string }) => d.id));
   const myProdCost = liveCards
     .filter((c) => myDealIds.has(c.dealId))
-    .reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
+    .reduce((s, c) => s + c.tasks.reduce((a, t) => a + num(t.estimatedCost), 0), 0);
 
   const currentMonthIdx = (() => {
     const m = new Date().getMonth();
@@ -571,9 +572,9 @@ export default function MemberDashboardPage() {
   };
 
   const pipeline = [
-    { key: 'lead', label: 'アポ', count: myDeals.filter((d: { stage: string }) => d.stage === 'lead').length, amount: myDeals.filter((d: { stage: string }) => d.stage === 'lead').reduce((s: number, d: { amount: number }) => s + Math.round(d.amount / 10000), 0) },
-    { key: 'meeting', label: '商談', count: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').length, amount: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').reduce((s: number, d: { amount: number }) => s + Math.round(d.amount / 10000), 0) },
-    { key: 'estimate', label: '見積', count: myDeals.filter((d: { stage: string }) => ['proposal', 'estimate_sent', 'negotiation'].includes(d.stage)).length, amount: myDeals.filter((d: { stage: string; amount: number }) => ['proposal', 'estimate_sent', 'negotiation'].includes(d.stage)).reduce((s: number, d: { amount: number }) => s + Math.round(d.amount / 10000), 0) },
+    { key: 'lead', label: 'アポ', count: myDeals.filter((d: { stage: string }) => d.stage === 'lead').length, amount: myDeals.filter((d: { stage: string }) => d.stage === 'lead').reduce((s: number, d: { amount: number }) => s + Math.round(num(d.amount) / 10000), 0) },
+    { key: 'meeting', label: '商談', count: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').length, amount: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').reduce((s: number, d: { amount: number }) => s + Math.round(num(d.amount) / 10000), 0) },
+    { key: 'estimate', label: '見積', count: myDeals.filter((d: { stage: string }) => ['proposal', 'estimate_sent', 'negotiation'].includes(d.stage)).length, amount: myDeals.filter((d: { stage: string; amount: number }) => ['proposal', 'estimate_sent', 'negotiation'].includes(d.stage)).reduce((s: number, d: { amount: number }) => s + Math.round(num(d.amount) / 10000), 0) },
     { key: 'ordered', label: '受注', count: myOrdered.length, amount: Math.round(myRevenue / 10000) },
   ];
 
@@ -706,10 +707,10 @@ export default function MemberDashboardPage() {
     const d = liveDeals.filter((x: { assignee: string; stage: string }) => matchesAssignee(x.assignee, name) && orderedStages.includes(x.stage));
     const m = MEMBERS[id as keyof typeof MEMBERS];
     const memberDealIds = new Set(d.map((x: { id: string }) => x.id));
-    const memberRevenue = d.reduce((s: number, x: { amount: number }) => s + x.amount, 0);
+    const memberRevenue = d.reduce((s: number, x: { amount: number }) => s + num(x.amount), 0);
     const memberProdCost = liveCards
       .filter((c) => memberDealIds.has(c.dealId))
-      .reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
+      .reduce((s, c) => s + c.tasks.reduce((a, t) => a + num(t.estimatedCost), 0), 0);
     const memberGross = memberProdCost > 0 ? memberRevenue - memberProdCost : 0;
     return { id, name, company: 'トライポット', revenue: Math.round(memberRevenue / 10000), grossProfit: Math.round(memberGross / 10000), joinedAt: m?.joinedAt ?? '' };
   }).sort((a, b) => b.revenue - a.revenue);

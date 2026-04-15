@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
+function num(v: unknown): number {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
+
 function rowToDeal(r: Record<string, unknown>) {
   return {
     id: r.id,
@@ -8,15 +13,15 @@ function rowToDeal(r: Record<string, unknown>) {
     dealName: r.deal_name,
     industry: r.industry,
     stage: r.stage,
-    amount: r.amount,
-    probability: r.probability,
+    amount: num(r.amount),
+    probability: num(r.probability),
     assignee: r.assignee,
     lastDate: r.last_date,
     memo: r.memo,
     revenueType: r.revenue_type,
-    monthlyAmount: r.monthly_amount,
+    monthlyAmount: num(r.monthly_amount),
     runningStartDate: r.running_start_date,
-    progress: r.progress,
+    progress: num(r.progress),
     invoiceDate: r.invoice_date,
     paymentDue: r.payment_due,
     paidDate: r.paid_date,
