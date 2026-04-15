@@ -38,7 +38,7 @@ export function ProcessTab({ deal, onUpdate, onAppendHistory }: {
   const getInternalMemberName = (id: string) => MEMBERS.find((m) => m.id === id)?.name ?? id;
   const getExternalPartnerLabel = (id: string) => { const p = partners.find((x) => x.id === id); return p ? `${p.companyName} / ${p.contactName}` : id; };
 
-  const mockReqDoc = `# 要件定義書: ${deal.dealName}\n\n## 1. プロジェクト概要\n- クライアント: ${deal.clientName}\n- 案件名: ${deal.dealName}\n- 予算: ¥${deal.amount > 0 ? deal.amount.toLocaleString() : deal.monthlyAmount ? deal.monthlyAmount.toLocaleString() + '/月' : '別途協議'}\n- 業種: ${deal.industry}\n\n## 2. 背景・課題\n- 業務効率化・デジタル化の推進が急務\n- 現行システムの老朽化・保守コスト増大\n\n## 3. 機能要件\n### 3.1 ユーザー管理\n- ログイン/ログアウト / ロール管理 / プロフィール編集\n\n### 3.2 コア機能\n- ダッシュボード（KPI表示）/ データ入力 / レポート生成 / 通知\n\n## 4. 非機能要件\n- レスポンス3秒以内 / 稼働率99%以上 / SSL/TLS暗号化\n\n## 5. 技術スタック\n- フロントエンド: Next.js + TypeScript\n- バックエンド: Supabase / インフラ: Vercel`;
+  const emptyReqDoc = `# 要件定義書: ${deal.dealName}\n\n- クライアント: ${deal.clientName}\n- 案件名: ${deal.dealName}\n- 業種: ${deal.industry}\n\n（ここに要件を記載してください。Claude API 連携エラー時のフォールバックです。）`;
 
   const wbsTemplates: Record<string, string[]> = {
     'IT': ['トップページデザイン', '下層ページデザイン', 'HTMLコーディング', 'バックエンド実装', 'テスト', 'ディレクション', 'SEO設定', 'リリース対応'],
@@ -46,13 +46,27 @@ export function ProcessTab({ deal, onUpdate, onAppendHistory }: {
     '医療': ['要件ヒアリング', 'セキュリティ設計', '基本設計', '実装（認証・RBAC）', '実装（業務機能）', 'バリデーションテスト', '受入テスト', 'ドキュメント作成'],
   };
 
-  const handleGenerateReq = () => {
+  const handleGenerateReq = async () => {
     setReqGenerating(true);
-    setTimeout(() => {
-      onUpdate({ ...deal, process: { ...proc, requirementsGenerated: true, requirementsDoc: mockReqDoc } });
+    try {
+      const res = await fetch('/api/deals/ai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'generate-requirement', deal, context: '' }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const doc = typeof data.requirement === 'string' && data.requirement.trim() ? data.requirement : emptyReqDoc;
+        onUpdate({ ...deal, process: { ...proc, requirementsGenerated: true, requirementsDoc: doc } });
+      } else {
+        onUpdate({ ...deal, process: { ...proc, requirementsGenerated: true, requirementsDoc: emptyReqDoc } });
+      }
+    } catch {
+      onUpdate({ ...deal, process: { ...proc, requirementsGenerated: true, requirementsDoc: emptyReqDoc } });
+    } finally {
       setReqGenerating(false);
       setReqOpen(true);
-    }, 1500);
+    }
   };
 
   const handleGenerateWbs = () => {
@@ -64,7 +78,7 @@ export function ProcessTab({ deal, onUpdate, onAppendHistory }: {
       const newTasks: ProcessTask[] = titles.map((title, i) => ({
         id: `ptask_${Date.now()}_${i}`, title, dueDate: addDays((i + 1) * 7), assigneeType: 'unassigned' as const, hours: 8,
       }));
-      onUpdate({ ...deal, process: { ...proc, requirementsGenerated: true, requirementsDoc: proc.requirementsDoc ?? mockReqDoc, wbsGenerated: true, tasks: newTasks, committedToProduction: proc.committedToProduction, committedAt: proc.committedAt } });
+      onUpdate({ ...deal, process: { ...proc, requirementsGenerated: true, requirementsDoc: proc.requirementsDoc ?? emptyReqDoc, wbsGenerated: true, tasks: newTasks, committedToProduction: proc.committedToProduction, committedAt: proc.committedAt } });
       setWbsGenerating(false);
     }, 1500);
   };

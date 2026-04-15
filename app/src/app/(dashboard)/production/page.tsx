@@ -203,6 +203,8 @@ export default function ProductionDashboardPage() {
     if (c.risk === 'high') alerts.push({ level: 'red', msg: `【リスク高】${c.dealName}` });
     else if (c.risk === 'medium') alerts.push({ level: 'amber', msg: `【リスク中】${c.dealName}` });
     if ((c.tasks ?? []).length === 0) alerts.push({ level: 'amber', msg: `【未着手】${c.dealName} — タスク未生成` });
+    const totalTaskCost = (c.tasks ?? []).reduce((s, t) => s + (t.estimatedCost ?? 0), 0);
+    if ((c.tasks ?? []).length > 0 && totalTaskCost === 0) alerts.push({ level: 'amber', msg: `【原価未登録】${c.dealName} — タスクに原価を入れると粗利が計算されます` });
   });
 
   return (

@@ -13,34 +13,7 @@ type ProposalVersion = {
   note?: string;
 };
 
-const MOCK_VERSIONS: ProposalVersion[] = [
-  {
-    id: 'pv1',
-    version: 1,
-    title: 'SaaSプラットフォーム開発 提案書 v1',
-    sentToClient: false,
-    createdAt: '2026-03-20',
-    note: '初稿。技術スタック3案を提示。',
-  },
-  {
-    id: 'pv2',
-    version: 2,
-    title: 'SaaSプラットフォーム開発 提案書 v2',
-    sentToClient: true,
-    sentDate: '2026-03-28',
-    createdAt: '2026-03-27',
-    note: '先方フィードバック反映。コスト削減案を追加。セキュリティ要件を強化。',
-  },
-  {
-    id: 'pv3',
-    version: 3,
-    title: 'SaaSプラットフォーム開発 提案書 v3',
-    sentToClient: true,
-    sentDate: '2026-04-04',
-    createdAt: '2026-04-03',
-    note: 'CTO指摘事項を修正。インフラ構成を詳細化。最終版。',
-  },
-];
+const MOCK_VERSIONS: ProposalVersion[] = [];
 
 function AddVersionModal({ nextVersion, onClose }: { nextVersion: number; onClose: () => void }) {
   return (

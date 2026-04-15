@@ -1412,6 +1412,20 @@ export default function MonthlyPage() {
 
   return (
     <div className="max-w-7xl mx-auto space-y-4 pb-8">
+      {headerLive.budgetAlerts.length > 0 && (
+        <div className="space-y-2">
+          {headerLive.budgetAlerts.map((a, i) => (
+            <div key={i} className={`rounded-xl px-4 py-3 flex items-center gap-3 border ${a.level === 'danger' ? 'bg-red-50 border-red-200 text-red-700' : 'bg-amber-50 border-amber-200 text-amber-700'}`}>
+              <span className="text-lg">{a.level === 'danger' ? '🚨' : '⚠️'}</span>
+              <div className="flex-1 text-sm">
+                <span className="font-semibold">{a.label}</span>
+                <span className="ml-2">予算 ¥{Math.round(a.budget / 10000).toLocaleString()}万 / 実績 ¥{Math.round(a.actual / 10000).toLocaleString()}万</span>
+                <span className={`ml-2 font-semibold ${a.diffPct < 0 ? 'text-red-700' : 'text-amber-700'}`}>（{a.diffPct > 0 ? '+' : ''}{a.diffPct}%）</span>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
       <div className="bg-white rounded-2xl shadow-sm p-6">
         <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4">
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 flex-1">
