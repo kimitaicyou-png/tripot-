@@ -523,20 +523,47 @@ export default function MemberDashboardPage() {
       : [['toki', '土岐 公人'], ['ono', '小野 隆士']]
   );
   const myName = memberNames[memberId] ?? '';
-  const myDeals = myName ? liveDeals.filter((d: { assignee: string }) => d.assignee === myName || !d.assignee) : liveDeals;
+  const myDeals = myName ? liveDeals.filter((d: { assignee: string }) => d.assignee === myName) : [];
   const myOrdered = myDeals.filter((d: { stage: string }) => orderedStages.includes(d.stage));
-  const myRevenue = myOrdered.reduce((s: number, d: { amount: number }) => s + d.amount, 0);
+  const myRevenue = myOrdered.reduce((s: number, d: { amount: number; revenueType?: string; monthlyAmount?: number }) => {
+    const running = (d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount ? d.monthlyAmount : 0;
+    return s + d.amount + running;
+  }, 0);
   const myDealIds = new Set(myOrdered.map((d: { id: string }) => d.id));
   const myProdCost = liveCards
     .filter((c) => myDealIds.has(c.dealId))
     .reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
-  const myGrossProfit = myProdCost > 0 ? myRevenue - myProdCost : myRevenue - Math.round(myRevenue * 0.54);
+
+  const currentMonthIdx = (() => {
+    const m = new Date().getMonth();
+    return m >= 4 ? m - 4 : m + 8;
+  })();
+  const budgetPlan = (() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('budget_plan');
+      return raw ? JSON.parse(raw) as {
+        segments: Array<{ values: number[] }>;
+        cogs: Array<{ values: number[] }>;
+      } : null;
+    } catch { return null; }
+  })();
+  const totalBudgetRevenue = budgetPlan ? budgetPlan.segments.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000 : 0;
+  const totalBudgetCogs = budgetPlan ? budgetPlan.cogs.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000 : 0;
+  const companyCogsRate = totalBudgetRevenue > 0 ? totalBudgetCogs / totalBudgetRevenue : null;
+  const myGrossProfit = myProdCost > 0
+    ? myRevenue - myProdCost
+    : companyCogsRate !== null ? myRevenue - Math.round(myRevenue * companyCogsRate) : myRevenue;
+
+  const memberCount = Math.max(apiMembers.length, 1);
+  const myRevenueTarget = Math.round(totalBudgetRevenue / memberCount);
+  const myGrossTarget = Math.round((totalBudgetRevenue - totalBudgetCogs) / memberCount);
 
   const kpi = {
     revenue: myRevenue,
-    revenueTarget: 0,
+    revenueTarget: myRevenueTarget,
     grossProfit: myGrossProfit,
-    grossProfitTarget: 0,
+    grossProfitTarget: myGrossTarget,
     meetings: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').length,
     meetingsTarget: 0,
     orders: myOrdered.length,

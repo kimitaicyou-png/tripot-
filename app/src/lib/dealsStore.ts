@@ -92,6 +92,9 @@ export type DealKpiSummary = {
   pipelineCount: number;
   pipelineWeighted: number;
   memberStats: MemberDealStat[];
+  unassignedRevenue: number;
+  unassignedGrossProfit: number;
+  unassignedOrderedCount: number;
 };
 
 export type MemberDealStat = {
@@ -113,27 +116,35 @@ type DealCostLookup = {
 };
 
 export function calcDealKpi(deals: Deal[], costLookup?: DealCostLookup): DealKpiSummary {
-  const ordered = deals.filter((d) => ORDERED_STAGES.includes(d.stage));
-  const pipeline = deals.filter((d) => SALES_STAGES.includes(d.stage));
-  const totalRevenue = ordered.reduce((s, d) => s + d.amount, 0) + ordered.filter((d) => (d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
-  const fallbackCogsRate = costLookup?.fallbackCogsRate ?? 0.54;
-  const grossOf = (deal: Deal, rev: number) => {
-    const cost = costLookup?.dealCostById?.get(deal.id);
+  const hasAssignee = (d: Deal) => Boolean(d.assignee && d.assignee.trim());
+  const revenueOf = (d: Deal) => d.amount + ((d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount ? d.monthlyAmount : 0);
+  const grossOf = (d: Deal, rev: number) => {
+    const cost = costLookup?.dealCostById?.get(d.id);
     if (cost !== undefined && cost > 0) return rev - cost;
+    const fallbackCogsRate = costLookup?.fallbackCogsRate;
+    if (fallbackCogsRate === undefined || fallbackCogsRate === null) return 0;
     return rev - Math.round(rev * fallbackCogsRate);
   };
-  const totalGrossProfit = ordered.reduce((s, d) => {
-    const rev = d.amount + ((d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount ? d.monthlyAmount : 0);
-    return s + grossOf(d, rev);
-  }, 0);
-  const pipelineWeighted = pipeline.reduce((s, d) => s + Math.round(d.amount * d.probability / 100), 0);
 
-  const assignees = [...new Set(deals.map((d) => d.assignee).filter((a) => a && a.trim()))];
+  const ordered = deals.filter((d) => ORDERED_STAGES.includes(d.stage));
+  const pipeline = deals.filter((d) => SALES_STAGES.includes(d.stage));
+
+  const assignedOrdered = ordered.filter(hasAssignee);
+  const unassignedOrdered = ordered.filter((d) => !hasAssignee(d));
+
+  const totalRevenue = assignedOrdered.reduce((s, d) => s + revenueOf(d), 0);
+  const totalGrossProfit = assignedOrdered.reduce((s, d) => s + grossOf(d, revenueOf(d)), 0);
+  const unassignedRevenue = unassignedOrdered.reduce((s, d) => s + revenueOf(d), 0);
+  const unassignedGrossProfit = unassignedOrdered.reduce((s, d) => s + grossOf(d, revenueOf(d)), 0);
+
+  const pipelineWeighted = pipeline.filter(hasAssignee).reduce((s, d) => s + Math.round(d.amount * d.probability / 100), 0);
+
+  const assignees = [...new Set(deals.filter(hasAssignee).map((d) => d.assignee))];
   const memberStats: MemberDealStat[] = assignees.map((name) => {
     const mine = deals.filter((d) => d.assignee === name);
     const myOrdered = mine.filter((d) => ORDERED_STAGES.includes(d.stage));
-    const rev = myOrdered.reduce((s, d) => s + d.amount, 0);
-    const gross = myOrdered.reduce((s, d) => s + grossOf(d, d.amount), 0);
+    const rev = myOrdered.reduce((s, d) => s + revenueOf(d), 0);
+    const gross = myOrdered.reduce((s, d) => s + grossOf(d, revenueOf(d)), 0);
     return {
       name,
       appointments: mine.filter((d) => d.stage === 'lead').length,
@@ -150,8 +161,11 @@ export function calcDealKpi(deals: Deal[], costLookup?: DealCostLookup): DealKpi
     totalGrossProfit,
     grossMarginRate: totalRevenue > 0 ? Math.round((totalGrossProfit / totalRevenue) * 100) : 0,
     dealCount: deals.length,
-    orderedCount: ordered.length,
+    orderedCount: assignedOrdered.length,
     pipelineCount: pipeline.length,
+    unassignedRevenue,
+    unassignedGrossProfit,
+    unassignedOrderedCount: unassignedOrdered.length,
     pipelineWeighted,
     memberStats,
   };

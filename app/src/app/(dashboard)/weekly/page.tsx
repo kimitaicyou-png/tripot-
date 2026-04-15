@@ -59,12 +59,31 @@ function useLiveWeeklyData() {
   const inflowReceived = paid.reduce((s, d) => s + d.amount, 0);
   const mr = (v: number) => Math.round(v / 10000) * 10000;
 
-  const CF_ROLLING = [
-    { week: 'W1 4/7〜4/13',  inflow: mr(inflowExpected * 0.3), payment: mr(inflowExpected * 0.25), balance: mr(inflowReceived + inflowExpected * 0.05) },
-    { week: 'W2 4/14〜4/20', inflow: mr(inflowExpected * 0.2), payment: mr(inflowExpected * 0.35), balance: mr(Math.max(0, inflowReceived - inflowExpected * 0.1)) },
-    { week: 'W3 4/21〜4/27', inflow: mr(inflowExpected * 0.3), payment: mr(inflowExpected * 0.2),  balance: mr(inflowReceived) },
-    { week: 'W4 4/28〜5/4',  inflow: mr(inflowExpected * 0.2), payment: mr(inflowExpected * 0.2),  balance: mr(inflowReceived) },
-  ];
+  const today = new Date();
+  const weekStart = new Date(today);
+  weekStart.setDate(today.getDate() - today.getDay() + 1);
+  const fmtRange = (start: Date) => {
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    const f = (d: Date) => `${d.getMonth() + 1}/${d.getDate()}`;
+    return `${f(start)}〜${f(end)}`;
+  };
+  const weekBuckets = [0, 1, 2, 3].map((i) => {
+    const s = new Date(weekStart);
+    s.setDate(weekStart.getDate() + i * 7);
+    const e = new Date(s);
+    e.setDate(s.getDate() + 6);
+    return { label: `W${i + 1} ${fmtRange(s)}`, start: s, end: e };
+  });
+  const invoicedDeals = deals.filter((d) => (d.stage === 'invoiced' || d.stage === 'accounting') && d.invoiceDate);
+  let runningBalance = inflowReceived;
+  const CF_ROLLING = weekBuckets.map((wk) => {
+    const inflowOfWeek = invoicedDeals
+      .filter((d) => d.invoiceDate && new Date(d.invoiceDate) >= wk.start && new Date(d.invoiceDate) <= wk.end)
+      .reduce((s, d) => s + d.amount, 0);
+    runningBalance += inflowOfWeek;
+    return { week: wk.label, inflow: mr(inflowOfWeek), payment: 0, balance: mr(runningBalance) };
+  });
 
   const claimDeals = deals.filter((d) => d.stage === 'claim');
   const CLAIMS = claimDeals.map((d) => ({ dealName: d.dealName, content: d.memo || 'クレーム対応中', severity: 'major' as 'minor' | 'major' | 'critical', days: 1, assignee: d.assignee.split(' ')[0], status: 'open' as 'open' | 'in_progress' | 'resolved' }));
@@ -343,12 +362,16 @@ function SalesNumbersView() {
       <Card>
         <SectionLabel>資金繰り</SectionLabel>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
-          {[
-            { label: '入金予定（確度加重）', value: man(kpi.pipelineWeighted), color: 'text-gray-900' },
-            { label: '入金済',             value: man(kpi.totalRevenue), color: 'text-blue-600' },
-            { label: '未納',               value: '¥0万', color: 'text-gray-900' },
-            { label: '資金残高',           value: man(kpi.totalRevenue), color: 'text-gray-900' },
-          ].map((item) => (
+          {(() => {
+            const invoicedSum = deals.filter((d) => d.stage === 'invoiced' || d.stage === 'accounting').reduce((s, d) => s + d.amount, 0);
+            const paidSum = deals.filter((d) => d.stage === 'paid').reduce((s, d) => s + d.amount, 0);
+            return [
+              { label: '入金予定（確度加重）', value: man(kpi.pipelineWeighted), color: 'text-gray-900' },
+              { label: '入金済',             value: man(paidSum), color: 'text-blue-600' },
+              { label: '請求中（未入金）',    value: man(invoicedSum), color: 'text-gray-900' },
+              { label: '資金残高',           value: man(paidSum + invoicedSum), color: 'text-gray-900' },
+            ];
+          })().map((item) => (
             <div key={item.label} className="rounded-xl bg-gray-50 p-3">
               <p className="text-[11px] font-semibold text-gray-500 mb-1">{item.label}</p>
               <p className={`text-lg font-semibold ${item.color}`}>{item.value}</p>

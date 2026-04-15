@@ -58,16 +58,12 @@ function useLiveFinancials(selectedMonth?: string) {
     const cost = c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0);
     if (cost > 0) dealCostById.set(c.dealId, cost);
   }
-  const kpi = calcDealKpi(deals, { dealCostById });
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
-  const orderedDeals = deals.filter((d) => orderedStages.includes(d.stage));
+  const hasAssignee = (d: { assignee?: string }) => Boolean(d.assignee && d.assignee.trim());
+  const assignedOrdered = deals.filter((d) => orderedStages.includes(d.stage) && hasAssignee(d));
 
-  const shotRevenue = orderedDeals.filter((d) => d.revenueType === 'shot').reduce((s, d) => s + d.amount, 0);
-  const runningRevenue = orderedDeals.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
-  const totalRevenue = shotRevenue + runningRevenue;
-  const prodCost = prodCards.reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
-  const cogs = prodCost > 0 ? prodCost : Math.round(totalRevenue * 0.54);
-  const grossProfit = totalRevenue - cogs;
+  const shotRevenue = assignedOrdered.filter((d) => d.revenueType === 'shot').reduce((s, d) => s + d.amount, 0);
+  const runningRevenue = assignedOrdered.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
   const currentMonthIdx = (() => {
     if (selectedMonth) {
       const { month } = parseSelectedMonth(selectedMonth);
@@ -93,11 +89,18 @@ function useLiveFinancials(selectedMonth?: string) {
 
   const budgetRevenue = budgetPlan
     ? budgetPlan.segments.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
-    : 12000000;
+    : 0;
   const budgetCogs = budgetPlan
     ? budgetPlan.cogs.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
-    : Math.round(budgetRevenue * 0.54);
+    : 0;
   const budgetGross = budgetRevenue - budgetCogs;
+  const companyCogsRate = budgetRevenue > 0 ? budgetCogs / budgetRevenue : null;
+
+  const kpi = calcDealKpi(deals, { dealCostById, fallbackCogsRate: companyCogsRate ?? undefined });
+  const totalRevenue = kpi.totalRevenue;
+  const prodCost = prodCards.reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
+  const cogs = prodCost > 0 ? prodCost : (companyCogsRate !== null ? Math.round(totalRevenue * companyCogsRate) : 0);
+  const grossProfit = totalRevenue - cogs;
   const budgetSga = budgetPlan
     ? (budgetPlan.labor.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) +
        budgetPlan.admin.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0)) * 10000
@@ -130,14 +133,16 @@ function useLiveFinancials(selectedMonth?: string) {
     { label: '売上総利益（粗利）', budget: r(budgetGross), actual: r(grossProfit), ytdBudget: r(budgetGross), ytdActual: r(grossProfit), momDir: 'flat' as const, reverse: false, kind: 'flow' as const },
     { label: '営業利益',           budget: r(budgetOp),    actual: r(operatingProfit), ytdBudget: r(budgetOp), ytdActual: r(operatingProfit), momDir: 'flat' as const, reverse: false, kind: 'flow' as const },
     { label: '売上',               budget: r(budgetRevenue), actual: r(totalRevenue), ytdBudget: r(budgetRevenue), ytdActual: r(totalRevenue), momDir: 'flat' as const, reverse: false, kind: 'flow' as const },
-    { label: '売上原価',           budget: r(budgetRevenue * 0.54), actual: r(cogs), ytdBudget: r(budgetRevenue * 0.54), ytdActual: r(cogs), momDir: 'flat' as const, reverse: true, kind: 'flow' as const },
+    { label: '売上原価',           budget: r(budgetCogs), actual: r(cogs), ytdBudget: r(budgetCogs), ytdActual: r(cogs), momDir: 'flat' as const, reverse: true, kind: 'flow' as const },
     { label: '販管費',             budget: r(budgetSga), actual: r(sga), ytdBudget: r(budgetSga), ytdActual: r(sga), momDir: 'flat' as const, reverse: true, kind: 'fixed' as const },
     { label: '経常利益',           budget: 0, actual: r(ordinaryProfit), ytdBudget: 0, ytdActual: r(ordinaryProfit), momDir: 'flat' as const, reverse: false, kind: 'flow' as const },
   ];
 
+  const shotRatio = totalRevenue > 0 ? shotRevenue / totalRevenue : 0;
+  const runningRatio = totalRevenue > 0 ? runningRevenue / totalRevenue : 0;
   const SHOT_RUNNING = [
-    { label: 'ショット売上',   budget: r(budgetRevenue * 0.95), actual: r(shotRevenue) },
-    { label: 'ランニング売上', budget: r(budgetRevenue * 0.05), actual: r(runningRevenue) },
+    { label: 'ショット売上',   budget: r(budgetRevenue * shotRatio), actual: r(shotRevenue) },
+    { label: 'ランニング売上', budget: r(budgetRevenue * runningRatio), actual: r(runningRevenue) },
   ];
 
   const MEMBER_STATS_LIVE = kpi.memberStats.map((m) => ({
@@ -147,7 +152,7 @@ function useLiveFinancials(selectedMonth?: string) {
     grossProfit: r(m.grossProfit),
   }));
 
-  return { PL_ROWS, SHOT_RUNNING, MEMBER_STATS: MEMBER_STATS_LIVE, kpi, deals, prodCards, totalRevenue, grossProfit, budgetRevenue, budgetGross, budgetOp, sga, budgetSga };
+  return { PL_ROWS, SHOT_RUNNING, MEMBER_STATS: MEMBER_STATS_LIVE, kpi, deals, prodCards, totalRevenue, grossProfit, budgetRevenue, budgetGross, budgetOp, sga, budgetSga, shotRevenue, runningRevenue };
 }
 
 
@@ -1163,7 +1168,9 @@ function YearlyTab() {
   const orderedYearlyData = (() => {
     const data = YEARLY_DATA.map((d) => {
       if (d.month === '4月') {
-        return { ...d, revenue: rr(live.totalRevenue), grossProfit: rr(live.grossProfit), operatingProfit: rr(live.grossProfit - live.sga), shot: rr(live.totalRevenue * 0.95), running: rr(live.totalRevenue * 0.05) };
+        const shotR = live.totalRevenue > 0 ? live.shotRevenue / live.totalRevenue : 0;
+        const runR = live.totalRevenue > 0 ? live.runningRevenue / live.totalRevenue : 0;
+        return { ...d, revenue: rr(live.totalRevenue), grossProfit: rr(live.grossProfit), operatingProfit: rr(live.grossProfit - live.sga), shot: rr(live.totalRevenue * shotR), running: rr(live.totalRevenue * runR) };
       }
       return d;
     });
