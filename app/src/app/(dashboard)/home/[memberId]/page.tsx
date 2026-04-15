@@ -550,10 +550,7 @@ export default function MemberDashboardPage() {
   })();
   const totalBudgetRevenue = budgetPlan ? budgetPlan.segments.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000 : 0;
   const totalBudgetCogs = budgetPlan ? budgetPlan.cogs.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000 : 0;
-  const companyCogsRate = totalBudgetRevenue > 0 ? totalBudgetCogs / totalBudgetRevenue : null;
-  const myGrossProfit = myProdCost > 0
-    ? myRevenue - myProdCost
-    : companyCogsRate !== null ? myRevenue - Math.round(myRevenue * companyCogsRate) : myRevenue;
+  const myGrossProfit = myProdCost > 0 ? myRevenue - myProdCost : null;
 
   const memberCount = Math.max(apiMembers.length, 1);
   const myRevenueTarget = Math.round(totalBudgetRevenue / memberCount);
@@ -562,7 +559,8 @@ export default function MemberDashboardPage() {
   const kpi = {
     revenue: myRevenue,
     revenueTarget: myRevenueTarget,
-    grossProfit: myGrossProfit,
+    grossProfit: myGrossProfit ?? 0,
+    grossProfitAvailable: myGrossProfit !== null,
     grossProfitTarget: myGrossTarget,
     meetings: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').length,
     meetingsTarget: 0,
@@ -712,7 +710,7 @@ export default function MemberDashboardPage() {
     const memberProdCost = liveCards
       .filter((c) => memberDealIds.has(c.dealId))
       .reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
-    const memberGross = memberProdCost > 0 ? memberRevenue - memberProdCost : memberRevenue - Math.round(memberRevenue * 0.54);
+    const memberGross = memberProdCost > 0 ? memberRevenue - memberProdCost : 0;
     return { id, name, company: 'トライポット', revenue: Math.round(memberRevenue / 10000), grossProfit: Math.round(memberGross / 10000), joinedAt: m?.joinedAt ?? '' };
   }).sort((a, b) => b.revenue - a.revenue);
   const companyRankIdx = COMPANY_RANKING.findIndex((m) => m.id === memberId);

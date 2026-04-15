@@ -16,19 +16,13 @@ const MONTHS = ['4月','5月','6月','7月','8月','9月','10月','11月','12月
 const CURRENT_MONTH_INDEX = 0;
 
 const LAST_YEAR_MONTHLY = {
-  revenue: [680, 750, 820, 690, 910, 1050, 980, 1100, 1200, 850, 950, 960],
-  cogs:    [370, 410, 450, 375, 495, 570, 530, 595, 650, 460, 515, 400],
-  sga:     [195, 200, 210, 205, 215, 220, 210, 215, 225, 210, 215, 220],
+  revenue: [0,0,0,0,0,0,0,0,0,0,0,0],
+  cogs:    [0,0,0,0,0,0,0,0,0,0,0,0],
+  sga:     [0,0,0,0,0,0,0,0,0,0,0,0],
   labels:  ['1月','2月','3月','4月','5月','6月','7月','8月','9月','10月','11月','12月'],
 };
 
-const LAST_YEAR_SEGMENTS = [
-  { name: 'システム開発',     amount: 5200 },
-  { name: '保守・運用',       amount: 720  },
-  { name: 'コンサルティング', amount: 360  },
-  { name: 'AI導入支援',       amount: 2200 },
-  { name: 'その他',           amount: 460  },
-];
+const LAST_YEAR_SEGMENTS: { name: string; amount: number }[] = [];
 
 const LY_REVENUE = LAST_YEAR_MONTHLY.revenue.reduce((a, b) => a + b, 0);
 const LY_COGS    = LAST_YEAR_MONTHLY.cogs.reduce((a, b) => a + b, 0);
@@ -73,55 +67,57 @@ function totalSum(rows: MonthlyRow[]): number {
   return rows.reduce((a, r) => a + rowTotal(r), 0);
 }
 
+const ZEROS12 = [0,0,0,0,0,0,0,0,0,0,0,0];
+
 const INITIAL_SEGMENTS: MonthlyRow[] = [
-  makeRow('システム開発',     [350,400,500,480,550,600,570,620,680,400,450,350]),
-  makeRow('保守・運用',       [ 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53, 53]),
-  makeRow('コンサルティング', [ 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]),
-  makeRow('AI導入支援',       [200,150,200,180,220,250,230,260,280,150,160,150]),
-  makeRow('その他',           [ 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17, 17]),
+  makeRow('システム開発',     [...ZEROS12]),
+  makeRow('保守・運用',       [...ZEROS12]),
+  makeRow('コンサルティング', [...ZEROS12]),
+  makeRow('AI導入支援',       [...ZEROS12]),
+  makeRow('その他',           [...ZEROS12]),
 ];
 
 const INITIAL_COGS: MonthlyRow[] = [
-  makeRow('仕入高',     [ 50, 55, 60, 55, 65, 75, 70, 80, 85, 55, 60, 50]),
-  makeRow('業務委託費', [200,220,280,260,300,320,310,330,360,200,220,200]),
+  makeRow('仕入高',     [...ZEROS12]),
+  makeRow('業務委託費', [...ZEROS12]),
 ];
 
 const INITIAL_LABOR: MonthlyRow[] = [
-  makeRow('役員報酬',   [ 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80, 80]),
-  makeRow('給料手当',   [ 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90, 90]),
-  makeRow('賞与',       [  0,  0,150,  0,  0,  0,150,  0,  0,  0,  0,  0]),
-  makeRow('法定福利費', [ 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25, 25]),
-  makeRow('福利厚生費', [  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5]),
+  makeRow('役員報酬',   [...ZEROS12]),
+  makeRow('給料手当',   [...ZEROS12]),
+  makeRow('賞与',       [...ZEROS12]),
+  makeRow('法定福利費', [...ZEROS12]),
+  makeRow('福利厚生費', [...ZEROS12]),
 ];
 
 const INITIAL_ADMIN: MonthlyRow[] = [
-  makeRow('地代家賃',   [ 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]),
-  makeRow('通信費',     [  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3]),
-  makeRow('交際費',     [  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5]),
-  makeRow('旅費交通費', [  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8]),
-  makeRow('広告宣伝費', [ 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10]),
-  makeRow('消耗品費',   [  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3]),
-  makeRow('支払手数料', [  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5]),
-  makeRow('減価償却費', [  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8,  8]),
-  makeRow('保険料',     [  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2,  2]),
-  makeRow('租税公課',   [  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3,  3]),
-  makeRow('その他管理費',[  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5,  5]),
+  makeRow('地代家賃',   [...ZEROS12]),
+  makeRow('通信費',     [...ZEROS12]),
+  makeRow('交際費',     [...ZEROS12]),
+  makeRow('旅費交通費', [...ZEROS12]),
+  makeRow('広告宣伝費', [...ZEROS12]),
+  makeRow('消耗品費',   [...ZEROS12]),
+  makeRow('支払手数料', [...ZEROS12]),
+  makeRow('減価償却費', [...ZEROS12]),
+  makeRow('保険料',     [...ZEROS12]),
+  makeRow('租税公課',   [...ZEROS12]),
+  makeRow('その他管理費',[...ZEROS12]),
 ];
 
 const INITIAL_OTHER_INCOME: MonthlyRow[] = [
-  makeRow('受取利息', [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-  makeRow('雑収入',   [ 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1]),
+  makeRow('受取利息', [...ZEROS12]),
+  makeRow('雑収入',   [...ZEROS12]),
 ];
 
 const INITIAL_OTHER_EXPENSE: MonthlyRow[] = [
-  makeRow('支払利息', [ 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2]),
-  makeRow('雑損失',   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+  makeRow('支払利息', [...ZEROS12]),
+  makeRow('雑損失',   [...ZEROS12]),
 ];
 
 const INITIAL_HEADCOUNT: MonthlyRow[] = [
-  makeRow('正社員', [ 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5]),
-  makeRow('その他', [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
-  makeRow('派遣',   [ 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]),
+  makeRow('正社員', [...ZEROS12]),
+  makeRow('その他', [...ZEROS12]),
+  makeRow('派遣',   [...ZEROS12]),
 ];
 
 type HearingData = {

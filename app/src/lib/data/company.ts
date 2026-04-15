@@ -39,13 +39,13 @@ export function calculateMonthlyActual(month: string, sgaOverride?: number): Mon
   const shotRevenue     = calculateShotRevenue(DEALS, month);
   const runningRevenue  = calculateRunningRevenue(DEALS, month);
   const totalRevenue    = shotRevenue + runningRevenue;
-  const cogs            = Math.round(totalRevenue * 0.543);
+  const cogs            = 0;
   const grossProfit     = totalRevenue - cogs;
   const grossMarginRate = totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 100) : 0;
   const target          = MONTHLY_TARGETS[month];
-  const sga             = sgaOverride ?? target?.sga ?? 3200000;
+  const sga             = sgaOverride ?? target?.sga ?? 0;
   const operatingProfit = grossProfit - sga;
-  const ordinaryProfit  = operatingProfit - 100000;
+  const ordinaryProfit  = operatingProfit;
 
   return {
     shotRevenue,
@@ -68,7 +68,7 @@ export function calculateMemberActuals(month: string): MemberActual[] {
     const shotRevenue     = calculateShotRevenue(memberDeals, month);
     const runningRevenue  = calculateRunningRevenue(memberDeals, month);
     const totalRevenue    = shotRevenue + runningRevenue;
-    const cost            = Math.round(totalRevenue * 0.543);
+    const cost            = 0;
     const grossProfit     = totalRevenue - cost;
     const grossMarginRate = totalRevenue > 0 ? Math.round((grossProfit / totalRevenue) * 100) : 0;
     const member          = MEMBERS.find((m) => m.name === name);

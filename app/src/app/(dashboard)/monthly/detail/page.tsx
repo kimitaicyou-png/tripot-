@@ -153,10 +153,10 @@ export default function MonthlyDetailPage() {
   })();
   const revenueTarget = budgetPlan
     ? budgetPlan.segments.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
-    : 12000000;
+    : 0;
   const budgetCogs = budgetPlan
     ? budgetPlan.cogs.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
-    : Math.round(revenueTarget * 0.54);
+    : 0;
   const grossTarget = revenueTarget - budgetCogs;
   const cogsTarget = budgetCogs;
   const sgaActual = budgetPlan

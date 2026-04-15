@@ -841,7 +841,7 @@ function CashShortActionBoard() {
   useEffect(() => { fetchDeals().then((fresh) => setDealsCS(fresh)); }, []);
   const ordStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting'];
   const recLive = deals.filter((d) => ordStages.includes(d.stage) && d.amount > 0).slice(0, 3);
-  const shortAmount = Math.max(0, Math.round((12000000 * 0.15 - recLive.reduce((s, d) => s + d.amount, 0)) / 10000));
+  const shortAmount = 0;
   const shortWeek = 'W2';
   const candidates = recLive.map((d) => ({
     project: d.dealName,
@@ -1010,10 +1010,10 @@ function CfTab() {
             </thead>
             <tbody>
               {[
-                { week: 'W1', inflow: r(inflowExpected * 0.3), outflow: r(inflowExpected * 0.25), diff: r(inflowExpected * 0.05), balance: r(inflowReceived + inflowExpected * 0.05) },
-                { week: 'W2', inflow: r(inflowExpected * 0.2), outflow: r(inflowExpected * 0.35), diff: r(inflowExpected * -0.15), balance: r(inflowReceived - inflowExpected * 0.1) },
-                { week: 'W3', inflow: r(inflowExpected * 0.3), outflow: r(inflowExpected * 0.2), diff: r(inflowExpected * 0.1), balance: r(inflowReceived) },
-                { week: 'W4', inflow: r(inflowExpected * 0.2), outflow: r(inflowExpected * 0.2), diff: 0, balance: r(inflowReceived) },
+                { week: 'W1', inflow: 0, outflow: 0, diff: 0, balance: r(inflowReceived) },
+                { week: 'W2', inflow: 0, outflow: 0, diff: 0, balance: r(inflowReceived) },
+                { week: 'W3', inflow: 0, outflow: 0, diff: 0, balance: r(inflowReceived) },
+                { week: 'W4', inflow: 0, outflow: 0, diff: 0, balance: r(inflowReceived) },
               ].map((row) => {
                 const isNegativeBalance = row.balance < 0;
                 return (

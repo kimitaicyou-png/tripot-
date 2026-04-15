@@ -1108,7 +1108,7 @@ function AnalysisTab() {
       {/* 個人別ショット/ランニング粗利 */}
       <Card>
         <SectionLabel>個人別ショット/ランニング粗利</SectionLabel>
-        <PersonalPLTable members={liveW.kpi.memberStats.map((m) => ({ name: m.name, shotRevenue: m.revenue, runningRevenue: 0, cost: Math.round(m.revenue * 0.54) }))} />
+        <PersonalPLTable members={liveW.kpi.memberStats.map((m) => ({ name: m.name, shotRevenue: m.revenue, runningRevenue: 0, cost: m.revenue - m.grossProfit }))} />
       </Card>
 
       {/* 見積精度サマリー */}

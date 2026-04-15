@@ -82,15 +82,15 @@ export function aggregateMonthly(companyId: string, companyName: string, monthLa
   const revenueTarget = all.reduce((s, m) => s + m.revenueTarget, 0);
   const gross = all.reduce((s, m) => s + m.gross, 0);
   const grossTarget = all.reduce((s, m) => s + m.grossTarget, 0);
-  const sga = sgaBudget ?? Math.round(gross * 0.67);
+  const sga = sgaBudget ?? 0;
   const op = gross - sga;
-  const sgaTarget = sgaBudget ?? Math.round(grossTarget * 0.58);
+  const sgaTarget = sgaBudget ?? 0;
   const opTarget = grossTarget - sgaTarget;
-  const opRate = (op / opTarget) * 100;
-  const alertLevel = opRate < 70 ? 'danger' : opRate < 85 ? 'caution' : 'normal';
+  const opRate = opTarget > 0 ? (op / opTarget) * 100 : 0;
+  const alertLevel = opTarget > 0 ? (opRate < 70 ? 'danger' : opRate < 85 ? 'caution' : 'normal') : 'normal';
   const alerts: string[] = [];
-  if (opRate < 70) alerts.push('営業利益達成率が70%未満');
-  if (revenue < revenueTarget * 0.85) alerts.push('売上が予算の85%未満');
+  if (opTarget > 0 && opRate < 70) alerts.push('営業利益達成率が70%未満');
+  if (revenueTarget > 0 && revenue < revenueTarget * 0.85) alerts.push('売上が予算の85%未満');
   return {
     monthLabel,
     companyId,

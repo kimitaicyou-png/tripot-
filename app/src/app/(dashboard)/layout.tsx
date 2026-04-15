@@ -80,13 +80,21 @@ function MemberContextPanel({ memberId }: { memberId: string }) {
   const meta = getMemberKpi(memberId, memberIdx);
   const [kpi, setKpi] = useState({ revenue: 0, revenueTarget: 0, gross: 0, grossTarget: 0, meetings: 0, newDeals: 0, tasks: 0, urgent: 0, quote: meta?.quote ?? '', role: meta?.role ?? '' });
   useEffect(() => {
+    const num = (v: unknown) => { const n = typeof v === 'number' ? v : Number(v); return Number.isFinite(n) ? n : 0; };
     const computeAndSet = (deals: ReturnType<typeof loadAllDeals>, cards: ReturnType<typeof loadProductionCards>) => {
       const memberName = allMembers.find((m) => m.id === memberId)?.name ?? '';
       const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
-      const myDeals = memberName ? deals.filter((d) => d.assignee === memberName || !d.assignee) : deals;
-      const rev = myDeals.filter((d) => orderedStages.includes(d.stage)).reduce((s, d) => s + d.amount, 0);
-      const gross = Math.round(rev * 0.457);
+      const myDeals = memberName ? deals.filter((d) => d.assignee === memberName) : [];
+      const myOrdered = myDeals.filter((d) => orderedStages.includes(d.stage));
+      const rev = myOrdered.reduce((s, d) => {
+        const running = (d.revenueType === 'running' || d.revenueType === 'both') ? num(d.monthlyAmount) : 0;
+        return s + num(d.amount) + running;
+      }, 0);
+      const myDealIds = new Set(myOrdered.map((d) => d.id));
+      const myCost = cards.filter((c) => myDealIds.has(c.dealId)).reduce((s, c) => s + c.tasks.reduce((a, t) => a + num(t.estimatedCost), 0), 0);
+      const gross = myCost > 0 ? rev - myCost : 0;
       const myTasks = cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === memberId && t.status !== 'done');
+      const today = new Date().toISOString().slice(0, 10);
       setKpi((prev) => ({
         ...prev,
         revenue: Math.round(rev / 10000),
@@ -94,7 +102,7 @@ function MemberContextPanel({ memberId }: { memberId: string }) {
         meetings: myDeals.filter((d) => d.stage === 'meeting').length,
         newDeals: myDeals.filter((d) => d.stage === 'lead').length,
         tasks: myTasks.length,
-        urgent: myTasks.filter((t) => t.dueDate && t.dueDate < '2026-04-05').length,
+        urgent: myTasks.filter((t) => t.dueDate && t.dueDate < today).length,
       }));
     };
     const cachedCards = loadProductionCards();

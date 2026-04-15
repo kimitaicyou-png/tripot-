@@ -117,7 +117,11 @@ type DealCostLookup = {
 
 export function calcDealKpi(deals: Deal[], costLookup?: DealCostLookup): DealKpiSummary {
   const hasAssignee = (d: Deal) => Boolean(d.assignee && d.assignee.trim());
-  const revenueOf = (d: Deal) => d.amount + ((d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount ? d.monthlyAmount : 0);
+  const num = (v: unknown): number => {
+    const n = typeof v === 'number' ? v : Number(v);
+    return Number.isFinite(n) ? n : 0;
+  };
+  const revenueOf = (d: Deal) => num(d.amount) + ((d.revenueType === 'running' || d.revenueType === 'both') ? num(d.monthlyAmount) : 0);
   const grossOf = (d: Deal, rev: number) => {
     const cost = costLookup?.dealCostById?.get(d.id);
     if (cost !== undefined && cost > 0) return rev - cost;

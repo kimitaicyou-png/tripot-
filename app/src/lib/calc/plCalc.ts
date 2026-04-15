@@ -20,8 +20,8 @@ export function calcPl(deals: Deal[], cards: ProductionCard[]): PlRow[] {
   const totalRevenue = shotRevenue + runningRevenue;
 
   const prodCost = cards.reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
-  const cogs = prodCost > 0 ? prodCost : Math.round(totalRevenue * 0.54);
-  const grossProfit = totalRevenue - cogs;
+  const cogs = prodCost;
+  const grossProfit = cogs > 0 ? totalRevenue - cogs : 0;
   const operatingProfit = grossProfit;
   const ordinaryProfit = operatingProfit;
 
