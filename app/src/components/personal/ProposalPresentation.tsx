@@ -60,7 +60,7 @@ function AnimatedBar({ width, delay = 0, color }: { width: number; delay?: numbe
 }
 
 function RichSlide({ slide, deal, sectionColor, slideKey }: { slide: Slide; deal: Deal; sectionColor: string; slideKey: string }) {
-  const amt = deal.amount > 0 ? deal.amount : 3000000;
+  const amt = deal.amount > 0 ? deal.amount : 0;
 
   if (slide.type === 'cover') {
     return (
