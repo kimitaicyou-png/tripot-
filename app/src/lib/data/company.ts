@@ -8,16 +8,7 @@ export const COMPANY = {
 
 export const MEMBERS: Member[] = [];
 
-export const MONTHLY_TARGETS: Record<string, MonthlyTarget> = {
-  '2026-04': {
-    revenue:          12000000,
-    cogs:              6480000,
-    grossProfit:       5520000,
-    sga:               3500000,
-    operatingProfit:   2020000,
-    ordinaryProfit:    1920000,
-  },
-};
+export const MONTHLY_TARGETS: Record<string, MonthlyTarget> = {};
 
 export const DEALS: Deal[] = [];
 

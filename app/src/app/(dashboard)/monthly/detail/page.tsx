@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { formatYen } from '@/lib/format';
 import { loadAllDeals, calcDealKpi, fetchDeals } from '@/lib/dealsStore';
+import { loadProductionCards, fetchProductionCards, type ProductionCard } from '@/lib/productionCards';
 
 
 function Accordion({
@@ -134,9 +135,11 @@ export default function MonthlyDetailPage() {
   const shotRevenue = orderedDeals.filter((d) => d.revenueType === 'shot').reduce((s, d) => s + d.amount, 0);
   const runningRevenue = orderedDeals.filter((d) => d.revenueType === 'running' && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
   const totalRevenue = shotRevenue + runningRevenue;
-  const cogsRate = 0.54;
-  const cogs = Math.round(totalRevenue * cogsRate);
-  const grossProfit = totalRevenue - cogs;
+  const [prodCards, setProdCards] = useState<ProductionCard[]>([]);
+  useEffect(() => { setProdCards(loadProductionCards()); fetchProductionCards().then(setProdCards); }, []);
+  const prodCost = prodCards.reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
+  const cogs = prodCost;
+  const grossProfit = prodCost > 0 ? totalRevenue - cogs : 0;
 
   const currentMonthIdx = new Date().getMonth() >= 4 ? new Date().getMonth() - 4 : new Date().getMonth() + 8;
   const budgetPlan = (() => {

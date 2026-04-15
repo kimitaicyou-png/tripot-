@@ -232,17 +232,4 @@ function RunningItemForm({
 
 export type { RunningItem };
 
-export const MOCK_RUNNING_ITEMS: Record<string, RunningItem[]> = {
-  'd10': [
-    { id: 'r_d10_1', name: '保守サポート',  monthlyAmount: 150000, period: 'monthly', startMonth: '2026-07' },
-  ],
-  'd11': [
-    { id: 'r_d11_1', name: '保守サポート',  monthlyAmount: 80000,  period: 'monthly', startMonth: '2026-05' },
-  ],
-  'd12': [
-    { id: 'r_d12_1', name: 'コンサル費用',  monthlyAmount: 300000, period: 'monthly', startMonth: '2026-04' },
-  ],
-  'd14': [
-    { id: 'r_d14_1', name: 'Web運用サポート', monthlyAmount: 230000, period: 'monthly', startMonth: '2026-04' },
-  ],
-};
+export const MOCK_RUNNING_ITEMS: Record<string, RunningItem[]> = {};

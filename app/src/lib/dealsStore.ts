@@ -1,5 +1,21 @@
 import { type Deal } from '@/components/deals';
 
+export function normalizeAssignee(s: unknown): string {
+  if (typeof s !== 'string') return '';
+  return s.replace(/[\s\u3000]+/g, ' ').trim();
+}
+
+export function matchesAssignee(dealAssignee: unknown, memberName: string): boolean {
+  const a = normalizeAssignee(dealAssignee);
+  const m = normalizeAssignee(memberName);
+  if (!a || !m) return false;
+  if (a === m) return true;
+  const aLast = a.split(' ')[0];
+  const mLast = m.split(' ')[0];
+  if (aLast && mLast && aLast === mLast) return true;
+  return false;
+}
+
 const CACHE_KEY = 'tripot_deals_cache';
 const CACHE_TS_KEY = 'tripot_deals_cache_ts';
 const CACHE_TTL = 10_000;
@@ -116,7 +132,7 @@ type DealCostLookup = {
 };
 
 export function calcDealKpi(deals: Deal[], costLookup?: DealCostLookup): DealKpiSummary {
-  const hasAssignee = (d: Deal) => Boolean(d.assignee && d.assignee.trim());
+  const hasAssignee = (d: Deal) => Boolean(normalizeAssignee(d.assignee));
   const num = (v: unknown): number => {
     const n = typeof v === 'number' ? v : Number(v);
     return Number.isFinite(n) ? n : 0;
@@ -143,9 +159,9 @@ export function calcDealKpi(deals: Deal[], costLookup?: DealCostLookup): DealKpi
 
   const pipelineWeighted = pipeline.filter(hasAssignee).reduce((s, d) => s + Math.round(d.amount * d.probability / 100), 0);
 
-  const assignees = [...new Set(deals.filter(hasAssignee).map((d) => d.assignee))];
+  const assignees = [...new Set(deals.filter(hasAssignee).map((d) => normalizeAssignee(d.assignee)))];
   const memberStats: MemberDealStat[] = assignees.map((name) => {
-    const mine = deals.filter((d) => d.assignee === name);
+    const mine = deals.filter((d) => matchesAssignee(d.assignee, name));
     const myOrdered = mine.filter((d) => ORDERED_STAGES.includes(d.stage));
     const rev = myOrdered.reduce((s, d) => s + revenueOf(d), 0);
     const gross = myOrdered.reduce((s, d) => s + grossOf(d, revenueOf(d)), 0);

@@ -6,6 +6,12 @@ import type { MemberInfo } from '@/lib/stores/types';
 import { PersonalActionList } from './PersonalActionList';
 import { STAGE_LABEL, STAGE_BADGE } from '@/lib/constants/stages';
 import { formatYen } from '@/lib/format';
+import { matchesAssignee } from '@/lib/dealsStore';
+
+function num(v: unknown): number {
+  const n = typeof v === 'number' ? v : Number(v);
+  return Number.isFinite(n) ? n : 0;
+}
 
 const ORDERED_STAGES = new Set(['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid']);
 const SALES_STAGES = new Set(['lead', 'meeting', 'proposal', 'estimate_sent', 'negotiation']);
@@ -17,7 +23,7 @@ type Props = {
 };
 
 export function PersonalDashboard({ member, deals, cards }: Props) {
-  const myDeals = useMemo(() => deals.filter((d) => d.assignee === member.name), [deals, member.name]);
+  const myDeals = useMemo(() => member.name ? deals.filter((d) => matchesAssignee(d.assignee, member.name)) : [], [deals, member.name]);
   const myCards = useMemo(() => cards.filter((c) => c.pmId === member.id || c.teamMemberIds.includes(member.id)), [cards, member.id]);
   const myTasks = useMemo(() => cards.flatMap((c) => c.tasks).filter((t) => t.assigneeId === member.id), [cards, member.id]);
 
@@ -43,12 +49,12 @@ export function PersonalDashboard({ member, deals, cards }: Props) {
         <div className="p-3 rounded-lg border border-gray-200 shadow-sm bg-white">
           <p className="text-xs text-gray-500">パイプライン</p>
           <p className="text-xl font-semibold text-gray-900 tabular-nums mt-1">{pipeline.length}<span className="text-sm text-gray-500 ml-1">件</span></p>
-          <p className="text-xs text-gray-500 mt-0.5 tabular-nums">{formatYen(pipeline.reduce((s, d) => s + d.amount, 0))}</p>
+          <p className="text-xs text-gray-500 mt-0.5 tabular-nums">{formatYen(pipeline.reduce((s, d) => s + num(d.amount), 0))}</p>
         </div>
         <div className="p-3 rounded-lg border border-gray-200 shadow-sm bg-white">
           <p className="text-xs text-gray-500">受注済</p>
           <p className="text-xl font-semibold text-gray-900 tabular-nums mt-1">{ordered.length}<span className="text-sm text-gray-500 ml-1">件</span></p>
-          <p className="text-xs text-gray-500 mt-0.5 tabular-nums">{formatYen(ordered.reduce((s, d) => s + d.amount, 0))}</p>
+          <p className="text-xs text-gray-500 mt-0.5 tabular-nums">{formatYen(ordered.reduce((s, d) => { const running = (d.revenueType === 'running' || d.revenueType === 'both') ? num(d.monthlyAmount) : 0; return s + num(d.amount) + running; }, 0))}</p>
         </div>
         <div className="p-3 rounded-lg border border-gray-200 shadow-sm bg-white">
           <p className="text-xs text-gray-500">制作タスク</p>

@@ -20,62 +20,9 @@ type Props = {
   onChange: (invoices: Invoice[]) => void;
 };
 
-const MOCK_INVOICES: Invoice[] = [
-  {
-    id: 'inv-001',
-    dealName: 'SaaSプラットフォーム開発',
-    clientName: 'トライポット株式会社',
-    amount: 3250000,
-    issuedDate: '2026-02-28',
-    dueDate: '2026-03-31',
-    status: 'overdue',
-    paidAmount: 0,
-  },
-  {
-    id: 'inv-002',
-    dealName: '生産管理DX フェーズ1',
-    clientName: '株式会社名港工業',
-    amount: 4600000,
-    issuedDate: '2026-03-15',
-    dueDate: '2026-04-15',
-    status: 'partial',
-    paidAmount: 2000000,
-    paidDate: '2026-04-01',
-  },
-  {
-    id: 'inv-003',
-    dealName: '電子カルテAPI連携',
-    clientName: '株式会社中京メディカル',
-    amount: 7800000,
-    issuedDate: '2026-03-20',
-    dueDate: '2026-04-20',
-    status: 'unpaid',
-    paidAmount: 0,
-  },
-  {
-    id: 'inv-004',
-    dealName: '内部管理ツール開発',
-    clientName: '愛知県信用金庫',
-    amount: 2100000,
-    issuedDate: '2026-03-01',
-    dueDate: '2026-03-31',
-    status: 'paid',
-    paidAmount: 2100000,
-    paidDate: '2026-03-28',
-  },
-  {
-    id: 'inv-005',
-    dealName: 'QC管理システム追加開発',
-    clientName: '愛知トヨタ協力工場',
-    amount: 1800000,
-    issuedDate: '2026-04-01',
-    dueDate: '2026-04-30',
-    status: 'unpaid',
-    paidAmount: 0,
-  },
-];
+const MOCK_INVOICES: Invoice[] = [];
 
-const TODAY = new Date('2026-04-05');
+const TODAY = new Date();
 
 function yen(v: number): string {
   if (v >= 10000) return `¥${(v / 10000).toLocaleString('ja-JP')}万`;

@@ -67,33 +67,6 @@ export default function DealArtifacts({ artifacts, grossMarginRate, onView }: Pr
 
 export type { DealArtifact };
 
-export const MOCK_ARTIFACTS: Record<string, DealArtifact> = {
-  'd1':  { proposal: true,  estimate: true,  budget: true,  requirement: false, schedule: false },
-  'd2':  { proposal: false, estimate: false, budget: false, requirement: false, schedule: false },
-  'd3':  { proposal: true,  estimate: true,  budget: true,  requirement: true,  schedule: true  },
-  'd4':  { proposal: true,  estimate: true,  budget: true,  requirement: true,  schedule: true  },
-  'd5':  { proposal: true,  estimate: true,  budget: true,  requirement: true,  schedule: true  },
-  'd6':  { proposal: false, estimate: false, budget: false, requirement: false, schedule: false },
-  'd7':  { proposal: false, estimate: false, budget: false, requirement: false, schedule: false },
-  'd8':  { proposal: true,  estimate: true,  budget: true,  requirement: false, schedule: false },
-  'd9':  { proposal: true,  estimate: true,  budget: true,  requirement: true,  schedule: true  },
-  'd10': { proposal: true,  estimate: true,  budget: true,  requirement: false, schedule: false },
-  'd11': { proposal: true,  estimate: true,  budget: true,  requirement: false, schedule: false },
-  'd12': { proposal: true,  estimate: true,  budget: true,  requirement: false, schedule: false },
-  'd13': { proposal: true,  estimate: true,  budget: true,  requirement: false, schedule: false },
-  'd14': { proposal: true,  estimate: true,  budget: true,  requirement: false, schedule: false },
-};
+export const MOCK_ARTIFACTS: Record<string, DealArtifact> = {};
 
-export const MOCK_GROSS_MARGIN_RATES: Record<string, number> = {
-  'd1':  46,
-  'd3':  38,
-  'd4':  42,
-  'd5':  44,
-  'd8':  51,
-  'd9':  40,
-  'd10': 60,
-  'd11': 55,
-  'd12': 70,
-  'd13': 35,
-  'd14': 58,
-};
+export const MOCK_GROSS_MARGIN_RATES: Record<string, number> = {};

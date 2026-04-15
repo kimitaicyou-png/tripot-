@@ -25,21 +25,20 @@ type Props = {
   editable?: boolean;
 };
 
-// TODO: MONTHLY_TARGETS['2026-04'] と calculateMonthlyActual('2026-04') から取得する
 export const MOCK_TARGET: MonthlyTarget = {
-  month: '2026-04',
-  revenueTarget: 12000000,
-  grossProfitTarget: 5520000,
-  grossMarginTarget: 46,
+  month: '',
+  revenueTarget: 0,
+  grossProfitTarget: 0,
+  grossMarginTarget: 0,
 };
 
 export const MOCK_ACTUAL: MonthlyActual = {
-  shotRevenue: 9970000,
-  runningRevenue: 530000,
-  totalRevenue: 10500000,
-  cost: 5701500,
-  grossProfit: 4798500,
-  grossMarginRate: 46,
+  shotRevenue: 0,
+  runningRevenue: 0,
+  totalRevenue: 0,
+  cost: 0,
+  grossProfit: 0,
+  grossMarginRate: 0,
 };
 
 function formatMan(amount: number): string {

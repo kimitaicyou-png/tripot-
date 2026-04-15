@@ -1,6 +1,7 @@
 'use client';
 
 import type { Deal, ProductionCard } from '@/lib/stores/types';
+import { matchesAssignee } from '@/lib/dealsStore';
 
 type ActionItem = {
   id: string;
@@ -33,7 +34,7 @@ type Props = {
 export function PersonalActionList({ deals, cards, memberName, memberId }: Props) {
   const actions: ActionItem[] = [];
 
-  for (const d of deals.filter((d) => d.assignee === memberName)) {
+  for (const d of deals.filter((d) => matchesAssignee(d.assignee, memberName))) {
     if (d.process?.tasks) {
       for (const t of d.process.tasks) {
         if (t.dueDate && t.internalMemberId === memberId) {

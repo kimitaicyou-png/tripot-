@@ -186,11 +186,11 @@ type Segment = {
 };
 
 const INITIAL_SEGMENTS: Segment[] = [
-  { id: 'dev', name: 'システム開発', type: 'shot', costRate: 0.55, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-  { id: 'maintenance', name: '保守・運用', type: 'running', costRate: 0.30, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-  { id: 'consulting', name: 'コンサルティング', type: 'running', costRate: 0.20, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-  { id: 'ai', name: 'AI導入支援', type: 'shot', costRate: 0.50, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
-  { id: 'other', name: 'その他', type: 'running', costRate: 0.40, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { id: 'dev', name: 'システム開発', type: 'shot', costRate: 0, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { id: 'maintenance', name: '保守・運用', type: 'running', costRate: 0, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { id: 'consulting', name: 'コンサルティング', type: 'running', costRate: 0, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { id: 'ai', name: 'AI導入支援', type: 'shot', costRate: 0, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+  { id: 'other', name: 'その他', type: 'running', costRate: 0, monthlyBudgets: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
 ];
 
 const FISCAL_MONTHS = ['4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月', '1月', '2月', '3月'];

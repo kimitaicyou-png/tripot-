@@ -7,7 +7,7 @@ import { TodayProgressCTA } from '@/components/personal/TodayProgressCTA';
 import RecentContactsStrip from '@/components/personal/RecentContactsStrip';
 import { MEMBER_KPIS, getDaysSinceJoined } from '@/lib/data/aggregation';
 import { loadProductionCards, fetchProductionCards } from '@/lib/productionCards';
-import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
+import { loadAllDeals, fetchDeals, matchesAssignee } from '@/lib/dealsStore';
 
 const MEMBERS: Record<string, { firstName: string; role: string; accent: string; joinedAt: string }> = {};
 
@@ -523,7 +523,7 @@ export default function MemberDashboardPage() {
       : [['toki', '土岐 公人'], ['ono', '小野 隆士']]
   );
   const myName = memberNames[memberId] ?? '';
-  const myDeals = myName ? liveDeals.filter((d: { assignee: string }) => d.assignee === myName) : [];
+  const myDeals = myName ? liveDeals.filter((d: { assignee: string }) => matchesAssignee(d.assignee, myName)) : [];
   const myOrdered = myDeals.filter((d: { stage: string }) => orderedStages.includes(d.stage));
   const myRevenue = myOrdered.reduce((s: number, d: { amount: number; revenueType?: string; monthlyAmount?: number }) => {
     const running = (d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount ? d.monthlyAmount : 0;
@@ -703,7 +703,7 @@ export default function MemberDashboardPage() {
   const handoffProgressRate = handoffTotalCount > 0 ? Math.round((handoffDoneCount / handoffTotalCount) * 100) : 0;
 
   const COMPANY_RANKING = Object.entries(memberNames).map(([id, name]) => {
-    const d = liveDeals.filter((x: { assignee: string; stage: string }) => x.assignee === name && orderedStages.includes(x.stage));
+    const d = liveDeals.filter((x: { assignee: string; stage: string }) => matchesAssignee(x.assignee, name) && orderedStages.includes(x.stage));
     const m = MEMBERS[id as keyof typeof MEMBERS];
     const memberDealIds = new Set(d.map((x: { id: string }) => x.id));
     const memberRevenue = d.reduce((s: number, x: { amount: number }) => s + x.amount, 0);

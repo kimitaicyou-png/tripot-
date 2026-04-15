@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useParams } from 'next/navigation';
-import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
+import { loadAllDeals, fetchDeals, matchesAssignee } from '@/lib/dealsStore';
 import { loadProductionCards, fetchProductionCards } from '@/lib/productionCards';
 
 function num(v: unknown): number {
@@ -13,7 +13,7 @@ function num(v: unknown): number {
 
 function computeKpi(deals: ReturnType<typeof loadAllDeals>, cards: ReturnType<typeof loadProductionCards>, memberId: string, memberName: string) {
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
-  const myDeals = memberName ? deals.filter((d) => d.assignee === memberName) : [];
+  const myDeals = memberName ? deals.filter((d) => matchesAssignee(d.assignee, memberName)) : [];
   const myOrdered = myDeals.filter((d) => orderedStages.includes(d.stage));
   const rev = myOrdered.reduce((s, d) => {
     const running = (d.revenueType === 'running' || d.revenueType === 'both') ? num(d.monthlyAmount) : 0;

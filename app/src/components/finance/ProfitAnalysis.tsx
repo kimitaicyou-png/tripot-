@@ -222,9 +222,8 @@ export function buildProfitByType(deals: Array<{ dealName: string; amount: numbe
     const ordered = typed.filter((d) => orderedStages.includes(d.stage));
     const lost = typed.filter((d) => d.stage === 'lost');
     const totalRevenue = ordered.reduce((s, d) => s + d.amount, 0);
-    const costRate = type.includes('保守') ? 0.45 : type.includes('LP') ? 0.4 : type.includes('コンサル') ? 0.42 : 0.54;
-    const totalCost = Math.round(totalRevenue * costRate);
-    const avgGrossMargin = totalRevenue > 0 ? Math.round(((totalRevenue - totalCost) / totalRevenue) * 100) : 0;
+    const totalCost = 0;
+    const avgGrossMargin = 0;
     const winRate = typed.length > 0 ? Math.round(((typed.length - lost.length) / typed.length) * 100) : 0;
     return {
       type,
