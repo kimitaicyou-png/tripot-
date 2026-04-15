@@ -189,18 +189,47 @@ function SalesNumbersView() {
   const liveW = useLiveWeeklyData();
   const [deals, setDealsS] = useState(() => loadAllDeals());
   useEffect(() => { fetchDeals().then((fresh) => setDealsS(fresh)); }, []);
-  const kpi = calcDealKpi(deals);
-  const budgetRevenue = 0;
-  const budgetGross = 0;
-  const budgetOp = 0;
-  const remainRevenue = budgetRevenue - kpi.totalRevenue;
-  const remainGross = budgetGross - kpi.totalGrossProfit;
-  const remainOp = budgetOp > 0 ? budgetOp - (kpi.totalGrossProfit - 0) : 0;
-  const pct = (a: number, t: number) => t > 0 ? Math.round(((t - a) / t) * 100) : 0;
+  const [cards, setCards] = useState(() => { try { return loadProductionCards(); } catch { return []; } });
+  useEffect(() => { fetchProductionCards().then(setCards); }, []);
+
+  const dealCostById = new Map<string, number>();
+  for (const c of cards) {
+    const cost = c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0);
+    if (cost > 0) dealCostById.set(c.dealId, cost);
+  }
+  const kpi = calcDealKpi(deals, { dealCostById });
+
+  const currentMonthIdx = (() => {
+    const m = new Date().getMonth();
+    return m >= 4 ? m - 4 : m + 8;
+  })();
+  const budgetPlan = (() => {
+    if (typeof window === 'undefined') return null;
+    try {
+      const raw = localStorage.getItem('budget_plan');
+      return raw ? JSON.parse(raw) as {
+        segments: Array<{ values: number[] }>;
+        cogs: Array<{ values: number[] }>;
+        labor: Array<{ values: number[] }>;
+        admin: Array<{ values: number[] }>;
+      } : null;
+    } catch { return null; }
+  })();
+  const budgetRevenue = budgetPlan ? budgetPlan.segments.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000 : 0;
+  const budgetCogs = budgetPlan ? budgetPlan.cogs.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000 : 0;
+  const budgetSga = budgetPlan ? (budgetPlan.labor.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) + budgetPlan.admin.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0)) * 10000 : 0;
+  const budgetGross = budgetRevenue - budgetCogs;
+  const budgetOp = budgetGross - budgetSga;
+
+  const actualOp = kpi.totalGrossProfit - budgetSga;
+  const remainRevenue = Math.max(0, budgetRevenue - kpi.totalRevenue);
+  const remainGross = Math.max(0, budgetGross - kpi.totalGrossProfit);
+  const remainOp = Math.max(0, budgetOp - actualOp);
+  const achievePct = (actual: number, target: number) => target > 0 ? Math.max(0, Math.min(100, Math.round((actual / target) * 100))) : 0;
   const KPI_SUMMARY = [
-    { label: '残粗利',    actual: Math.max(0, remainGross), target: budgetGross, rate: 100 - pct(remainGross, budgetGross) },
-    { label: '残営業利益', actual: Math.max(0, remainOp),    target: budgetOp,    rate: 100 - pct(remainOp, budgetOp) },
-    { label: '残売上',    actual: Math.max(0, remainRevenue), target: budgetRevenue, rate: 100 - pct(remainRevenue, budgetRevenue) },
+    { label: '残粗利',    actual: remainGross,   target: budgetGross,   rate: achievePct(kpi.totalGrossProfit, budgetGross) },
+    { label: '残営業利益', actual: remainOp,      target: budgetOp,      rate: achievePct(actualOp, budgetOp) },
+    { label: '残売上',    actual: remainRevenue, target: budgetRevenue, rate: achievePct(kpi.totalRevenue, budgetRevenue) },
   ];
 
   return (
@@ -238,7 +267,7 @@ function SalesNumbersView() {
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-gray-100">
-                {['メンバー', 'アポ', '商談', '見積', '受注', '売上', '粗利（率46%換算）'].map((h) => (
+                {['メンバー', 'アポ', '商談', '見積', '受注', '売上', '粗利'].map((h) => (
                   <th key={h} className="px-2 py-2 text-[11px] font-semibold text-gray-500 text-right first:text-left whitespace-nowrap">
                     {h}
                   </th>

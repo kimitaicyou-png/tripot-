@@ -53,7 +53,12 @@ function useLiveFinancials(selectedMonth?: string) {
 
   const deals = selectedMonth ? filterDealsByMonth(allDeals, selectedMonth) : allDeals;
 
-  const kpi = calcDealKpi(deals);
+  const dealCostById = new Map<string, number>();
+  for (const c of prodCards) {
+    const cost = c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0);
+    if (cost > 0) dealCostById.set(c.dealId, cost);
+  }
+  const kpi = calcDealKpi(deals, { dealCostById });
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
   const orderedDeals = deals.filter((d) => orderedStages.includes(d.stage));
 
@@ -80,6 +85,8 @@ function useLiveFinancials(selectedMonth?: string) {
         cogs: Array<{ values: number[] }>;
         labor: Array<{ values: number[] }>;
         admin: Array<{ values: number[] }>;
+        otherIncome?: Array<{ values: number[] }>;
+        otherExpense?: Array<{ values: number[] }>;
       } : null;
     } catch { return null; }
   })();
@@ -109,7 +116,13 @@ function useLiveFinancials(selectedMonth?: string) {
   })();
   const sga = sgaOverride !== null ? sgaOverride : budgetSga;
   const operatingProfit = grossProfit - sga;
-  const ordinaryProfit = operatingProfit;
+  const otherIncome = budgetPlan?.otherIncome
+    ? budgetPlan.otherIncome.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
+    : 0;
+  const otherExpense = budgetPlan?.otherExpense
+    ? budgetPlan.otherExpense.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
+    : 0;
+  const ordinaryProfit = operatingProfit + otherIncome - otherExpense;
 
   const r = (v: number) => Math.round(v / 10000);
 
@@ -1150,7 +1163,7 @@ function YearlyTab() {
   const orderedYearlyData = (() => {
     const data = YEARLY_DATA.map((d) => {
       if (d.month === '4月') {
-        return { ...d, revenue: rr(live.totalRevenue), grossProfit: rr(live.grossProfit), operatingProfit: rr(live.grossProfit - 0), shot: rr(live.totalRevenue * 0.95), running: rr(live.totalRevenue * 0.05) };
+        return { ...d, revenue: rr(live.totalRevenue), grossProfit: rr(live.grossProfit), operatingProfit: rr(live.grossProfit - live.sga), shot: rr(live.totalRevenue * 0.95), running: rr(live.totalRevenue * 0.05) };
       }
       return d;
     });

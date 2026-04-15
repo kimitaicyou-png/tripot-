@@ -526,11 +526,16 @@ export default function MemberDashboardPage() {
   const myDeals = myName ? liveDeals.filter((d: { assignee: string }) => d.assignee === myName || !d.assignee) : liveDeals;
   const myOrdered = myDeals.filter((d: { stage: string }) => orderedStages.includes(d.stage));
   const myRevenue = myOrdered.reduce((s: number, d: { amount: number }) => s + d.amount, 0);
+  const myDealIds = new Set(myOrdered.map((d: { id: string }) => d.id));
+  const myProdCost = liveCards
+    .filter((c) => myDealIds.has(c.dealId))
+    .reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
+  const myGrossProfit = myProdCost > 0 ? myRevenue - myProdCost : myRevenue - Math.round(myRevenue * 0.54);
 
   const kpi = {
     revenue: myRevenue,
     revenueTarget: 0,
-    grossProfit: Math.round(myRevenue * 0.457),
+    grossProfit: myGrossProfit,
     grossProfitTarget: 0,
     meetings: myDeals.filter((d: { stage: string }) => d.stage === 'meeting').length,
     meetingsTarget: 0,
@@ -675,7 +680,13 @@ export default function MemberDashboardPage() {
   const COMPANY_RANKING = Object.entries(memberNames).map(([id, name]) => {
     const d = liveDeals.filter((x: { assignee: string; stage: string }) => x.assignee === name && orderedStages.includes(x.stage));
     const m = MEMBERS[id as keyof typeof MEMBERS];
-    return { id, name, company: 'トライポット', revenue: d.reduce((s: number, x: { amount: number }) => s + Math.round(x.amount / 10000), 0), grossProfit: d.reduce((s: number, x: { amount: number }) => s + Math.round(x.amount * 0.457 / 10000), 0), joinedAt: m?.joinedAt ?? '' };
+    const memberDealIds = new Set(d.map((x: { id: string }) => x.id));
+    const memberRevenue = d.reduce((s: number, x: { amount: number }) => s + x.amount, 0);
+    const memberProdCost = liveCards
+      .filter((c) => memberDealIds.has(c.dealId))
+      .reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
+    const memberGross = memberProdCost > 0 ? memberRevenue - memberProdCost : memberRevenue - Math.round(memberRevenue * 0.54);
+    return { id, name, company: 'トライポット', revenue: Math.round(memberRevenue / 10000), grossProfit: Math.round(memberGross / 10000), joinedAt: m?.joinedAt ?? '' };
   }).sort((a, b) => b.revenue - a.revenue);
   const companyRankIdx = COMPANY_RANKING.findIndex((m) => m.id === memberId);
   const companyRank = companyRankIdx >= 0 ? companyRankIdx + 1 : null;

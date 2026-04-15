@@ -107,12 +107,25 @@ export type MemberDealStat = {
 const SALES_STAGES = ['lead', 'meeting', 'proposal', 'estimate_sent', 'negotiation'];
 const ORDERED_STAGES = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
 
-export function calcDealKpi(deals: Deal[]): DealKpiSummary {
+type DealCostLookup = {
+  dealCostById?: Map<string, number>;
+  fallbackCogsRate?: number;
+};
+
+export function calcDealKpi(deals: Deal[], costLookup?: DealCostLookup): DealKpiSummary {
   const ordered = deals.filter((d) => ORDERED_STAGES.includes(d.stage));
   const pipeline = deals.filter((d) => SALES_STAGES.includes(d.stage));
   const totalRevenue = ordered.reduce((s, d) => s + d.amount, 0) + ordered.filter((d) => (d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount).reduce((s, d) => s + (d.monthlyAmount ?? 0), 0);
-  const grossRate = 0.457;
-  const totalGrossProfit = Math.round(totalRevenue * grossRate);
+  const fallbackCogsRate = costLookup?.fallbackCogsRate ?? 0.54;
+  const grossOf = (deal: Deal, rev: number) => {
+    const cost = costLookup?.dealCostById?.get(deal.id);
+    if (cost !== undefined && cost > 0) return rev - cost;
+    return rev - Math.round(rev * fallbackCogsRate);
+  };
+  const totalGrossProfit = ordered.reduce((s, d) => {
+    const rev = d.amount + ((d.revenueType === 'running' || d.revenueType === 'both') && d.monthlyAmount ? d.monthlyAmount : 0);
+    return s + grossOf(d, rev);
+  }, 0);
   const pipelineWeighted = pipeline.reduce((s, d) => s + Math.round(d.amount * d.probability / 100), 0);
 
   const assignees = [...new Set(deals.map((d) => d.assignee).filter((a) => a && a.trim()))];
@@ -120,6 +133,7 @@ export function calcDealKpi(deals: Deal[]): DealKpiSummary {
     const mine = deals.filter((d) => d.assignee === name);
     const myOrdered = mine.filter((d) => ORDERED_STAGES.includes(d.stage));
     const rev = myOrdered.reduce((s, d) => s + d.amount, 0);
+    const gross = myOrdered.reduce((s, d) => s + grossOf(d, d.amount), 0);
     return {
       name,
       appointments: mine.filter((d) => d.stage === 'lead').length,
@@ -127,7 +141,7 @@ export function calcDealKpi(deals: Deal[]): DealKpiSummary {
       estimates: mine.filter((d) => ['proposal', 'estimate_sent'].includes(d.stage)).length,
       orders: myOrdered.length,
       revenue: rev,
-      grossProfit: Math.round(rev * grossRate),
+      grossProfit: gross,
     };
   });
 
