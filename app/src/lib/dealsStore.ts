@@ -128,7 +128,6 @@ const ORDERED_STAGES = ['ordered', 'in_production', 'delivered', 'acceptance', '
 
 type DealCostLookup = {
   dealCostById?: Map<string, number>;
-  fallbackCogsRate?: number;
 };
 
 export function calcDealKpi(deals: Deal[], costLookup?: DealCostLookup): DealKpiSummary {
@@ -141,9 +140,7 @@ export function calcDealKpi(deals: Deal[], costLookup?: DealCostLookup): DealKpi
   const grossOf = (d: Deal, rev: number) => {
     const cost = costLookup?.dealCostById?.get(d.id);
     if (cost !== undefined && cost > 0) return rev - cost;
-    const fallbackCogsRate = costLookup?.fallbackCogsRate;
-    if (fallbackCogsRate === undefined || fallbackCogsRate === null) return 0;
-    return rev - Math.round(rev * fallbackCogsRate);
+    return 0;
   };
 
   const ordered = deals.filter((d) => ORDERED_STAGES.includes(d.stage));

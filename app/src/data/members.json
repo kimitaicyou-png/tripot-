@@ -1,4 +1,6 @@
 [
   { "id": "toki", "email": "k.toki@jtravel.group", "name": "土岐 公人", "role": "owner", "invitedBy": null, "invitedAt": "2026-04-09" },
-  { "id": "ono", "email": "ono.dot.think@gmail.com", "name": "小野 隆士", "role": "owner", "invitedBy": "toki", "invitedAt": "2026-04-09" }
+  { "id": "ono", "email": "ono.dot.think@gmail.com", "name": "小野 隆士", "role": "owner", "invitedBy": "toki", "invitedAt": "2026-04-09" },
+  { "id": "kashiwagi", "email": "kimanet@gmail.com", "name": "柏樹 久美子", "role": "manager", "invitedBy": "ono", "invitedAt": "2026-04-13" },
+  { "id": "izumi", "email": "kuhaku.001200@gmail.com", "name": "和泉 阿委璃", "role": "member", "invitedBy": "ono", "invitedAt": "2026-04-13" }
 ]

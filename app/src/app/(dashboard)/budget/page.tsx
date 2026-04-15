@@ -731,7 +731,7 @@ function Step2({ onNext }: { onNext: () => void }) {
     販管費: LAST_YEAR_MONTHLY.sga[i],
   }));
 
-  const grossRate = Math.round((LY_GROSS / LY_REVENUE) * 100);
+  const grossRate = LY_REVENUE > 0 ? Math.round((LY_GROSS / LY_REVENUE) * 100) : 0;
 
   return (
     <div className="space-y-6">
@@ -776,11 +776,11 @@ function Step2({ onNext }: { onNext: () => void }) {
         <div className="bg-gray-50 px-4 py-2 text-xs font-semibold text-gray-500 uppercase tracking-wider">科目別内訳</div>
         {[
           { label: '売上高',   value: LY_REVENUE, pct: null,                              indent: 0 },
-          { label: '売上原価', value: LY_COGS,    pct: Math.round(LY_COGS / LY_REVENUE * 100), indent: 0 },
+          { label: '売上原価', value: LY_COGS,    pct: LY_REVENUE > 0 ? Math.round(LY_COGS / LY_REVENUE * 100) : 0, indent: 0 },
           { label: '販管費',   value: LY_SGA,     pct: null,                              indent: 0 },
-          { label: '└ 人件費', value: 1800,       pct: null,                              indent: 1 },
-          { label: '└ 家賃',   value: 360,        pct: null,                              indent: 1 },
-          { label: '└ その他', value: 380,        pct: null,                              indent: 1 },
+          { label: '└ 人件費', value: 0,          pct: null,                              indent: 1 },
+          { label: '└ 家賃',   value: 0,          pct: null,                              indent: 1 },
+          { label: '└ その他', value: 0,          pct: null,                              indent: 1 },
           { label: '営業利益', value: LY_OP,      pct: null,                              indent: 0 },
         ].map(({ label, value, pct, indent }) => {
           const isOp = label === '営業利益';
@@ -1056,7 +1056,7 @@ type BudgetNumbers = {
 
 function computeBudget(growthRate: number): BudgetNumbers {
   const g = 1 + growthRate / 100;
-  const cogsRate = LY_COGS / LY_REVENUE;
+  const cogsRate = LY_REVENUE > 0 ? LY_COGS / LY_REVENUE : 0;
   const sgaGrowth = 1.06;
   return {
     revenue:  Math.round(LY_REVENUE * g),

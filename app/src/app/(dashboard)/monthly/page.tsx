@@ -94,13 +94,11 @@ function useLiveFinancials(selectedMonth?: string) {
     ? budgetPlan.cogs.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) * 10000
     : 0;
   const budgetGross = budgetRevenue - budgetCogs;
-  const companyCogsRate = budgetRevenue > 0 ? budgetCogs / budgetRevenue : null;
-
-  const kpi = calcDealKpi(deals, { dealCostById, fallbackCogsRate: companyCogsRate ?? undefined });
+  const kpi = calcDealKpi(deals, { dealCostById });
   const totalRevenue = kpi.totalRevenue;
   const prodCost = prodCards.reduce((s, c) => s + c.tasks.reduce((a, t) => a + (t.estimatedCost ?? 0), 0), 0);
-  const cogs = prodCost > 0 ? prodCost : (companyCogsRate !== null ? Math.round(totalRevenue * companyCogsRate) : 0);
-  const grossProfit = totalRevenue - cogs;
+  const cogs = prodCost;
+  const grossProfit = prodCost > 0 ? totalRevenue - cogs : 0;
   const budgetSga = budgetPlan
     ? (budgetPlan.labor.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0) +
        budgetPlan.admin.reduce((s, r) => s + (r.values[currentMonthIdx] ?? 0), 0)) * 10000
