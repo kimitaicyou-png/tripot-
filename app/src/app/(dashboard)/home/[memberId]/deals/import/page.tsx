@@ -3,513 +3,286 @@
 import { useState, useRef, useCallback } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { addDeal as addDealToStore } from '@/lib/dealsStore';
-import type { Deal } from '@/components/deals';
 
-type Stage =
-  | 'lead'
-  | 'meeting'
-  | 'proposal'
-  | 'estimate_sent'
-  | 'negotiation'
-  | 'ordered'
-  | 'in_production'
-  | 'delivered'
-  | 'acceptance'
-  | 'invoiced'
-  | 'accounting'
-  | 'paid'
-  | 'lost';
-
-const STAGE_OPTIONS: { value: Stage; label: string }[] = [
-  { value: 'lead',          label: 'リード' },
-  { value: 'meeting',       label: '商談' },
-  { value: 'proposal',      label: '提案' },
-  { value: 'estimate_sent', label: '見積提出' },
-  { value: 'negotiation',   label: '交渉中' },
-  { value: 'ordered',       label: '受注' },
-  { value: 'in_production', label: '制作中' },
-  { value: 'delivered',     label: '納品' },
-  { value: 'acceptance',    label: '検収' },
-  { value: 'invoiced',      label: '請求済' },
-  { value: 'accounting',    label: '経理処理中' },
-  { value: 'paid',          label: '入金済' },
-  { value: 'lost',          label: '失注' },
-];
-
-const STORAGE_KEY = 'coaris_attack_to_deals';
-
-function generateId(): string {
-  return `imp_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`;
-}
-
-function loadExisting(): Deal[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY);
-    return raw ? (JSON.parse(raw) as Deal[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-async function saveDeals(deals: Deal[]): Promise<void> {
-  for (const d of deals) await addDealToStore(d);
-}
-
-type FormValues = {
-  dealName: string;
-  clientName: string;
-  stage: Stage;
-  amount: string;
-  nextAction: string;
+const STAGE_LABELS: Record<string, string> = {
+  lead: 'リード', meeting: '商談', proposal: '提案', estimate_sent: '見積提出',
+  negotiation: '交渉中', ordered: '受注', in_production: '制作中', delivered: '納品',
+  acceptance: '検収', invoiced: '請求済', accounting: '経理処理中', paid: '入金済', lost: '失注',
 };
 
-const EMPTY_FORM: FormValues = {
-  dealName: '',
-  clientName: '',
-  stage: 'lead',
-  amount: '',
-  nextAction: '',
-};
+const STAGE_OPTIONS = Object.entries(STAGE_LABELS).map(([value, label]) => ({ value, label }));
 
-type CsvRow = {
-  dealName: string;
+type ExtractedDeal = {
   clientName: string;
-  stage: Stage;
+  dealName: string;
   amount: number;
-  nextAction: string;
+  stage: string;
+  industry: string;
+  memo: string;
+  revenueType: string;
+  monthlyAmount: number;
+  assignee: string;
+  sourceFile: string;
+  selected: boolean;
 };
 
-const CSV_HEADERS = ['案件名', '顧客名', 'ステージ', '受注予定金額', '次回アクション'];
-
-const CSV_TEMPLATE_ROWS = [
-  ['SaaS開発支援', '株式会社サンプル', '提案', '3500000', '来週月曜に提案書を送付'],
-  ['保守契約更新', '田中商事', '交渉中', '0', '4/15に担当者と電話'],
-];
-
-function buildCsvBlob(): Blob {
-  const rows = [CSV_HEADERS, ...CSV_TEMPLATE_ROWS];
-  const csv = rows.map((r) => r.map((c) => `"${c}"`).join(',')).join('\n');
-  return new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+function yen(n: number) {
+  return `¥${n.toLocaleString()}`;
 }
 
-function parseCsv(text: string): CsvRow[] {
-  const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '');
-  if (lines.length < 2) return [];
-  const result: CsvRow[] = [];
-  for (let i = 1; i < lines.length; i++) {
-    const cols = lines[i].split(',').map((c) => c.replace(/^"|"$/g, '').trim());
-    const stageLabelMatch = STAGE_OPTIONS.find((s) => s.label === (cols[2] ?? ''));
-    const stage: Stage = stageLabelMatch?.value ?? 'lead';
-    result.push({
-      dealName: cols[0] ?? '',
-      clientName: cols[1] ?? '',
-      stage,
-      amount: Number((cols[3] ?? '').replace(/[^0-9]/g, '')) || 0,
-      nextAction: cols[4] ?? '',
-    });
-  }
-  return result.filter((r) => r.dealName !== '' || r.clientName !== '');
-}
-
-function formToDeal(v: FormValues): Deal {
-  return {
-    id: generateId(),
-    dealName: v.dealName.trim(),
-    clientName: v.clientName.trim(),
-    stage: v.stage,
-    amount: Number(v.amount.replace(/[^0-9]/g, '')) || 0,
-    probability: 50,
-    assignee: '',
-    lastDate: new Date().toISOString().slice(0, 10),
-    memo: v.nextAction.trim(),
-    revenueType: 'shot',
-    industry: 'その他',
-  };
-}
-
-function csvRowToDeal(row: CsvRow): Deal {
-  return {
-    id: generateId(),
-    dealName: row.dealName,
-    clientName: row.clientName,
-    stage: row.stage,
-    amount: row.amount,
-    probability: 50,
-    assignee: '',
-    lastDate: new Date().toISOString().slice(0, 10),
-    memo: row.nextAction,
-    revenueType: 'shot',
-    industry: 'その他',
-  };
-}
-
-type Mode = 'manual' | 'csv';
-
-export default function DealsImportPage() {
+export default function ImportPage() {
   const params = useParams();
   const router = useRouter();
   const memberId = params.memberId as string;
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragging, setDragging] = useState(false);
+  const [extracting, setExtracting] = useState(false);
+  const [deals, setDeals] = useState<ExtractedDeal[]>([]);
+  const [errors, setErrors] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [done, setDone] = useState(false);
+  const [memberName, setMemberName] = useState('');
 
-  const [mode, setMode] = useState<Mode>('manual');
+  useState(() => {
+    fetch('/api/members')
+      .then((r) => r.json())
+      .then((d) => {
+        const me = (d.members ?? []).find((m: { id: string; name: string }) => m.id === memberId);
+        if (me) setMemberName(me.name);
+      })
+      .catch(() => {});
+  });
 
-  const [form, setForm] = useState<FormValues>(EMPTY_FORM);
-  const [savedCount, setSavedCount] = useState(0);
-  const [formError, setFormError] = useState('');
-  const [justSaved, setJustSaved] = useState(false);
-
-  const [csvRows, setCsvRows] = useState<CsvRow[]>([]);
-  const [csvFileName, setCsvFileName] = useState('');
-  const [csvError, setCsvError] = useState('');
-  const [csvImported, setCsvImported] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const fieldRefs = useRef<Array<HTMLInputElement | HTMLSelectElement | null>>([]);
-
-  const handleFormChange = useCallback(
-    (field: keyof FormValues, value: string) => {
-      setForm((prev) => ({ ...prev, [field]: value }));
-      setFormError('');
-    },
-    []
-  );
-
-  const handleSaveAndNext = useCallback(async () => {
-    if (!form.dealName.trim()) { setFormError('案件名は必須です'); return; }
-    if (!form.clientName.trim()) { setFormError('顧客名は必須です'); return; }
-    const deal = formToDeal(form);
-    await saveDeals([deal]);
-    setSavedCount((n) => n + 1);
-    setForm(EMPTY_FORM);
-    setJustSaved(true);
-    setTimeout(() => setJustSaved(false), 1800);
-  }, [form]);
-
-  const handleFieldKeyDown = useCallback(
-    (e: React.KeyboardEvent, index: number) => {
-      if (e.key !== 'Enter') return;
-      e.preventDefault();
-      const next = fieldRefs.current[index + 1];
-      if (next) {
-        next.focus();
-      } else {
-        handleSaveAndNext();
-      }
-    },
-    [handleSaveAndNext]
-  );
-
-  const handleSaveAndFinish = useCallback(async () => {
-    if (!form.dealName.trim() && !form.clientName.trim()) {
-      router.push(`/home/${memberId}/deals`);
-      return;
+  const handleFiles = useCallback(async (files: FileList | File[]) => {
+    setExtracting(true);
+    setErrors([]);
+    const form = new FormData();
+    for (const f of Array.from(files)) {
+      form.append('files', f);
     }
-    if (!form.dealName.trim()) { setFormError('案件名は必須です'); return; }
-    if (!form.clientName.trim()) { setFormError('顧客名は必須です'); return; }
-    const deal = formToDeal(form);
-    await saveDeals([deal]);
-    router.push(`/home/${memberId}/deals`);
-  }, [form, memberId, router]);
+    form.append('assignee', memberName);
 
-  const handleFileChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setCsvFileName(file.name);
-    setCsvError('');
-    setCsvImported(false);
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      const text = ev.target?.result as string;
-      const rows = parseCsv(text);
-      if (rows.length === 0) {
-        setCsvError('有効なデータが見つかりませんでした。テンプレートを確認してください。');
-        setCsvRows([]);
-      } else {
-        setCsvRows(rows);
+    try {
+      const res = await fetch('/api/deals/bulk-extract', { method: 'POST', body: form });
+      if (!res.ok) {
+        const err = await res.json();
+        setErrors([err.error ?? '抽出に失敗しました']);
+        setExtracting(false);
+        return;
       }
-    };
-    reader.readAsText(file, 'utf-8');
-  }, []);
+      const data = await res.json();
+      const extracted: ExtractedDeal[] = (data.deals ?? []).map((d: Record<string, unknown>) => ({
+        clientName: String(d.clientName ?? ''),
+        dealName: String(d.dealName ?? ''),
+        amount: Number(d.amount) || 0,
+        stage: String(d.stage ?? 'lead'),
+        industry: String(d.industry ?? 'その他'),
+        memo: String(d.memo ?? ''),
+        revenueType: String(d.revenueType ?? 'shot'),
+        monthlyAmount: Number(d.monthlyAmount) || 0,
+        assignee: String(d.assignee ?? memberName),
+        sourceFile: String(d.sourceFile ?? ''),
+        selected: true,
+      }));
+      setDeals((prev) => [...prev, ...extracted]);
+      if (data.errors?.length > 0) setErrors((prev) => [...prev, ...data.errors]);
+    } catch {
+      setErrors(['ネットワークエラー']);
+    } finally {
+      setExtracting(false);
+    }
+  }, [memberName]);
 
-  const handleCsvImport = useCallback(async () => {
-    const deals = csvRows.map(csvRowToDeal);
-    await saveDeals(deals);
-    setCsvImported(true);
-  }, [csvRows]);
+  const handleDrop = useCallback((e: React.DragEvent) => {
+    e.preventDefault();
+    setDragging(false);
+    if (e.dataTransfer.files.length > 0) handleFiles(e.dataTransfer.files);
+  }, [handleFiles]);
 
-  const handleDownloadTemplate = useCallback(() => {
-    const blob = buildCsvBlob();
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = '案件インポートテンプレート.csv';
-    a.click();
-    URL.revokeObjectURL(url);
-  }, []);
+  async function handleSave() {
+    const selected = deals.filter((d) => d.selected);
+    if (selected.length === 0) return;
+    setSaving(true);
+    try {
+      const res = await fetch('/api/deals/bulk-extract', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deals: selected }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setDone(true);
+        setTimeout(() => router.push(`/home/${memberId}/deals`), 1500);
+      }
+    } catch {} finally {
+      setSaving(false);
+    }
+  }
+
+  const selectedCount = deals.filter((d) => d.selected).length;
+  const totalAmount = deals.filter((d) => d.selected).reduce((s, d) => s + d.amount, 0);
+
+  if (done) {
+    return (
+      <div className="max-w-lg mx-auto px-4 py-20 text-center">
+        <div className="text-5xl mb-4">✅</div>
+        <h2 className="text-xl font-semibold text-gray-900 mb-2">取込完了</h2>
+        <p className="text-sm text-gray-500">{selectedCount}件の案件をDBに保存しました</p>
+        <p className="text-sm text-gray-500 mt-1">案件一覧に移動します...</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-5">
-      <div className="flex items-center gap-2 mb-5">
-        <Link
-          href={`/home/${memberId}/deals`}
-          className="text-xs text-gray-500 hover:text-gray-700 transition-colors"
-        >
-          ← 案件管理に戻る
+    <div className="max-w-3xl mx-auto px-4 py-6 space-y-5">
+      <div className="flex items-center gap-3">
+        <Link href={`/home/${memberId}/deals`} className="text-sm font-semibold text-gray-700 hover:text-gray-900 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg active:scale-[0.98] transition-all">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+          </svg>
+          案件一覧
         </Link>
-        <span className="text-gray-500">/</span>
-        <p className="text-sm font-semibold text-gray-900">案件インポート</p>
-      </div>
-
-      <div className="flex gap-1 p-1 bg-gray-100 rounded-lg mb-6">
-        <button
-          onClick={() => setMode('manual')}
-          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-colors active:scale-[0.98] ${
-            mode === 'manual'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          手動連続入力
-        </button>
-        <button
-          onClick={() => setMode('csv')}
-          className={`flex-1 py-2 text-sm font-semibold rounded-md transition-colors active:scale-[0.98] ${
-            mode === 'csv'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
-          }`}
-        >
-          CSVインポート
-        </button>
-      </div>
-
-      {mode === 'manual' && (
         <div>
-          {savedCount > 0 && (
-            <div className={`mb-4 flex items-center gap-2 px-3 py-2.5 rounded-lg border text-sm transition-all ${justSaved ? 'border-blue-200 bg-blue-50 text-blue-700' : 'border-gray-200 bg-white text-gray-700'}`}>
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-4 h-4 shrink-0 text-blue-600">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-              </svg>
-              <span>
-                <span className="font-semibold text-blue-700">{savedCount}件</span>
-                {justSaved ? ' 保存しました。続けて入力できます。' : ' 登録済み'}
-              </span>
+          <h1 className="text-lg font-semibold text-gray-900">過去データ取込</h1>
+          <p className="text-xs text-gray-500">なんでもドロップ → AIが読み取り → 案件に自動変換</p>
+        </div>
+      </div>
+
+      <div
+        className={`border-2 border-dashed rounded-2xl p-10 text-center cursor-pointer transition-all ${
+          dragging ? 'border-blue-500 bg-blue-50' :
+          extracting ? 'border-blue-300 bg-blue-50/50' :
+          'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+        }`}
+        onDragOver={(e) => { e.preventDefault(); setDragging(true); }}
+        onDragLeave={() => setDragging(false)}
+        onDrop={handleDrop}
+        onClick={() => !extracting && inputRef.current?.click()}
+      >
+        <input
+          ref={inputRef}
+          type="file"
+          multiple
+          accept="image/*,.pdf,.csv,.tsv,.xlsx,.xls,.txt"
+          className="hidden"
+          onChange={(e) => {
+            if (e.target.files && e.target.files.length > 0) handleFiles(e.target.files);
+          }}
+        />
+        {extracting ? (
+          <>
+            <div className="text-3xl mb-3 animate-pulse">🤖</div>
+            <p className="text-sm font-semibold text-blue-600">AIが読み取り中...</p>
+            <p className="text-xs text-blue-500 mt-1">請求書・見積書・メモ・CSV を解析しています</p>
+          </>
+        ) : (
+          <>
+            <div className="text-3xl mb-3">📎</div>
+            <p className="text-sm font-semibold text-gray-700">ファイルをドロップ（複数OK）</p>
+            <p className="text-xs text-gray-500 mt-1">請求書PDF / 見積書画像 / CSV / メモ写真 / なんでも</p>
+            <div className="flex flex-wrap justify-center gap-2 mt-4">
+              {['📄 PDF', '🖼 画像', '📊 CSV', '📝 テキスト'].map((t) => (
+                <span key={t} className="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded-full">{t}</span>
+              ))}
             </div>
-          )}
+          </>
+        )}
+      </div>
 
-          <div className="bg-white border border-gray-200 rounded-xl p-5">
-            <p className="text-xs font-semibold text-gray-500 uppercase tracking-widest mb-4">案件 #{savedCount + 1}</p>
-
-            <div className="space-y-4">
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  案件名 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  ref={(el) => { fieldRefs.current[0] = el; }}
-                  value={form.dealName}
-                  onChange={(e) => handleFormChange('dealName', e.target.value)}
-                  onKeyDown={(e) => handleFieldKeyDown(e, 0)}
-                  placeholder="例: ECサイト開発"
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  顧客名 <span className="text-red-500">*</span>
-                </label>
-                <input
-                  type="text"
-                  ref={(el) => { fieldRefs.current[1] = el; }}
-                  value={form.clientName}
-                  onChange={(e) => handleFormChange('clientName', e.target.value)}
-                  onKeyDown={(e) => handleFieldKeyDown(e, 1)}
-                  placeholder="例: 株式会社サンプル"
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  ステージ <span className="text-red-500">*</span>
-                </label>
-                <select
-                  ref={(el) => { fieldRefs.current[2] = el; }}
-                  value={form.stage}
-                  onChange={(e) => handleFormChange('stage', e.target.value)}
-                  onKeyDown={(e) => handleFieldKeyDown(e, 2)}
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white"
-                >
-                  {STAGE_OPTIONS.map((s) => (
-                    <option key={s.value} value={s.value}>{s.label}</option>
-                  ))}
-                </select>
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  受注予定金額（円）
-                </label>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  ref={(el) => { fieldRefs.current[3] = el; }}
-                  value={form.amount}
-                  onChange={(e) => handleFormChange('amount', e.target.value)}
-                  onKeyDown={(e) => handleFieldKeyDown(e, 3)}
-                  placeholder="例: 3500000"
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-semibold text-gray-700 mb-1.5">
-                  次回アクション
-                </label>
-                <input
-                  type="text"
-                  ref={(el) => { fieldRefs.current[4] = el; }}
-                  value={form.nextAction}
-                  onChange={(e) => handleFormChange('nextAction', e.target.value)}
-                  onKeyDown={(e) => handleFieldKeyDown(e, 4)}
-                  placeholder="例: 来週月曜に提案書を送付"
-                  className="w-full px-3 py-2.5 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder:text-gray-500"
-                />
-              </div>
-
-              {formError && (
-                <p className="text-xs text-red-600 font-semibold">{formError}</p>
-              )}
-            </div>
-          </div>
-
-          <div className="flex gap-3 mt-4">
-            <button
-              onClick={handleSaveAndNext}
-              className="flex-1 py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors active:scale-[0.98]"
-            >
-              保存して次へ
-            </button>
-            <button
-              onClick={handleSaveAndFinish}
-              className="flex-1 py-3 bg-white border border-gray-200 text-gray-700 rounded-lg text-sm font-semibold hover:bg-gray-50 transition-colors active:scale-[0.98]"
-            >
-              {form.dealName.trim() || form.clientName.trim() ? '保存して完了' : '完了（登録なし）'}
-            </button>
-          </div>
+      {errors.length > 0 && (
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-3 space-y-1">
+          {errors.map((e, i) => (
+            <p key={i} className="text-xs text-amber-800">⚠ {e}</p>
+          ))}
         </div>
       )}
 
-      {mode === 'csv' && (
-        <div>
-          <div className="bg-white border border-gray-200 rounded-xl p-5 mb-4">
-            <div className="flex items-center justify-between mb-3">
-              <p className="text-sm font-semibold text-gray-900">CSVファイルを選択</p>
+      {deals.length > 0 && (
+        <>
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-semibold text-gray-900">
+              抽出結果 <span className="text-blue-600">{deals.length}件</span>
+              {selectedCount !== deals.length && <span className="text-gray-500 ml-1">（{selectedCount}件選択中）</span>}
+            </p>
+            <div className="flex gap-2">
               <button
-                onClick={handleDownloadTemplate}
-                className="inline-flex items-center gap-1 text-xs font-semibold text-blue-600 hover:text-blue-800 transition-colors active:scale-[0.98]"
+                onClick={() => setDeals((prev) => prev.map((d) => ({ ...d, selected: true })))}
+                className="text-xs text-blue-600 font-semibold"
               >
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-3.5 h-3.5">
-                  <path fillRule="evenodd" d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z" clipRule="evenodd" />
-                </svg>
-                テンプレートDL
+                全選択
+              </button>
+              <button
+                onClick={() => setDeals((prev) => prev.map((d) => ({ ...d, selected: false })))}
+                className="text-xs text-gray-500 font-semibold"
+              >
+                全解除
               </button>
             </div>
-
-            <p className="text-xs text-gray-500 mb-3">
-              列順: 案件名 / 顧客名 / ステージ / 受注予定金額 / 次回アクション
-            </p>
-
-            <button
-              onClick={() => fileInputRef.current?.click()}
-              className="w-full py-8 border-2 border-dashed border-gray-200 rounded-lg text-center hover:border-blue-300 hover:bg-blue-50/30 transition-colors active:scale-[0.98]"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-8 h-8 text-gray-500 mx-auto mb-2">
-                <path d="M9.25 13.25a.75.75 0 001.5 0V4.636l2.955 3.129a.75.75 0 001.09-1.03l-4.25-4.5a.75.75 0 00-1.09 0l-4.25 4.5a.75.75 0 101.09 1.03L9.25 4.636v8.614z" />
-                <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
-              </svg>
-              <p className="text-sm font-semibold text-gray-500">
-                {csvFileName ? csvFileName : 'CSVファイルを選択'}
-              </p>
-              <p className="text-xs text-gray-500 mt-1">クリックしてファイルを選択</p>
-            </button>
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".csv,text/csv"
-              className="hidden"
-              onChange={handleFileChange}
-            />
-
-            {csvError && (
-              <p className="text-xs text-red-600 font-semibold mt-2">{csvError}</p>
-            )}
           </div>
 
-          {csvRows.length > 0 && !csvImported && (
-            <div>
-              <p className="text-xs font-semibold text-gray-700 mb-2">{csvRows.length}件のデータが見つかりました</p>
-              <div className="bg-white border border-gray-200 rounded-xl overflow-hidden mb-4">
-                <div className="overflow-x-auto">
-                  <table className="w-full text-xs">
-                    <thead>
-                      <tr className="border-b border-gray-100 bg-gray-50">
-                        <th className="px-3 py-2.5 text-left font-semibold text-gray-500">#</th>
-                        <th className="px-3 py-2.5 text-left font-semibold text-gray-500">案件名</th>
-                        <th className="px-3 py-2.5 text-left font-semibold text-gray-500">顧客名</th>
-                        <th className="px-3 py-2.5 text-left font-semibold text-gray-500">ステージ</th>
-                        <th className="px-3 py-2.5 text-right font-semibold text-gray-500">金額</th>
-                        <th className="px-3 py-2.5 text-left font-semibold text-gray-500">次回アクション</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-gray-100">
-                      {csvRows.map((row, i) => {
-                        const stageLabel = STAGE_OPTIONS.find((s) => s.value === row.stage)?.label ?? row.stage;
-                        return (
-                          <tr key={i} className="hover:bg-gray-50 transition-colors">
-                            <td className="px-3 py-2.5 text-gray-500 tabular-nums">{i + 1}</td>
-                            <td className="px-3 py-2.5 font-semibold text-gray-900 max-w-[120px] truncate">{row.dealName || <span className="text-red-500">未入力</span>}</td>
-                            <td className="px-3 py-2.5 text-gray-600 max-w-[100px] truncate">{row.clientName || <span className="text-gray-500">-</span>}</td>
-                            <td className="px-3 py-2.5 text-gray-600">{stageLabel}</td>
-                            <td className="px-3 py-2.5 text-right tabular-nums text-gray-600">
-                              {row.amount > 0 ? `¥${(row.amount / 10000).toFixed(0)}万` : '-'}
-                            </td>
-                            <td className="px-3 py-2.5 text-gray-500 max-w-[150px] truncate">{row.nextAction || '-'}</td>
-                          </tr>
-                        );
-                      })}
-                    </tbody>
-                  </table>
+          <div className="space-y-3">
+            {deals.map((deal, idx) => (
+              <div
+                key={idx}
+                className={`bg-white border rounded-xl p-4 transition-all ${deal.selected ? 'border-blue-200 shadow-sm' : 'border-gray-200 opacity-60'}`}
+              >
+                <div className="flex items-start gap-3">
+                  <input
+                    type="checkbox"
+                    checked={deal.selected}
+                    onChange={() => setDeals((prev) => prev.map((d, i) => i === idx ? { ...d, selected: !d.selected } : d))}
+                    className="mt-1 w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                  />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <input
+                        value={deal.clientName}
+                        onChange={(e) => setDeals((prev) => prev.map((d, i) => i === idx ? { ...d, clientName: e.target.value } : d))}
+                        className="text-sm font-semibold text-gray-900 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none flex-1 min-w-0"
+                        placeholder="顧客名"
+                      />
+                      <select
+                        value={deal.stage}
+                        onChange={(e) => setDeals((prev) => prev.map((d, i) => i === idx ? { ...d, stage: e.target.value } : d))}
+                        className="text-xs font-semibold px-2 py-1 rounded-full border border-gray-200 bg-gray-50"
+                      >
+                        {STAGE_OPTIONS.map((s) => (
+                          <option key={s.value} value={s.value}>{s.label}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <input
+                      value={deal.dealName}
+                      onChange={(e) => setDeals((prev) => prev.map((d, i) => i === idx ? { ...d, dealName: e.target.value } : d))}
+                      className="text-xs text-gray-600 bg-transparent border-b border-transparent hover:border-gray-300 focus:border-blue-500 focus:outline-none w-full mb-1"
+                      placeholder="案件名"
+                    />
+                    <div className="flex items-center gap-3 text-xs text-gray-500">
+                      <span className="font-semibold text-gray-900 tabular-nums">{yen(deal.amount)}</span>
+                      <span>{deal.industry}</span>
+                      <span className="text-gray-400">← {deal.sourceFile}</span>
+                    </div>
+                    {deal.memo && <p className="text-xs text-gray-500 mt-1">{deal.memo}</p>}
+                  </div>
                 </div>
               </div>
+            ))}
+          </div>
 
-              <button
-                onClick={handleCsvImport}
-                className="w-full py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors active:scale-[0.98]"
-              >
-                全{csvRows.length}件を登録
-              </button>
+          <div className="sticky bottom-4 bg-white border border-gray-200 rounded-2xl p-4 shadow-lg flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-gray-900">{selectedCount}件 / {yen(totalAmount)}</p>
+              <p className="text-xs text-gray-500">担当: {memberName || memberId}</p>
             </div>
-          )}
-
-          {csvImported && (
-            <div className="bg-white border border-gray-200 rounded-xl p-6 text-center">
-              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" className="w-10 h-10 text-blue-600 mx-auto mb-3">
-                <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clipRule="evenodd" />
-              </svg>
-              <p className="text-sm font-semibold text-gray-900 mb-1">{csvRows.length}件の案件を登録しました</p>
-              <p className="text-xs text-gray-500 mb-4">案件管理画面で確認できます</p>
-              <Link
-                href={`/home/${memberId}/deals`}
-                className="inline-flex items-center gap-1.5 px-4 py-2.5 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors active:scale-[0.98]"
-              >
-                案件管理を開く
-              </Link>
-            </div>
-          )}
-        </div>
+            <button
+              onClick={handleSave}
+              disabled={saving || selectedCount === 0}
+              className="px-6 py-2.5 bg-blue-600 text-white font-semibold rounded-xl hover:bg-blue-700 disabled:opacity-50 active:scale-[0.98] transition-all text-sm"
+            >
+              {saving ? '保存中...' : `${selectedCount}件をDBに取込`}
+            </button>
+          </div>
+        </>
       )}
     </div>
   );
