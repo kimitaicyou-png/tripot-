@@ -1,3 +1,4 @@
+import { requireAuth, isAuthError } from '@/lib/apiAuth';
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -20,6 +21,7 @@ export type ExtractedDeal = {
 };
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   try {
     const body = await req.json() as { imageBase64: string; mediaType?: string };
     const { imageBase64, mediaType = 'image/jpeg' } = body;

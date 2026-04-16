@@ -1,3 +1,4 @@
+import { requireAuth, isAuthError } from '@/lib/apiAuth';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
@@ -38,6 +39,7 @@ async function getMfToken(): Promise<string | null> {
 }
 
 export async function GET(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const token = await getMfToken();
   if (!token) {
     return NextResponse.json({ error: 'MFクラウド未連携。設定画面から連携してください。', needsAuth: true }, { status: 401 });

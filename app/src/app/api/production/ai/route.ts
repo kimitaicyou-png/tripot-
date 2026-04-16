@@ -1,3 +1,4 @@
+import { requireAuth, isAuthError } from '@/lib/apiAuth';
 import { NextRequest, NextResponse } from 'next/server';
 import Anthropic from '@anthropic-ai/sdk';
 
@@ -54,6 +55,7 @@ function extractJson<T>(text: string): T | null {
 }
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   try {
     const body = await req.json() as {
       action: AiAction;

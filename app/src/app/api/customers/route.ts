@@ -1,7 +1,9 @@
+import { requireAuth, isAuthError } from '@/lib/apiAuth';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
 export async function GET() {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const sql = getDb();
   const rows = await sql`SELECT * FROM customers ORDER BY created_at DESC`;
   const customers = rows.map((r) => ({
@@ -23,6 +25,7 @@ export async function GET() {
 }
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const body = await req.json();
   const sql = getDb();
   const id = body.id || `cm_${Date.now()}`;

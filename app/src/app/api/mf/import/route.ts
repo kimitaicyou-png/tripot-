@@ -1,3 +1,4 @@
+import { requireAuth, isAuthError } from '@/lib/apiAuth';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
@@ -24,6 +25,7 @@ function billingToStage(status: string): string {
 }
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const body = await req.json() as { billings: MfBilling[] };
   if (!body.billings || !Array.isArray(body.billings)) {
     return NextResponse.json({ error: 'billings配列が必要です' }, { status: 400 });

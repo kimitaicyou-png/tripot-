@@ -1,3 +1,4 @@
+import { requireAuth, isAuthError } from '@/lib/apiAuth';
 import { NextRequest, NextResponse } from 'next/server';
 import { getDb } from '@/lib/db';
 
@@ -33,12 +34,14 @@ function rowToDeal(r: Record<string, unknown>) {
 }
 
 export async function GET() {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const sql = getDb();
   const rows = await sql`SELECT * FROM deals ORDER BY updated_at DESC`;
   return NextResponse.json({ deals: rows.map(rowToDeal) });
 }
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const body = await req.json();
   const sql = getDb();
   const id = body.id || `d${Date.now()}`;
@@ -81,6 +84,7 @@ export async function POST(req: NextRequest) {
 }
 
 export async function PUT(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const body = await req.json();
   if (!body.id) return NextResponse.json({ error: 'id必須' }, { status: 400 });
 
@@ -121,6 +125,7 @@ export async function PUT(req: NextRequest) {
 }
 
 export async function DELETE(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
   if (!id) return NextResponse.json({ error: 'id必須' }, { status: 400 });

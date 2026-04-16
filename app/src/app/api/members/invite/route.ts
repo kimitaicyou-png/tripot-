@@ -1,7 +1,9 @@
+import { requireAuth, isAuthError } from '@/lib/apiAuth';
 import { NextRequest, NextResponse } from 'next/server';
 import { Resend } from 'resend';
 
 export async function POST(req: NextRequest) {
+  const authResult = await requireAuth(); if (isAuthError(authResult)) return authResult;
   const body = await req.json() as { email: string; name: string; inviterName: string };
   const { email, name, inviterName } = body;
 
