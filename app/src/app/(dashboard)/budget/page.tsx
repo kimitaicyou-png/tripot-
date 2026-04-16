@@ -468,6 +468,7 @@ function BudgetPlanTab() {
       />
 
       <div className="flex items-center gap-3 justify-end">
+        <span className="text-xs text-gray-500 mr-auto">💾 保存先: クラウドDB（全メンバー共有）</span>
         {saveError && <span className="text-xs text-red-600 font-semibold">{saveError}</span>}
         {!loaded && <span className="text-xs text-gray-500">読込中...</span>}
         <button

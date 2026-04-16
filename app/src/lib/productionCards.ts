@@ -286,6 +286,9 @@ export async function updateProductionCard(id: string, patch: Partial<Production
     const updated = { ...cache[idx], ...patch, updatedAt: new Date().toISOString() };
     cache[idx] = updated;
     writeCache([...cache]);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('production_cards_updated'));
+    }
     return updated;
   } catch { return undefined; }
 }

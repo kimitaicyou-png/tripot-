@@ -426,11 +426,11 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
               {session && (
                 <button
                   onClick={() => signOut({ callbackUrl: '/login' })}
-                  title="ログアウト"
-                  className="w-7 h-7 flex items-center justify-center rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-colors shrink-0">
+                  className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg text-xs font-semibold text-white/60 hover:text-white hover:bg-white/10 transition-colors shrink-0">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
                   </svg>
+                  <span>ログアウト</span>
                 </button>
               )}
             </div>
@@ -510,6 +510,9 @@ function SidebarInner({ children }: { children: React.ReactNode }) {
                 </Link>
                 <Link href="/production" className={navLinkClass(isProduction)}>
                   <ProductionIcon /><span>制作ダッシュボード</span>
+                </Link>
+                <Link href="/budget" className={navLinkClass(false)}>
+                  <span className="text-base">📊</span><span>事業計画</span>
                 </Link>
               </div>
 

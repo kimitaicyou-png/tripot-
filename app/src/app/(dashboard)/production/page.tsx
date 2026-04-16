@@ -63,6 +63,18 @@ export default function ProductionDashboardPage() {
   const [phaseFilter, setPhaseFilter] = useState<PhaseFilter>('all');
   const [hideInactive, setHideInactive] = useState(false);
   const [showBudgetOverview, setShowBudgetOverview] = useState(false);
+  const [onlyMine, setOnlyMine] = useState(false);
+  const [myMemberId, setMyMemberId] = useState<string>('');
+  useEffect(() => {
+    fetch('/api/auth/session').then((r) => r.json()).then((s) => {
+      const email = s?.user?.email;
+      if (!email) return;
+      fetch('/api/members').then((r) => r.json()).then((d) => {
+        const me = (d.members ?? []).find((m: { email?: string; id: string }) => m.email === email);
+        if (me) setMyMemberId(me.id);
+      }).catch(() => {});
+    }).catch(() => {});
+  }, []);
 
   useEffect(() => {
     fetchProductionCards().then(setCards);
@@ -184,8 +196,11 @@ export default function ProductionDashboardPage() {
     let result = cards;
     if (hideInactive) result = result.filter((c) => c.status === 'active');
     if (phaseFilter !== 'all') result = result.filter((c) => c.phase === phaseFilter);
+    if (onlyMine && myMemberId) {
+      result = result.filter((c) => c.pmId === myMemberId || (c.teamMemberIds ?? []).includes(myMemberId) || c.tasks.some((t) => t.assigneeId === myMemberId));
+    }
     return result;
-  }, [cards, phaseFilter, hideInactive]);
+  }, [cards, phaseFilter, hideInactive, onlyMine, myMemberId]);
 
   const totalRevenue = cards.reduce((s, c) => s + (c.amount ?? 0) + (c.amendments ?? []).reduce((a, x) => a + x.amount, 0), 0);
   const totalBudget = cards.reduce((s, c) => s + (c.referenceArtifacts ?? { budget: 0, requirement: '', proposalSummary: '' }).budget, 0);
@@ -305,6 +320,12 @@ export default function ProductionDashboardPage() {
             onClick={() => setHideInactive(!hideInactive)}
             className={`text-xs font-semibold rounded-full px-3 py-1.5 border active:scale-[0.98] ${hideInactive ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}
           >{hideInactive ? '✓ 完了/中止を非表示' : '完了/中止を非表示'}</button>
+          {myMemberId && (
+            <button
+              onClick={() => setOnlyMine(!onlyMine)}
+              className={`text-xs font-semibold rounded-full px-3 py-1.5 border active:scale-[0.98] ${onlyMine ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}
+            >{onlyMine ? '✓ 自分の案件のみ' : '自分の案件のみ'}</button>
+          )}
           <button
             onClick={() => setShowBudgetOverview(!showBudgetOverview)}
             className={`text-xs font-semibold rounded-full px-3 py-1.5 border active:scale-[0.98] ${showBudgetOverview ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-800 border-gray-200'}`}

@@ -1506,7 +1506,7 @@ export default function MonthlyPage() {
           />
           <div>
             <p className="text-[11px] font-semibold text-gray-500 uppercase tracking-wider">トライポット株式会社</p>
-            <h1 className="text-lg font-semibold text-gray-900 leading-tight">月次ダッシュボード</h1>
+            <h1 className="text-lg font-semibold text-gray-900 leading-tight">月次ダッシュボード <span className="text-xs font-semibold text-blue-600 ml-2 px-2 py-0.5 bg-blue-50 rounded-full align-middle">全社PL</span></h1>
           </div>
         </div>
 

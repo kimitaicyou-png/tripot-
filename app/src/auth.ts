@@ -83,9 +83,6 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       if (role && !hasMinRole(role, 'manager') && restrictedForMember.some((p) => pathname.startsWith(p))) {
         return Response.redirect(new URL(`/home/${memberId ?? 'toki'}`, request.nextUrl));
       }
-      if (pathname.startsWith('/settings') && role && role !== 'owner') {
-        return Response.redirect(new URL(`/home/${memberId ?? 'toki'}`, request.nextUrl));
-      }
       if (pathname.startsWith('/home/') && role === 'member') {
         const viewingId = pathname.split('/')[2];
         if (viewingId && viewingId !== memberId) {

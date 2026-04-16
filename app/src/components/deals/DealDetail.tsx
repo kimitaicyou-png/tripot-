@@ -58,7 +58,12 @@ export function DealDetail({ deal: initialDeal, onBack, onStageChange, onUpdate 
     <>
       <div className="max-w-lg mx-auto px-4 py-5 bg-gray-50 min-h-screen">
         <div className="flex items-center justify-between mb-5">
-          <button onClick={onBack} className="text-sm text-gray-500 hover:text-gray-900 font-medium inline-flex items-center gap-1">← 戻る</button>
+          <button onClick={onBack} className="text-sm font-semibold text-gray-700 hover:text-gray-900 inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-200 rounded-lg active:scale-[0.98] transition-all">
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7" />
+            </svg>
+            案件一覧に戻る
+          </button>
           <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
             <button onClick={() => setDetailTab('main')}
               className={`px-3 py-1.5 text-xs font-medium rounded-md transition-all ${detailTab === 'main' ? 'bg-white text-gray-900 shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}>案件詳細</button>

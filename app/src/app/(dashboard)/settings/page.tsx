@@ -92,11 +92,17 @@ function SettingsContent() {
   const yearSga = budgetPlan ? (budgetPlan.labor.reduce((s, r) => s + r.values.reduce((a, b) => a + b, 0), 0) + budgetPlan.admin.reduce((s, r) => s + r.values.reduce((a, b) => a + b, 0), 0)) * 10000 : 0;
   const sgaRate = yearRevenue > 0 ? Math.round((yearSga / yearRevenue) * 100 * 10) / 10 : 0;
 
-  const tabs = [
-    { id: 'account' as const, label: 'アカウント' },
-    { id: 'company' as const, label: '会社設定' },
-    { id: 'members' as const, label: 'メンバー管理' },
-  ];
+  const isOwner = userRole === 'owner';
+  const tabs = isOwner
+    ? [
+        { id: 'account' as const, label: 'アカウント' },
+        { id: 'company' as const, label: '会社設定' },
+        { id: 'members' as const, label: 'メンバー管理' },
+      ]
+    : [
+        { id: 'account' as const, label: 'アカウント' },
+        { id: 'company' as const, label: '会社設定' },
+      ];
 
   return (
     <div className="max-w-2xl mx-auto px-4 pt-6 pb-16">

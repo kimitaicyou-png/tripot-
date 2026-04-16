@@ -1167,8 +1167,8 @@ export default function WeeklyPage() {
   return (
     <div className="max-w-5xl mx-auto px-4 pt-4 pb-24 min-h-screen bg-gray-50">
       <div className="mb-4">
-        <h1 className="text-lg font-semibold text-gray-900">週次ダッシュボード</h1>
-        <p className="text-xs font-semibold text-gray-500 mt-0.5">2026年4月第1週（4/1〜4/6）</p>
+        <h1 className="text-lg font-semibold text-gray-900">週次ダッシュボード <span className="text-xs font-semibold text-blue-600 ml-2 px-2 py-0.5 bg-blue-50 rounded-full">全社</span></h1>
+        <p className="text-xs font-semibold text-gray-500 mt-0.5">2026年4月第1週（4/1〜4/6）— 個人の動きは <a href="/home" className="text-blue-600 underline">ダッシュボード</a> へ</p>
       </div>
 
       {/* ピル型タブ */}

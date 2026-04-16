@@ -30,7 +30,7 @@ export function DealsList() {
     if (!initialDealId || typeof window === 'undefined') return null;
     return loadAllDeals().find((d) => d.id === initialDealId) ?? null;
   });
-  const urlFilter = (searchParams?.get('filter') as Filter) ?? 'active';
+  const urlFilter = (searchParams?.get('filter') as Filter) ?? 'all';
   const urlView = (searchParams?.get('view') as 'list' | 'pipeline') ?? 'list';
   const [filter, setFilterState] = useState<Filter>(urlFilter);
   const [view, setViewState] = useState<'list' | 'pipeline'>(urlView);
@@ -49,9 +49,12 @@ export function DealsList() {
   const bulkUpdateStage = (stage: Stage) => { setDeals((prev) => prev.map((d) => selectedIds.has(d.id) ? { ...d, stage } : d)); clearSelection(); };
   const [newDealOpen, setNewDealOpen] = useState(false);
 
+  const [stageToast, setStageToast] = useState<string | null>(null);
   const handleStageChange = (id: string, stage: Stage) => {
     setDeals((prev) => prev.map((d) => d.id === id ? { ...d, stage } : d));
     setSelectedDeal((prev) => prev?.id === id ? { ...prev, stage } : prev);
+    setStageToast(`ステージを変更しました`);
+    setTimeout(() => setStageToast(null), 2000);
   };
 
   const filtered = deals.filter((d) => {
@@ -77,6 +80,11 @@ export function DealsList() {
 
   return (
     <div className={`${view === 'pipeline' ? 'max-w-7xl' : 'max-w-3xl'} mx-auto px-4 py-5`}>
+      {stageToast && (
+        <div className="fixed top-4 right-4 z-50 bg-blue-600 text-white text-sm font-semibold px-4 py-2.5 rounded-lg shadow-lg">
+          ✓ {stageToast}
+        </div>
+      )}
       <SectionHeader icon={<ChartBarIcon />} label="パイプラインサマリー" />
       <div className="grid grid-cols-2 md:grid-cols-4 divide-x divide-gray-200 border border-gray-200 rounded-lg mb-5 bg-white">
         <div className="px-3 py-3 text-center"><p className="text-2xl font-semibold text-gray-900 tabular-nums">{activePipeline.length}</p><p className="text-[11px] font-semibold text-gray-500 uppercase tracking-widest mt-0.5">営業中</p></div>

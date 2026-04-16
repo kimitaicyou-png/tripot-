@@ -47,16 +47,7 @@ interface Action {
 const PROD_TASK_ASSIGNEES_KEY = 'coaris_production_task_assignees';
 const PROD_TASK_STATUS_KEY = 'coaris_production_task_status';
 
-const ALL_PROD_TASKS_DATA = [
-  { id: 't1', title: 'ユーザー認証機能', projectName: '学習管理システム', dueDate: '2026-03-20', status: 'done' },
-  { id: 't2', title: 'コース管理CRUD', projectName: '学習管理システム', dueDate: '2026-03-28', status: 'done' },
-  { id: 't3', title: '学習進捗ダッシュボード', projectName: '学習管理システム', dueDate: '2026-04-11', status: 'doing' },
-  { id: 't4', title: 'テスト機能（自動採点）', projectName: '学習管理システム', dueDate: '2026-04-25', status: 'todo' },
-  { id: 't5', title: 'レポート出力', projectName: '学習管理システム', dueDate: '2026-05-09', status: 'todo' },
-  { id: 't12', title: 'キックオフ資料作成', projectName: 'SaaSプラットフォーム', dueDate: '2026-04-07', status: 'doing' },
-  { id: 't13', title: '要件ヒアリング（3回）', projectName: 'SaaSプラットフォーム', dueDate: '2026-04-21', status: 'todo' },
-  { id: 't20', title: '検索機能バグ修正', projectName: '配送管理保守', dueDate: '2026-04-08', status: 'todo' },
-];
+const ALL_PROD_TASKS_DATA: Array<{ id: string; title: string; projectName: string; dueDate: string; status: string }> = [];
 
 function loadProdTaskAssignees(): Record<string, string> {
   if (typeof window === 'undefined') return {};
@@ -491,7 +482,14 @@ export default function MemberDashboardPage() {
   const params = useParams();
   const router = useRouter();
   const memberId = params.memberId as string;
-  const member = MEMBERS[memberId] ?? { firstName: memberId, role: 'Member', accent: '#3B82F6', joinedAt: '2020-01-01' };
+  const [apiMembers, setApiMembers] = useState<Array<{ id: string; name: string; role?: string }>>([]);
+  useEffect(() => {
+    fetch('/api/members').then((r) => r.json()).then((d) => setApiMembers(d.members ?? [])).catch(() => {});
+  }, []);
+  const apiMember = apiMembers.find((m) => m.id === memberId);
+  const member = apiMember
+    ? { firstName: apiMember.name, role: apiMember.role ?? 'Member', accent: '#3B82F6', joinedAt: '2020-01-01' }
+    : MEMBERS[memberId] ?? { firstName: memberId, role: 'Member', accent: '#3B82F6', joinedAt: '2020-01-01' };
 
   const [mounted, setMounted] = useState(false);
   useEffect(() => { setMounted(true); }, []);
@@ -511,13 +509,14 @@ export default function MemberDashboardPage() {
     if (typeof window === 'undefined') return [];
     try { return loadProductionCards(); } catch { return []; }
   });
-  useEffect(() => { fetchProductionCards().then(setLiveCards); }, []);
+  useEffect(() => {
+    fetchProductionCards().then(setLiveCards);
+    const refresh = () => { fetchProductionCards().then(setLiveCards); };
+    window.addEventListener('production_cards_updated', refresh);
+    return () => window.removeEventListener('production_cards_updated', refresh);
+  }, []);
 
   const orderedStages = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'accounting', 'paid'];
-  const [apiMembers, setApiMembers] = useState<Array<{ id: string; name: string }>>([]);
-  useEffect(() => {
-    fetch('/api/members').then((r) => r.json()).then((d) => setApiMembers(d.members ?? [])).catch(() => {});
-  }, []);
   const memberNames: Record<string, string> = Object.fromEntries(
     apiMembers.length > 0
       ? apiMembers.map((m) => [m.id, m.name])
