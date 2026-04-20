@@ -138,9 +138,9 @@ tripot/
 
 ## 開発ルール
 
-- `cd app && npm run dev` で起動（ポート3100）
-- ビルド: `cd app && npx next build`
-- デプロイ: `cd app && npx vercel --prod`
+- `cd system/app && npm run dev` で起動（ポート3100）
+- ビルド: `cd system/app && npm run build`
+- デプロイ: `cd system/app && npm run deploy`（safe-deploy.js 経由）
 - font-bold 禁止 → font-semibold が最大
 - shadow-md 以上禁止 → shadow-sm が最大
 - text-gray-400 を本文に使わない → text-gray-500 以上
