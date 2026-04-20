@@ -6,46 +6,52 @@
 
 ```
 tripot/
-├── app/                          ← Next.js アプリ本体
-│   ├── src/
-│   │   ├── app/
-│   │   │   ├── (auth)/login/     ← ログインページ（Google OAuth）
-│   │   │   ├── (dashboard)/      ← 認証後の全ページ
-│   │   │   │   ├── home/[memberId]/  ← 個人ダッシュボード
-│   │   │   │   ├── monthly/      ← 月次ダッシュボード
-│   │   │   │   ├── weekly/       ← 週次ダッシュボード
-│   │   │   │   ├── production/   ← 制作ダッシュボード
-│   │   │   │   ├── budget/       ← 事業計画
-│   │   │   │   ├── settings/     ← 設定（3タブ: アカウント/会社/メンバー）
-│   │   │   │   └── ...
-│   │   │   └── api/
-│   │   │       ├── auth/         ← NextAuth（Google OAuth）
-│   │   │       ├── deals/ai/     ← AI生成（提案書・要件定義・見積書・議事録・メール等 7アクション）
-│   │   │       ├── deals/extract/← 名刺画像→案件情報抽出（Claude Vision）
-│   │   │       ├── members/      ← メンバーCRUD + 招待メール
-│   │   │       ├── production/ai/← 制作AI（要件整形・タスク生成等 6アクション）
-│   │   │       └── bridge/kpi/   ← 本部向けKPI API
-│   │   ├── components/
-│   │   │   ├── deals/            ← 案件管理UI（14ファイル）
-│   │   │   ├── attack/           ← アタックリスト
-│   │   │   ├── production/       ← 制作管理
-│   │   │   ├── monthly/          ← 月次報告会生成
-│   │   │   ├── finance/          ← 財務（支払・請求・原価・利益分析等）
-│   │   │   ├── personal/         ← 個人系（クイック入力・契約・提案書等）
-│   │   │   ├── weekly/           ← 週次（TODO・PL）
-│   │   │   └── ui/               ← 共通UI
-│   │   ├── lib/
-│   │   │   ├── deals/            ← 案件データ層（types, constants, dealOverrides等）
-│   │   │   ├── attack/           ← アタックデータ層
-│   │   │   ├── hooks/            ← usePersistedState, useDeals, useProductionCards等
-│   │   │   ├── dealsStore.ts     ← 案件ストア（localStorage: tripot_deals_all）
-│   │   │   └── productionCards.ts← 制作カードストア
-│   │   ├── data/
-│   │   │   └── members.json      ← メンバーマスター（認証+権限の正）
-│   │   └── auth.ts               ← NextAuth設定 + 権限制御
-│   ├── .env.local                ← AUTH_SECRET, AUTH_GOOGLE_*, ANTHROPIC_API_KEY
-│   └── package.json              ← name: "tripot"
-└── docs/                         ← 引き継ぎ書
+├── .vercel/                      ← Vercel プロジェクトID（ルート据え置き）
+├── vercel.json                   ← system/app を Next.js root として指定
+├── README.md
+└── system/                       ← 新構造（wise-assist/deraforce と同じ）
+    ├── CLAUDE.md                 ← このファイル
+    ├── app/                      ← Next.js アプリ本体
+    │   ├── src/
+    │   │   ├── app/
+    │   │   │   ├── (auth)/login/         ← ログインページ（Google OAuth）
+    │   │   │   ├── (dashboard)/          ← 認証後の全ページ
+    │   │   │   │   ├── home/[memberId]/  ← 個人ダッシュボード
+    │   │   │   │   ├── monthly/          ← 月次ダッシュボード
+    │   │   │   │   ├── weekly/           ← 週次ダッシュボード
+    │   │   │   │   ├── production/       ← 制作ダッシュボード
+    │   │   │   │   ├── budget/           ← 事業計画
+    │   │   │   │   ├── settings/         ← 設定（3タブ: アカウント/会社/メンバー）
+    │   │   │   │   └── ...
+    │   │   │   └── api/
+    │   │   │       ├── auth/         ← NextAuth（Google OAuth）
+    │   │   │       ├── deals/ai/     ← AI生成（提案書・要件定義・見積書・議事録・メール等 7アクション）
+    │   │   │       ├── deals/extract/← 名刺画像→案件情報抽出（Claude Vision）
+    │   │   │       ├── members/      ← メンバーCRUD + 招待メール
+    │   │   │       ├── production/ai/← 制作AI（要件整形・タスク生成等 6アクション）
+    │   │   │       └── bridge/kpi/   ← 本部向けKPI API
+    │   │   ├── components/
+    │   │   │   ├── deals/            ← 案件管理UI（14ファイル）
+    │   │   │   ├── attack/           ← アタックリスト
+    │   │   │   ├── production/       ← 制作管理
+    │   │   │   ├── monthly/          ← 月次報告会生成
+    │   │   │   ├── finance/          ← 財務（支払・請求・原価・利益分析等）
+    │   │   │   ├── personal/         ← 個人系（クイック入力・契約・提案書等）
+    │   │   │   ├── weekly/           ← 週次（TODO・PL）
+    │   │   │   └── ui/               ← 共通UI
+    │   │   ├── lib/
+    │   │   │   ├── deals/            ← 案件データ層（types, constants, dealOverrides等）
+    │   │   │   ├── attack/           ← アタックデータ層
+    │   │   │   ├── hooks/            ← usePersistedState, useDeals, useProductionCards等
+    │   │   │   ├── dealsStore.ts     ← 案件ストア（localStorage: tripot_deals_all）
+    │   │   │   └── productionCards.ts← 制作カードストア
+    │   │   ├── data/
+    │   │   │   └── members.json      ← メンバーマスター（認証+権限の正）
+    │   │   └── auth.ts               ← NextAuth設定 + 権限制御
+    │   ├── .env.local                ← AUTH_SECRET, AUTH_GOOGLE_*, ANTHROPIC_API_KEY
+    │   └── package.json              ← name: "tripot-system"
+    └── docs/                         ← 設計書・仕様書（0010_*.md 10刻み）
+        └── archive/                  ← 過去の handoff ログ
 ```
 
 ## 技術スタック

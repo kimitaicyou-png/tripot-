@@ -2,7 +2,7 @@
 
 import { useState, useCallback, useEffect } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { loadAllDeals, fetchDeals } from '@/lib/dealsStore';
+import { loadAllDeals, fetchDeals, addDeal } from '@/lib/dealsStore';
 import Link from 'next/link';
 import { KanbanBoard, type KanbanColumn, type KanbanCard } from '@/components/ui/KanbanBoard';
 import NextAction, { MOCK_NEXT_ACTIONS } from '@/components/personal/NextAction';
@@ -200,7 +200,7 @@ export function DealsList() {
       })()}
 
       <button onClick={() => setNewDealOpen(true)} className="w-full mt-3 py-3 bg-blue-600 text-white rounded-lg text-sm font-semibold hover:bg-blue-700 transition-colors active:scale-[0.98]">+ 新規案件を追加</button>
-      {newDealOpen && <NewDealModal onClose={() => setNewDealOpen(false)} onAdd={(deal) => { setDeals((prev) => [...prev, deal]); setNewDealOpen(false); }} existingDeals={deals} />}
+      {newDealOpen && <NewDealModal onClose={() => setNewDealOpen(false)} onAdd={async (deal) => { await addDeal(deal); setDeals((prev) => [...prev, deal]); setNewDealOpen(false); }} existingDeals={deals} />}
     </div>
   );
 }
