@@ -2,7 +2,10 @@
 
 > tripot v2 が基準値プロジェクト。ここで確立した設計判断が13社→100社への展開の土台になる。
 > 参照先：Atlassian Design System（思想の芯）+ SAP Fiori（密度感のリファレンス）
-> 最終更新：2026-04-26 by ❄️美冬
+> 最終更新：2026-04-26 by ❄️美冬 ＋ 🌸美桜
+>
+> **関連ドキュメント**：
+> - [`design-patterns.md`](./design-patterns.md) — 業務画面のレイアウトパターン集（Dashboard/List/Detail/Edit の4形 + 操作パターン）
 
 ---
 
