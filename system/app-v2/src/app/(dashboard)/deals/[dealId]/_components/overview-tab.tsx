@@ -11,6 +11,7 @@ import { TRIPOT_CONFIG } from '../../../../../../coaris.config';
 import { NextActionSection } from './next-action-section';
 import { EmailDraftButton } from './email-draft-button';
 import { AttackSection } from './attack-section';
+import { ApprovalRequestButton } from './approval-request-button';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   call: '📞 電話',
@@ -188,7 +189,10 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
       </section>
 
       <section className="flex items-center justify-between gap-3 flex-wrap">
-        <EmailDraftButton dealId={dealId} dealTitle={deal.title} />
+        <div className="flex items-center gap-3 flex-wrap">
+          <EmailDraftButton dealId={dealId} dealTitle={deal.title} />
+          <ApprovalRequestButton dealId={dealId} />
+        </div>
         <div className="flex items-center gap-3">
           <Link
             href={`/deals/${dealId}/edit`}

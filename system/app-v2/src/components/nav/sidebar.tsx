@@ -21,6 +21,16 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/approval', label: '承認', icon: '✋' },
 ];
 
+const SETTINGS_ITEMS: NavItem[] = [
+  { href: '/settings/company', label: '会社', icon: '🏢' },
+  { href: '/settings/quotes', label: '名言', icon: '🎴' },
+  { href: '/settings/templates', label: 'テンプレ', icon: '📁' },
+  { href: '/settings/vendors', label: '外注先', icon: '🏭' },
+  { href: '/settings/integrations', label: '連携', icon: '🔌' },
+  { href: '/settings/audit', label: '監査', icon: '🪵' },
+  { href: '/settings/mf', label: 'MF', icon: '💴' },
+];
+
 export function Sidebar({ user }: { user: { name?: string | null; member_id: string; role: string } }) {
   const memberId = user.member_id;
   const initial = getMemberInitial(user.name ?? '');
@@ -40,7 +50,18 @@ export function Sidebar({ user }: { user: { name?: string | null; member_id: str
         </Link>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-0.5">
+      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+        <form action="/search" className="px-2 mb-3">
+          <div className="relative">
+            <input
+              type="search"
+              name="q"
+              placeholder="🔎 横断検索"
+              className="w-full px-3 py-1.5 text-sm text-ink bg-surface border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/20 placeholder:text-subtle"
+            />
+          </div>
+        </form>
+
         {NAV_ITEMS.map((item) => {
           const href = item.href === '/home' ? `/home/${memberId}` : item.href;
           return (
@@ -55,6 +76,21 @@ export function Sidebar({ user }: { user: { name?: string | null; member_id: str
             </Link>
           );
         })}
+
+        <p className="text-[10px] uppercase tracking-widest text-subtle mt-4 mb-2 px-3">
+          設定
+        </p>
+        {SETTINGS_ITEMS.map((item) => (
+          <Link
+            key={item.href}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            href={item.href as any}
+            className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-muted hover:bg-slate-50 hover:text-ink transition-colors"
+          >
+            <span>{item.icon}</span>
+            <span>{item.label}</span>
+          </Link>
+        ))}
       </nav>
 
       <div className="border-t border-border p-3">
