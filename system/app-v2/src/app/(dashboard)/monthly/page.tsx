@@ -1,9 +1,3 @@
-/**
- * 月次会議画面 — 会社KPI vs 計画
- *
- * 隊長思想「月次会議：vs 計画 → 着地」
- */
-
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -58,7 +52,6 @@ export default async function MonthlyPage() {
       </header>
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
-        {/* h1：当月売上デカ表示 */}
         <section>
           <p className="text-sm text-muted">今月の売上（入金確定）</p>
           <h2 className="font-serif italic text-6xl md:text-8xl text-ink tracking-tight tabular-nums mt-2">
@@ -66,7 +59,6 @@ export default async function MonthlyPage() {
           </h2>
         </section>
 
-        {/* vs 計画 */}
         <section className="mt-8 bg-card border border-border rounded-xl p-6 shadow-sm">
           <div className="flex items-baseline justify-between mb-3">
             <p className="text-sm font-medium text-ink">vs 計画</p>
@@ -84,7 +76,6 @@ export default async function MonthlyPage() {
               <p className="font-mono tabular-nums text-ink mt-1">{formatYen(actualRevenue)}</p>
             </div>
           </div>
-          {/* プログレスバー */}
           <div className="mt-4 h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full ${progressRate >= 100 ? 'bg-kpi-up' : 'bg-blue-500'}`}
@@ -93,7 +84,6 @@ export default async function MonthlyPage() {
           </div>
         </section>
 
-        {/* 当月の動き */}
         <section className="mt-6 grid grid-cols-2 gap-4">
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
             <p className="text-xs text-subtle">今月の受注</p>

@@ -1,7 +1,3 @@
-/**
- * 案件一覧 — 隊長思想「3秒判断」のため、stage 別カンバン形式
- */
-
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';

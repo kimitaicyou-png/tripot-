@@ -1,10 +1,3 @@
-/**
- * 週次会議画面 — チームKPI集計
- *
- * 隊長思想「週次会議：行動量・進捗」
- * 個人レイヤーから集約された行動量を表示
- */
-
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -68,7 +61,6 @@ export default async function WeeklyPage() {
       </header>
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
-        {/* 会社全体KPI */}
         <section className="mb-8">
           <p className="text-sm text-muted">会社全体の売上（入金確定）</p>
           <h2 className="font-serif italic text-5xl md:text-7xl text-ink tracking-tight tabular-nums mt-2">
@@ -77,7 +69,6 @@ export default async function WeeklyPage() {
           <p className="text-sm text-muted mt-2">進行中：<span className="font-mono tabular-nums text-ink font-medium">{companyKpi?.activeCount ?? 0}</span> 件</p>
         </section>
 
-        {/* メンバー別行動量 */}
         <section>
           <h3 className="text-sm font-medium text-ink mb-4">メンバー別 行動量（直近7日）</h3>
           <div className="bg-card border border-border rounded-xl overflow-hidden">

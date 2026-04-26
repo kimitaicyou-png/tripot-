@@ -1,7 +1,3 @@
-/**
- * 案件詳細 — 編集・削除・タスク一覧・行動履歴
- */
-
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
 import { auth } from '@/auth';
@@ -103,7 +99,6 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
       </header>
 
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
-        {/* h1：金額デカ表示 */}
         <section className="bg-card border border-border rounded-xl p-6">
           <p className="text-xs text-subtle">受注金額</p>
           <p className="font-serif italic text-5xl text-ink tracking-tight tabular-nums mt-1">
@@ -114,7 +109,6 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
           ) : null}
         </section>
 
-        {/* 詳細 */}
         <section className="bg-card border border-border rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
           <div><p className="text-xs text-subtle mb-1">ステージ</p><p className="text-ink font-medium">{STAGE_LABEL[deal.stage] ?? deal.stage}</p></div>
           <div><p className="text-xs text-subtle mb-1">担当</p><p className="text-ink font-medium">{deal.assignee_name ?? '—'}</p></div>
@@ -124,7 +118,6 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
           <div><p className="text-xs text-subtle mb-1">入金日</p><p className="text-ink font-medium font-mono">{deal.paid_at ?? '—'}</p></div>
         </section>
 
-        {/* タスク */}
         <section className="bg-card border border-border rounded-xl p-6">
           <h3 className="text-sm font-medium text-ink mb-3">タスク <span className="text-xs text-subtle font-normal">{dealTasks.length}件</span></h3>
           {dealTasks.length === 0 ? (
@@ -143,7 +136,6 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
           <TaskQuickAdd dealId={dealId} />
         </section>
 
-        {/* 行動履歴 */}
         <section className="bg-card border border-border rounded-xl p-6">
           <h3 className="text-sm font-medium text-ink mb-3">行動履歴 <span className="text-xs text-subtle font-normal">{dealActions.length}件</span></h3>
           {dealActions.length === 0 ? (
@@ -166,7 +158,6 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
           )}
         </section>
 
-        {/* アクション */}
         <section className="flex items-center justify-end gap-3">
           <Link href={`/deals/${dealId}/edit`} className="px-4 py-2 bg-card border border-border text-ink text-sm font-medium rounded-lg hover:bg-slate-50">編集</Link>
           <form action={handleDelete}>

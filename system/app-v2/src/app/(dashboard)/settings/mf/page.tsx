@@ -1,9 +1,3 @@
-/**
- * MoneyForward クラウド連携設定 — 旧v1 隊長指摘「雑」を解消する3工程設計
- *
- * 取り込み → 照合 → 反映
- */
-
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -39,7 +33,6 @@ export default async function MfSettingsPage() {
       </header>
 
       <div className="px-6 py-8 max-w-4xl mx-auto space-y-6">
-        {/* 接続状態 */}
         <section className={`border rounded-xl p-5 shadow-sm ${isConnected ? 'bg-emerald-50 border-emerald-200' : 'bg-amber-50 border-amber-200'}`}>
           <div className="flex items-center gap-3">
             <div className={`w-3 h-3 rounded-full ${isConnected ? 'bg-emerald-500' : 'bg-amber-500'}`} />
@@ -54,7 +47,6 @@ export default async function MfSettingsPage() {
           )}
         </section>
 
-        {/* 3工程ダッシュボード */}
         <section>
           <h3 className="text-sm font-medium text-ink mb-4">仕訳取込 3工程</h3>
           <div className="grid grid-cols-3 gap-4">
@@ -76,14 +68,12 @@ export default async function MfSettingsPage() {
           </div>
         </section>
 
-        {/* 請求書 */}
         <section className="bg-card border border-border rounded-xl p-5 shadow-sm">
           <p className="text-sm font-medium text-ink">請求書</p>
           <p className="font-serif italic text-4xl text-ink mt-2 tabular-nums">{invoiceCount}</p>
           <p className="text-xs text-muted mt-1">MF から取得済み</p>
         </section>
 
-        {/* 操作 */}
         <section className="bg-card border border-border rounded-xl p-5 shadow-sm">
           <p className="text-sm font-medium text-ink mb-3">操作</p>
           <div className="space-y-2">

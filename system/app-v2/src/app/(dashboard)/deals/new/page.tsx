@@ -1,7 +1,3 @@
-/**
- * 案件新規登録 — Server Actions + useActionState
- */
-
 'use client';
 
 import { useActionState } from 'react';

@@ -1,7 +1,3 @@
-/**
- * タスク一覧 — 自分のタスク + チームタスク
- */
-
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';

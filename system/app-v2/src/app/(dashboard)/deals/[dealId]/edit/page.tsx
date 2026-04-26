@@ -1,7 +1,3 @@
-/**
- * 案件編集 — Server Actions + useActionState
- */
-
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
 import { auth } from '@/auth';

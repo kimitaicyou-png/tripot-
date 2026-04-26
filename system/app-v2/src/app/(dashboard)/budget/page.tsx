@@ -62,7 +62,6 @@ export default async function BudgetPage() {
       </header>
 
       <div className="px-6 py-8 max-w-5xl mx-auto space-y-8">
-        {/* 年間サマリ */}
         <section className="bg-card border border-border rounded-xl p-6 shadow-sm">
           <p className="text-sm text-muted">年間 売上計画</p>
           <h2 className="font-serif italic text-5xl text-ink tracking-tight tabular-nums mt-2">
@@ -83,7 +82,6 @@ export default async function BudgetPage() {
           </div>
         </section>
 
-        {/* 月別 */}
         <section>
           <h3 className="text-sm font-medium text-ink mb-4">月別 計画 vs 実績</h3>
           <div className="bg-card border border-border rounded-xl overflow-hidden">
