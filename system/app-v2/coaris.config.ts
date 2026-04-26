@@ -34,6 +34,60 @@ export type IndustryType =
   | '不動産'
   | 'グローバル';
 
+/** 案件ステージ定義（13社で名称・色・順序カスタム可） */
+export type StageDef = {
+  key: string;
+  label: string;
+  badgeClass: string;
+  order: number;
+  /** weekly/cf 確度モデル：このステージの加重係数（0-1） */
+  cashflowWeight: number;
+  isTerminal?: boolean;
+};
+
+/** ロール権限 */
+export type RoleDef = {
+  key: CompanyRole;
+  label: string;
+  description: string;
+};
+
+/** 業界特化 KPI 定義 */
+export type IndustryKpiDef = {
+  key: string;
+  label: string;
+  unit?: string;
+  goalDirection: 'up' | 'down';
+};
+
+/** 名言（home top ローテ用、v1 DEFAULT_QUOTES 撲滅） */
+export type QuoteSeed = {
+  body: string;
+  author?: string;
+  weight?: number;
+};
+
+/** プロジェクトテンプレ（v1 PROJECT_TEMPLATES 撲滅、IT系のみ使用） */
+export type ProjectTemplateSeed = {
+  name: string;
+  description: string;
+};
+
+/** 攻略スコアリング重み付け */
+export type AttackScoringConfig = {
+  budgetMatch: number;
+  decisionMakerAccess: number;
+  competitorAdvantage: number;
+  timingFit: number;
+  relationshipDepth: number;
+};
+
+/** 会計年度設定 */
+export type FiscalConfig = {
+  /** 期初月（1=1月、4=4月） */
+  startMonth: number;
+};
+
 export type CompanyConfig = {
   /** 会社識別ID（URL階層、DBスキーマ、設定キーで使う） */
   id: string;
@@ -61,55 +115,69 @@ export type CompanyConfig = {
   branding: {
     logo: {
       type: 'svg' | 'png';
-      path: string; // /public/companies/{id}/logo.svg
+      path: string;
     };
-    /** Tailwind CSS class、コアリスUI絶対ルール準拠 */
-    primaryColor: string; // 例: 'bg-blue-600'
-    /** 実際の HEX 値（CSS variable で使用） */
-    primaryColorHex: string; // 例: '#2563EB'
+    primaryColor: string;
+    primaryColorHex: string;
     accentColor: string;
     accentColorHex: string;
-    /** ❄️美冬選定、Geist 脱却 */
-    fontFamily: string; // 例: "'Manrope', 'Noto Sans JP', sans-serif"
+    fontFamily: string;
   };
 
   /** 認証＆権限設定（NextAuth signIn callback で使う） */
   auth: {
-    /** このメアドドメイン以外はログイン拒否 */
-    allowedEmailDomains: string[]; // 例: ['coaris.ai', 'tripot.coaris.ai']
-    /** 初回ログイン時のデフォルトロール */
+    allowedEmailDomains: string[];
     defaultRole: CompanyRole;
-    /** 開発時の例外許可メアドリスト（DEV_ALLOWED_EMAILS env 経由） */
     devAllowedFromEnv: boolean;
   };
 
   /** 機能フラグ（13社で機能差別化） */
   features: {
-    moneyForward: boolean; // MFクラウド連携
-    csvImport: boolean; // データ取込
-    weeklyMeeting: boolean; // 週次会議画面
-    monthlyMeeting: boolean; // 月次会議画面
-    yearlyBudget: boolean; // 事業計画
-    productionDashboard: boolean; // 制作管理（IT系のみ）
-    customerCRM: boolean; // 顧客管理
-    approvalFlow: boolean; // 申請承認
-    aiAssistant: boolean; // 4姉妹常駐AI
-    auditLog: boolean; // 監査ログ（推奨ON）
+    moneyForward: boolean;
+    csvImport: boolean;
+    weeklyMeeting: boolean;
+    monthlyMeeting: boolean;
+    yearlyBudget: boolean;
+    productionDashboard: boolean;
+    customerCRM: boolean;
+    approvalFlow: boolean;
+    aiAssistant: boolean;
+    auditLog: boolean;
+    childAiSecretary: boolean;
+    voiceMeetings: boolean;
+    proposalAi: boolean;
+    estimateAi: boolean;
+    attackScoring: boolean;
   };
 
   /** 業界特化フィールド */
   industryFields?: {
     type: IndustryType;
-    customKPIs?: string[]; // 業界特有のKPI識別子
+    customKPIs?: IndustryKpiDef[];
   };
+
+  /** 案件ステージ（13社カスタム可） */
+  stages: StageDef[];
+
+  /** ロール定義 */
+  roles: RoleDef[];
+
+  /** 名言初期 seed（home top ローテ） */
+  quotes: QuoteSeed[];
+
+  /** プロジェクトテンプレ初期 seed（IT系のみ） */
+  projectTemplates?: ProjectTemplateSeed[];
+
+  /** 攻略スコア重み付け */
+  attackScoring: AttackScoringConfig;
+
+  /** 会計年度設定 */
+  fiscal: FiscalConfig;
 
   /** 本部との接続設定 */
   bridgeToHQ: {
-    /** 本部に送信するKPIエンドポイント */
-    kpiEndpoint: string; // /api/bridge/kpi
-    /** 同期方式 */
+    kpiEndpoint: string;
     syncMode: SyncMode;
-    /** 重要変化を本部にPushするWebhook URL（本部側で受信） */
     webhookUrl?: string;
   };
 };
@@ -146,20 +214,71 @@ export const TRIPOT_CONFIG: CompanyConfig = {
     devAllowedFromEnv: true,
   },
   features: {
-    moneyForward: true, // MFクラウド連携あり（v2再設計、隊長指摘「雑」を解消）
+    moneyForward: true,
     csvImport: true,
     weeklyMeeting: true,
     monthlyMeeting: true,
     yearlyBudget: true,
-    productionDashboard: true, // IT系なのでON
+    productionDashboard: true,
     customerCRM: true,
     approvalFlow: true,
-    aiAssistant: true, // 4姉妹常駐
+    aiAssistant: true,
     auditLog: true,
+    childAiSecretary: true,
+    voiceMeetings: true,
+    proposalAi: true,
+    estimateAi: true,
+    attackScoring: true,
   },
   industryFields: {
     type: 'IT',
-    customKPIs: ['bug_fixes', 'deployments'],
+    customKPIs: [
+      { key: 'bug_fixes', label: 'バグ修正数', unit: '件', goalDirection: 'up' },
+      { key: 'deployments', label: 'デプロイ回数', unit: '回', goalDirection: 'up' },
+      { key: 'mttr_minutes', label: '障害復旧時間', unit: '分', goalDirection: 'down' },
+    ],
+  },
+  stages: [
+    { key: 'prospect', label: '見込み', badgeClass: 'bg-slate-100 text-slate-700', order: 10, cashflowWeight: 0.1 },
+    { key: 'proposing', label: '提案中', badgeClass: 'bg-blue-100 text-blue-800', order: 20, cashflowWeight: 0.3 },
+    { key: 'ordered', label: '受注', badgeClass: 'bg-amber-100 text-amber-800', order: 30, cashflowWeight: 0.7 },
+    { key: 'in_production', label: '制作中', badgeClass: 'bg-purple-100 text-purple-800', order: 40, cashflowWeight: 0.8 },
+    { key: 'delivered', label: '納品済', badgeClass: 'bg-cyan-100 text-cyan-800', order: 50, cashflowWeight: 0.9 },
+    { key: 'acceptance', label: '検収', badgeClass: 'bg-teal-100 text-teal-800', order: 60, cashflowWeight: 0.95 },
+    { key: 'invoiced', label: '請求済', badgeClass: 'bg-indigo-100 text-indigo-800', order: 70, cashflowWeight: 0.95 },
+    { key: 'paid', label: '入金済', badgeClass: 'bg-green-100 text-green-800', order: 80, cashflowWeight: 1.0, isTerminal: true },
+    { key: 'lost', label: '失注', badgeClass: 'bg-red-100 text-red-800', order: 999, cashflowWeight: 0, isTerminal: true },
+  ],
+  roles: [
+    { key: 'president', label: '代表', description: '全社俯瞰・最終決裁・予算策定' },
+    { key: 'hq_member', label: '本部メンバー', description: '全社データ閲覧・部門横断業務' },
+    { key: 'member', label: 'メンバー', description: '自分の案件・タスクを推進' },
+  ],
+  quotes: [
+    { body: '打席に立たなければヒットは出ない', weight: 3 },
+    { body: '小さな一歩が、明日の風景を変える', weight: 2 },
+    { body: '放置は最大の敵', weight: 2 },
+    { body: '行動量がKPIの源泉', weight: 3 },
+    { body: 'みんなの甲子園を応援する', author: '隊長', weight: 1 },
+    { body: '過程こそが幸せ', author: '隊長', weight: 1 },
+  ],
+  projectTemplates: [
+    { name: 'LP制作', description: 'ランディングページ単発、デザイン+実装+運用引渡' },
+    { name: 'コーポレートサイト', description: '会社案内・採用・IR含む複数ページ構成' },
+    { name: 'ECサイト', description: 'Shopify or 自社実装、決済・在庫連携' },
+    { name: 'システム開発', description: '受託SI、要件定義から保守まで' },
+    { name: '運用保守', description: '月額継続、稼働監視・改修対応' },
+    { name: 'PoC・検証', description: '短期スプリント、実証実験' },
+  ],
+  attackScoring: {
+    budgetMatch: 0.25,
+    decisionMakerAccess: 0.25,
+    competitorAdvantage: 0.20,
+    timingFit: 0.15,
+    relationshipDepth: 0.15,
+  },
+  fiscal: {
+    startMonth: 4,
   },
   bridgeToHQ: {
     kpiEndpoint: '/api/bridge/kpi',
