@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -50,7 +51,11 @@ export default async function TeamPage() {
             const color = getMemberColor(m.id);
             const initial = getMemberInitial(m.name);
             return (
-              <div key={m.id} className="bg-card border border-border rounded-xl p-5 shadow-sm">
+              <Link
+                key={m.id}
+                href={`/team/${m.id}`}
+                className="bg-card border border-border rounded-xl p-5 shadow-sm block hover:border-ink-mid transition-colors"
+              >
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-lg ${color} flex items-center justify-center text-white text-lg font-semibold`}>
                     {initial}
@@ -70,7 +75,7 @@ export default async function TeamPage() {
                     <p className="font-mono tabular-nums text-ink mt-0.5">{m.active_deals} 件</p>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

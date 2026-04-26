@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { budgets, deals } from '@/db/schema';
 import { eq, and, sql, isNull, gte, lte } from 'drizzle-orm';
+import { BudgetEditor } from './_components/budget-editor';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
@@ -117,9 +118,21 @@ export default async function BudgetPage() {
           </div>
         </section>
 
-        <p className="text-xs text-subtle text-center">
-          ※ 年間目標の設定は明日朝の合議で（API実装は明朝）
-        </p>
+        <section className="bg-card border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-ink mb-3">月別目標を設定</h3>
+          <p className="text-xs text-muted mb-4">
+            ボタンをクリックすると、その月の売上・粗利・営業利益の目標を編集できます。
+          </p>
+          <BudgetEditor
+            year={year}
+            rows={budgetRows.map((b) => ({
+              month: b.month,
+              target_revenue: b.target_revenue ?? 0,
+              target_gross_profit: b.target_gross_profit ?? 0,
+              target_operating_profit: b.target_operating_profit ?? 0,
+            }))}
+          />
+        </section>
       </div>
     </main>
   );

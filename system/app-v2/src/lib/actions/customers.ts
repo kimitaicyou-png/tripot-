@@ -52,3 +52,63 @@ export async function createCustomer(_prev: CustomerFormState, formData: FormDat
   revalidatePath('/customers');
   redirect('/customers');
 }
+
+export async function updateCustomer(
+  customerId: string,
+  _prev: CustomerFormState,
+  formData: FormData,
+): Promise<CustomerFormState> {
+  const session = await auth();
+  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+
+  const parsed = customerSchema.safeParse({
+    name: formData.get('name'),
+    contact_email: formData.get('contact_email') || null,
+    contact_phone: formData.get('contact_phone') || null,
+  });
+
+  if (!parsed.success) return { errors: parsed.error.flatten().fieldErrors };
+
+  await db
+    .update(customers)
+    .set({
+      ...parsed.data,
+      contact_email: parsed.data.contact_email || null,
+      updated_at: new Date(),
+    })
+    .where(and(eq(customers.id, customerId), eq(customers.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'customer.update',
+    resource_type: 'customer',
+    resource_id: customerId,
+    metadata: { name: parsed.data.name },
+  });
+
+  revalidatePath('/customers');
+  revalidatePath(`/customers/${customerId}`);
+  return { success: true };
+}
+
+export async function deleteCustomer(customerId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.member_id) throw new Error('認証が必要です');
+
+  await db
+    .update(customers)
+    .set({ deleted_at: new Date() })
+    .where(and(eq(customers.id, customerId), eq(customers.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'customer.delete',
+    resource_type: 'customer',
+    resource_id: customerId,
+  });
+
+  revalidatePath('/customers');
+  redirect('/customers');
+}

@@ -2,8 +2,9 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { approvals, members, deals } from '@/db/schema';
-import { eq, and, desc } from 'drizzle-orm';
+import { eq, desc } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
+import { DecideButtons } from './_components/decide-buttons';
 
 const TYPE_LABEL: Record<string, string> = {
   discount: '値引き',
@@ -37,6 +38,7 @@ export default async function ApprovalPage() {
       type: approvals.type,
       status: approvals.status,
       requested_at: approvals.requested_at,
+      requester_id: approvals.requester_id,
       requester_name: requester.name,
       approver_name: approver.name,
       deal_title: deals.title,
@@ -50,6 +52,8 @@ export default async function ApprovalPage() {
     .orderBy(desc(approvals.requested_at))
     .limit(100);
 
+  const myMemberId = session.user.member_id;
+
   return (
     <main className="min-h-screen bg-surface">
       <header className="bg-card border-b border-border px-6 py-4">
@@ -60,7 +64,7 @@ export default async function ApprovalPage() {
         {rows.length === 0 ? (
           <div className="bg-card border border-border rounded-xl p-12 text-center">
             <p className="text-muted">承認案件はまだありません</p>
-            <p className="text-xs text-subtle mt-2">案件詳細から承認申請できます（実装は明朝）</p>
+            <p className="text-xs text-subtle mt-2">案件詳細から承認申請できます</p>
           </div>
         ) : (
           <div className="bg-card border border-border rounded-xl overflow-hidden">
@@ -72,22 +76,36 @@ export default async function ApprovalPage() {
                   <th className="px-4 py-3 text-left text-xs font-semibold text-muted">申請者</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-muted">承認者</th>
                   <th className="px-4 py-3 text-left text-xs font-semibold text-muted">状態</th>
+                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">操作</th>
                 </tr>
               </thead>
               <tbody>
-                {rows.map((a) => (
-                  <tr key={a.id} className="border-b border-border last:border-0 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-ink">{TYPE_LABEL[a.type] ?? a.type}</td>
-                    <td className="px-4 py-3 text-sm text-muted">{a.deal_title ?? '—'}</td>
-                    <td className="px-4 py-3 text-sm text-muted">{a.requester_name ?? '—'}</td>
-                    <td className="px-4 py-3 text-sm text-muted">{a.approver_name ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium ${STATUS_COLOR[a.status] ?? ''}`}>
-                        {STATUS_LABEL[a.status] ?? a.status}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
+                {rows.map((a) => {
+                  const canDecide =
+                    a.status === 'pending' && a.requester_id !== myMemberId;
+                  return (
+                    <tr key={a.id} className="border-b border-border last:border-0 hover:bg-slate-50">
+                      <td className="px-4 py-3 text-sm text-ink">{TYPE_LABEL[a.type] ?? a.type}</td>
+                      <td className="px-4 py-3 text-sm text-muted">{a.deal_title ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-muted">{a.requester_name ?? '—'}</td>
+                      <td className="px-4 py-3 text-sm text-muted">{a.approver_name ?? '—'}</td>
+                      <td className="px-4 py-3">
+                        <span className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium ${STATUS_COLOR[a.status] ?? ''}`}>
+                          {STATUS_LABEL[a.status] ?? a.status}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-right">
+                        {canDecide ? (
+                          <DecideButtons approvalId={a.id} />
+                        ) : a.status === 'pending' ? (
+                          <span className="text-xs text-subtle">自分の申請</span>
+                        ) : (
+                          <span className="text-xs text-subtle">—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>

@@ -67,7 +67,7 @@ export default async function TasksPage() {
                 }`}
               >
                 <TaskCheckbox taskId={t.id} done={t.status === 'done'} />
-                <div className="flex-1 min-w-0">
+                <Link href={`/tasks/${t.id}`} className="flex-1 min-w-0 hover:opacity-80 transition-opacity">
                   <p className={`text-sm text-ink ${t.status === 'done' ? 'line-through' : ''}`}>
                     {t.title}
                   </p>
@@ -76,7 +76,7 @@ export default async function TasksPage() {
                       📋 {t.deal_title}
                     </p>
                   )}
-                </div>
+                </Link>
                 {t.due_date && (
                   <p className="text-xs font-mono text-muted shrink-0">{t.due_date}</p>
                 )}

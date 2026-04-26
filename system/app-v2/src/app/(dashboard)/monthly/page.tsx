@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -46,9 +47,17 @@ export default async function MonthlyPage() {
 
   return (
     <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4">
-        <h1 className="text-lg font-semibold text-ink">月次レポート</h1>
-        <p className="text-xs text-subtle mt-1 font-mono">{year}年 {month}月</p>
+      <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
+        <div>
+          <h1 className="text-lg font-semibold text-ink">月次レポート</h1>
+          <p className="text-xs text-subtle mt-1 font-mono">{year}年 {month}月</p>
+        </div>
+        <Link
+          href={`/monthly/detail/${year}-${String(month).padStart(2, '0')}`}
+          className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
+        >
+          ドリルダウン →
+        </Link>
       </header>
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
