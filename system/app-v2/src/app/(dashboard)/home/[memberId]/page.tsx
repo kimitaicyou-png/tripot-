@@ -4,6 +4,7 @@ import { db } from '@/lib/db';
 import { members, deals, tasks, actions } from '@/db/schema';
 import { eq, and, sql, isNull, gte } from 'drizzle-orm';
 import { LogActionButton } from '@/components/log-action-button';
+import { MorningBrief } from './_components/morning-brief';
 
 const QUOTES = [
   '打席に立たなければヒットは出ない。',
@@ -107,7 +108,11 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
           <p className="font-serif italic text-2xl text-ink-mid leading-relaxed">{quote}</p>
         </section>
 
-        <section className="mt-12 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="mt-12">
+          <MorningBrief memberId={memberId} />
+        </div>
+
+        <section className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
             <p className="text-xs text-subtle">進行中の案件</p>
             <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{dealStats?.activeCount ?? 0}</p>

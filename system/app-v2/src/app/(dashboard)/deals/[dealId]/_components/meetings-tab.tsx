@@ -1,6 +1,7 @@
 import { listMeetingsForDeal } from '@/lib/actions/meetings';
 import { EmptyState } from '@/components/ui/empty-state';
 import { MeetingForm } from './meeting-form';
+import { ProposalFromMeetingButton } from './proposal-from-meeting-button';
 
 const TYPE_LABEL: Record<string, string> = {
   call: '📞 電話',
@@ -54,6 +55,7 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                       {new Date(m.occurred_at).toLocaleString('ja-JP')}
                     </p>
                   </div>
+                  <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
                 </div>
                 {m.summary && (
                   <div className="border-l-2 border-border pl-3">

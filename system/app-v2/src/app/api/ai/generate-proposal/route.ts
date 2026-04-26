@@ -84,6 +84,7 @@ export async function POST(request: Request) {
 
   const meetingRows = await db
     .select({
+      id: meetings.id,
       title: meetings.title,
       summary: meetings.summary,
       raw_text: meetings.raw_text,
@@ -99,9 +100,12 @@ export async function POST(request: Request) {
       )
     );
 
-  const meetingsForContext = meetingRows
-    .filter((m) => !meeting_ids || meeting_ids.length === 0 || true)
-    .slice(0, 10);
+  const meetingIdSet =
+    meeting_ids && meeting_ids.length > 0 ? new Set(meeting_ids) : null;
+  const meetingsForContext = (meetingIdSet
+    ? meetingRows.filter((m) => meetingIdSet.has(m.id))
+    : meetingRows
+  ).slice(0, 10);
 
   const meetingDigest = meetingsForContext
     .map(
