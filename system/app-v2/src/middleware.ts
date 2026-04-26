@@ -11,7 +11,7 @@ export default async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // 認証不要パス
-  const publicPaths = ['/login', '/api/auth'];
+  const publicPaths = ['/login', '/api/auth', '/api/bridge'];
   if (publicPaths.some((p) => pathname.startsWith(p))) {
     return NextResponse.next();
   }
