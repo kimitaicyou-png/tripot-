@@ -7,6 +7,7 @@ import { eq, and, isNull, desc } from 'drizzle-orm';
 import { deleteDeal } from '@/lib/actions/deals';
 import { TaskCheckbox } from '../../tasks/task-checkbox';
 import { TaskQuickAdd } from '@/components/task-quick-add';
+import { LogActionButton } from '@/components/log-action-button';
 
 const STAGE_LABEL: Record<string, string> = {
   prospect: '見込み',
@@ -137,7 +138,12 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
         </section>
 
         <section className="bg-card border border-border rounded-xl p-6">
-          <h3 className="text-sm font-medium text-ink mb-3">行動履歴 <span className="text-xs text-subtle font-normal">{dealActions.length}件</span></h3>
+          <div className="flex items-center justify-between mb-3">
+            <h3 className="text-sm font-medium text-ink">
+              行動履歴 <span className="text-xs text-subtle font-normal">{dealActions.length}件</span>
+            </h3>
+            <LogActionButton dealId={dealId} variant="inline" />
+          </div>
           {dealActions.length === 0 ? (
             <p className="text-sm text-muted">まだ行動が記録されていません</p>
           ) : (

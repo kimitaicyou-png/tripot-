@@ -3,6 +3,7 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { actions, members, deals } from '@/db/schema';
 import { eq, and, sql, isNull, gte } from 'drizzle-orm';
+import { WeeklyTabs } from './_components/tabs';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
@@ -59,6 +60,8 @@ export default async function WeeklyPage() {
           {weekStart.toLocaleDateString('ja-JP')} 〜 {new Date().toLocaleDateString('ja-JP')}
         </p>
       </header>
+
+      <WeeklyTabs />
 
       <div className="px-6 py-8 max-w-5xl mx-auto">
         <section className="mb-8">
