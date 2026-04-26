@@ -14,6 +14,7 @@
 | [0005](./0005-glossary-strict.md) | 用語統一の厳格遵守 | Accepted | 2026-04-26 |
 | [0006](./0006-member-color-hash.md) | メンバー識別色の決定論的生成 | Accepted | 2026-04-26 |
 | [0007](./0007-running-revenue-model-deferral.md) | running 売上モデルの簡略化と billing_periods Phase 2 送り | Accepted | 2026-04-26 |
+| [0008](./0008-no-internal-basepath-multi-zones-true.md) | Next.js 内部 basePath を持たず Multi-Zones 真意で運用（ADR-0003 補足） | Accepted | 2026-04-26 |
 
 ## ADR を追加する時
 

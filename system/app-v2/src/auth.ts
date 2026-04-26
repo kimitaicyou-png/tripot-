@@ -23,6 +23,7 @@ const DEV_ALLOWED_EMAILS = (process.env.DEV_ALLOWED_EMAILS ?? '')
   .filter(Boolean);
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
+  basePath: '/api/auth',
   providers: [
     Google({
       clientId: process.env.AUTH_GOOGLE_ID_V2!,

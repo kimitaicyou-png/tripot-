@@ -1,10 +1,9 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // coaris.ai/tripot で配信される構成
-  // Vercel Microfrontends ホスト側で /tripot/* がこのアプリに rewrite される
-  basePath: process.env.NEXT_PUBLIC_BASE_PATH ?? '/tripot',
-  assetPrefix: process.env.NEXT_PUBLIC_ASSET_PREFIX ?? '/tripot',
+  // ADR-0003 Vercel Multi-Zones 真意：各 zone は root 動作、外側で /tripot/* rewrite
+  // basePath を内側で持つと NextAuth callback URL と不整合（Next.js が strip / NextAuth が basePath 知らない）
+  // 本番では coaris.ai が `/tripot/*` を tripot-v2-coaris.vercel.app/* に rewrite
 
   // 本部・他事業会社への遷移を許可
   async headers() {
