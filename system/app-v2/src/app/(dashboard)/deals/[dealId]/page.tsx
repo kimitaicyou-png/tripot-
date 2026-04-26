@@ -1,0 +1,179 @@
+/**
+ * 案件詳細 — 編集・削除・タスク一覧・行動履歴
+ */
+
+import Link from 'next/link';
+import { redirect, notFound } from 'next/navigation';
+import { auth } from '@/auth';
+import { db } from '@/lib/db';
+import { deals, members, customers, tasks, actions } from '@/db/schema';
+import { eq, and, isNull, desc } from 'drizzle-orm';
+import { deleteDeal } from '@/lib/actions/deals';
+import { TaskCheckbox } from '../../tasks/task-checkbox';
+import { TaskQuickAdd } from '@/components/task-quick-add';
+
+const STAGE_LABEL: Record<string, string> = {
+  prospect: '見込み',
+  proposing: '提案中',
+  ordered: '受注',
+  in_production: '制作中',
+  delivered: '納品済',
+  acceptance: '検収',
+  invoiced: '請求済',
+  paid: '入金済',
+  lost: '失注',
+};
+
+const ACTION_TYPE_LABEL: Record<string, string> = {
+  call: '📞 電話',
+  meeting: '🤝 商談',
+  proposal: '📄 提案',
+  email: '✉️ メール',
+  visit: '🚶 訪問',
+  other: '📝 その他',
+};
+
+function formatYen(value: number | null): string {
+  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
+}
+
+export default async function DealDetailPage({ params }: { params: Promise<{ dealId: string }> }) {
+  const session = await auth();
+  if (!session?.user?.member_id) redirect('/login');
+
+  const { dealId } = await params;
+
+  const deal = await db
+    .select({
+      id: deals.id,
+      title: deals.title,
+      stage: deals.stage,
+      amount: deals.amount,
+      monthly_amount: deals.monthly_amount,
+      revenue_type: deals.revenue_type,
+      expected_close_date: deals.expected_close_date,
+      ordered_at: deals.ordered_at,
+      paid_at: deals.paid_at,
+      assignee_name: members.name,
+      customer_name: customers.name,
+    })
+    .from(deals)
+    .leftJoin(members, eq(deals.assignee_id, members.id))
+    .leftJoin(customers, eq(deals.customer_id, customers.id))
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!deal) notFound();
+
+  // 紐付くタスク
+  const dealTasks = await db
+    .select({
+      id: tasks.id,
+      title: tasks.title,
+      status: tasks.status,
+      due_date: tasks.due_date,
+    })
+    .from(tasks)
+    .where(and(eq(tasks.deal_id, dealId), isNull(tasks.deleted_at)))
+    .orderBy(tasks.status, tasks.due_date);
+
+  // 行動履歴
+  const dealActions = await db
+    .select({
+      id: actions.id,
+      type: actions.type,
+      note: actions.note,
+      occurred_at: actions.occurred_at,
+      member_name: members.name,
+    })
+    .from(actions)
+    .leftJoin(members, eq(actions.member_id, members.id))
+    .where(eq(actions.deal_id, dealId))
+    .orderBy(desc(actions.occurred_at))
+    .limit(20);
+
+  const handleDelete = deleteDeal.bind(null, dealId);
+
+  return (
+    <main className="min-h-screen bg-surface">
+      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
+        <Link href="/deals" className="text-muted hover:text-ink text-sm">← 案件一覧</Link>
+        <h1 className="text-lg font-semibold text-ink truncate">{deal.title}</h1>
+      </header>
+
+      <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
+        {/* h1：金額デカ表示 */}
+        <section className="bg-card border border-border rounded-xl p-6">
+          <p className="text-xs text-subtle">受注金額</p>
+          <p className="font-serif italic text-5xl text-ink tracking-tight tabular-nums mt-1">
+            {formatYen(deal.amount)}
+          </p>
+          {deal.revenue_type !== 'spot' && deal.monthly_amount ? (
+            <p className="text-sm text-muted mt-2 font-mono">＋月額 {formatYen(deal.monthly_amount)}</p>
+          ) : null}
+        </section>
+
+        {/* 詳細 */}
+        <section className="bg-card border border-border rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+          <div><p className="text-xs text-subtle mb-1">ステージ</p><p className="text-ink font-medium">{STAGE_LABEL[deal.stage] ?? deal.stage}</p></div>
+          <div><p className="text-xs text-subtle mb-1">担当</p><p className="text-ink font-medium">{deal.assignee_name ?? '—'}</p></div>
+          <div><p className="text-xs text-subtle mb-1">顧客</p><p className="text-ink font-medium">{deal.customer_name ?? '—'}</p></div>
+          <div><p className="text-xs text-subtle mb-1">受注予定</p><p className="text-ink font-medium font-mono">{deal.expected_close_date ?? '—'}</p></div>
+          <div><p className="text-xs text-subtle mb-1">受注日</p><p className="text-ink font-medium font-mono">{deal.ordered_at ?? '—'}</p></div>
+          <div><p className="text-xs text-subtle mb-1">入金日</p><p className="text-ink font-medium font-mono">{deal.paid_at ?? '—'}</p></div>
+        </section>
+
+        {/* タスク */}
+        <section className="bg-card border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-ink mb-3">タスク <span className="text-xs text-subtle font-normal">{dealTasks.length}件</span></h3>
+          {dealTasks.length === 0 ? (
+            <p className="text-sm text-muted">タスクはまだありません</p>
+          ) : (
+            <ul className="space-y-2">
+              {dealTasks.map((t) => (
+                <li key={t.id} className={`flex items-center gap-3 ${t.status === 'done' ? 'opacity-60' : ''}`}>
+                  <TaskCheckbox taskId={t.id} done={t.status === 'done'} />
+                  <p className={`flex-1 text-sm text-ink ${t.status === 'done' ? 'line-through' : ''}`}>{t.title}</p>
+                  {t.due_date && <span className="text-xs font-mono text-muted">{t.due_date}</span>}
+                </li>
+              ))}
+            </ul>
+          )}
+          <TaskQuickAdd dealId={dealId} />
+        </section>
+
+        {/* 行動履歴 */}
+        <section className="bg-card border border-border rounded-xl p-6">
+          <h3 className="text-sm font-medium text-ink mb-3">行動履歴 <span className="text-xs text-subtle font-normal">{dealActions.length}件</span></h3>
+          {dealActions.length === 0 ? (
+            <p className="text-sm text-muted">まだ行動が記録されていません</p>
+          ) : (
+            <ul className="space-y-3">
+              {dealActions.map((a) => (
+                <li key={a.id} className="flex items-start gap-3 border-l-2 border-border pl-3">
+                  <div className="flex-1">
+                    <p className="text-sm text-ink">
+                      <span className="font-medium">{ACTION_TYPE_LABEL[a.type] ?? a.type}</span>
+                      <span className="text-muted ml-2">by {a.member_name}</span>
+                    </p>
+                    {a.note && <p className="text-sm text-muted mt-1">{a.note}</p>}
+                    <p className="text-xs font-mono text-subtle mt-1">{new Date(a.occurred_at).toLocaleString('ja-JP')}</p>
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        {/* アクション */}
+        <section className="flex items-center justify-end gap-3">
+          <Link href={`/deals/${dealId}/edit`} className="px-4 py-2 bg-card border border-border text-ink text-sm font-medium rounded-lg hover:bg-slate-50">編集</Link>
+          <form action={handleDelete}>
+            <button type="submit" className="px-4 py-2 bg-red-50 border border-red-200 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100">削除</button>
+          </form>
+        </section>
+      </div>
+    </main>
+  );
+}

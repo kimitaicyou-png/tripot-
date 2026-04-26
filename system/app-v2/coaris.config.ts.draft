@@ -1,0 +1,161 @@
+/**
+ * coaris.config.ts 雛形草案（v2 Phase 0 設計）
+ *
+ * 2026-04-25 美桜起草。
+ * tripot v2 を皮切りに、13社展開時にこの1ファイルだけ書き換えれば
+ * 各社のシステムが立ち上がる設計。
+ *
+ * 旧tripot v1 で `USERS = {toki, ono}` のようにハードコードされていた
+ * 全要素をここに集約する。
+ *
+ * 実装は明日以降、4姉妹+セバスチャンの合議で確定。
+ * これは草案、本実装は coaris.config.ts として書き起こす。
+ */
+
+export type CompanyConfig = {
+  /** 会社識別ID（URL階層、DBスキーマ、設定キーで使う） */
+  id: string;
+
+  /** 会社の正式名称（UIに表示） */
+  name: string;
+
+  /** 会社の略称・愛称 */
+  shortName: string;
+
+  /** 会社のドメイン（coaris.ai 配下のパス） */
+  pathPrefix: string;
+
+  /** 法人形態 */
+  legalForm: '株式会社' | '合同会社' | '一般社団法人' | '個人事業主';
+
+  /** 代表者・社長情報 */
+  president: {
+    name: string;
+    email: string;
+    role: 'president';
+  };
+
+  /** ブランディング */
+  branding: {
+    logo: {
+      type: 'svg' | 'png';
+      path: string; // /public/companies/{id}/logo.svg
+    };
+    primaryColor: string; // Tailwind CSS で使う、例: 'bg-blue-600'
+    accentColor: string;
+    /** Geist じゃなく独自フォント、❄️美冬選定 */
+    fontFamily: string;
+  };
+
+  /** 認証ドメイン制限（NextAuth signIn callback で使う） */
+  auth: {
+    /** このメアドドメイン以外はログイン拒否 */
+    allowedEmailDomains: string[]; // 例: ['tripot.coaris.ai', 'coaris.ai']
+    /** 初回ログイン時のデフォルトロール */
+    defaultRole: 'president' | 'hq_member' | 'member';
+  };
+
+  /** 機能フラグ（13社で機能差別化） */
+  features: {
+    moneyForward: boolean; // MFクラウド連携
+    csvImport: boolean; // データ取込
+    weeklyMeeting: boolean; // 週次会議画面
+    monthlyMeeting: boolean; // 月次会議画面
+    yearlyBudget: boolean; // 事業計画
+    productionDashboard: boolean; // 制作管理（IT系のみ）
+    customerCRM: boolean; // 顧客管理
+    approvalFlow: boolean; // 申請承認
+    aiAssistant: boolean; // 4姉妹常駐AI
+  };
+
+  /** 業界特化フィールド（業種別の追加KPI等） */
+  industryFields?: {
+    type: 'IT' | '製造' | '建設' | 'BPO' | '医療' | '介護' | 'マーケ' | '広告' | '飲食' | '不動産' | 'グローバル';
+    customKPIs?: string[]; // 業界特有のKPI識別子
+  };
+
+  /** 本部との接続設定 */
+  bridgeToHQ: {
+    /** 本部に送信するKPIエンドポイント */
+    kpiEndpoint: string; // /api/bridge/kpi
+    /** 同期方式 */
+    syncMode: 'realtime' | 'daily_batch' | 'hybrid';
+    /** 重要変化を本部にPushするWebhook URL */
+    webhookUrl?: string;
+  };
+
+  /** メンバーは DB から動的取得、ここには初期メンバーのシード値だけ */
+  initialMembers?: Array<{
+    name: string;
+    email: string;
+    role: 'president' | 'hq_member' | 'member';
+    department?: string;
+  }>;
+};
+
+/**
+ * tripot v2 の設定例（参考用、実装時は別ファイル）
+ */
+export const TRIPOT_CONFIG: CompanyConfig = {
+  id: 'tripot',
+  name: 'トライポット株式会社',
+  shortName: 'tripot',
+  pathPrefix: 'tripot', // coaris.ai/tripot
+  legalForm: '株式会社',
+  president: {
+    name: '土岐 公人',
+    email: 'k.toki@coaris.ai', // ←旧 jtravel.group から正式独立後
+    role: 'president',
+  },
+  branding: {
+    logo: {
+      type: 'svg',
+      path: '/companies/tripot/logo.svg',
+    },
+    primaryColor: 'bg-blue-600', // コアリスHD標準（v1の #1a1f36 は捨てる）
+    accentColor: 'bg-amber-500',
+    fontFamily: 'Inter Variable, sans-serif', // ❄️美冬がGeistから刷新
+  },
+  auth: {
+    allowedEmailDomains: ['coaris.ai', 'tripot.coaris.ai'],
+    defaultRole: 'member',
+  },
+  features: {
+    moneyForward: true, // MFクラウド連携あり（v2再設計、隊長指摘「雑」を解消）
+    csvImport: true,
+    weeklyMeeting: true,
+    monthlyMeeting: true,
+    yearlyBudget: true,
+    productionDashboard: true, // IT系なのでON
+    customerCRM: true,
+    approvalFlow: true,
+    aiAssistant: true, // 4姉妹常駐
+  },
+  industryFields: {
+    type: 'IT',
+    customKPIs: ['bug_fixes', 'deployments'],
+  },
+  bridgeToHQ: {
+    kpiEndpoint: '/api/bridge/kpi',
+    syncMode: 'hybrid',
+    webhookUrl: 'https://coaris.ai/api/hq/webhook',
+  },
+  // メンバーは DB から取る、シード不要
+};
+
+/**
+ * 将来の拡張：13社分の設定をここに置く（または各社別ファイル）
+ *
+ * - tripot.config.ts
+ * - deraforce.config.ts
+ * - wise-assist.config.ts
+ * - yuyukai.config.ts
+ * - ...
+ *
+ * 共通の型は coaris.config.ts （本ファイル）の CompanyConfig を使う。
+ *
+ * 実装時の注意：
+ * - 旧tripotの USERS ハードコードはこのファイルに集約
+ * - localStorage["tripot_current_user"] 設計は廃止、NextAuth session に一本化
+ * - MEMBER_COLORS は memberId hash で永続色を生成（並び順依存を排除）
+ */
