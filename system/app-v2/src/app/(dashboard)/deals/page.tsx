@@ -4,6 +4,10 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, members, customers } from '@/db/schema';
 import { eq, and, isNull, desc } from 'drizzle-orm';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { SectionHeading } from '@/components/ui/section-heading';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const STAGE_LABEL: Record<string, string> = {
   prospect: '見込み',
@@ -28,6 +32,18 @@ const STAGE_COLOR: Record<string, string> = {
   paid: 'bg-emerald-50 text-emerald-700',
   lost: 'bg-red-50 text-red-700',
 };
+
+const STAGE_ORDER: readonly string[] = [
+  'prospect',
+  'proposing',
+  'ordered',
+  'in_production',
+  'delivered',
+  'acceptance',
+  'invoiced',
+  'paid',
+  'lost',
+];
 
 function formatYen(value: number | null): string {
   if (!value) return '¥0';
@@ -57,67 +73,102 @@ export default async function DealsListPage() {
     .orderBy(desc(deals.updated_at))
     .limit(200);
 
+  const totalActive = rows.filter((d) =>
+    ['proposing', 'ordered', 'in_production'].includes(d.stage),
+  ).length;
+  const totalRevenue = rows
+    .filter((d) => d.stage === 'paid' || d.stage === 'invoiced')
+    .reduce((s, d) => s + (d.amount ?? 0), 0);
+  const totalPipeline = rows
+    .filter((d) => !['paid', 'lost'].includes(d.stage))
+    .reduce((s, d) => s + (d.amount ?? 0), 0);
+
+  const grouped = STAGE_ORDER.map((stage) => ({
+    stage,
+    items: rows.filter((d) => d.stage === stage),
+  })).filter((g) => g.items.length > 0);
+
   return (
     <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-ink">案件</h1>
-        <Link
-          href="/deals/new"
-          className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
-        >
-          新規登録
-        </Link>
-      </header>
+      <PageHeader
+        eyebrow="DEALS"
+        title="案件"
+        subtitle={
+          <>
+            <span className="font-mono tabular-nums text-ink">{rows.length}</span> 件 ／ 進行中{' '}
+            <span className="font-mono tabular-nums text-ink">{totalActive}</span>
+          </>
+        }
+        actions={
+          <Link
+            href="/deals/new"
+            className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
+          >
+            新規登録
+          </Link>
+        }
+      />
 
-      <div className="px-6 py-6 max-w-7xl mx-auto">
+      <div className="px-6 py-10 max-w-7xl mx-auto space-y-12">
         {rows.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-12 text-center">
-            <p className="text-muted">まだ案件が登録されていません</p>
-            <Link
-              href="/deals/new"
-              className="inline-block mt-4 text-blue-600 hover:underline text-sm"
-            >
-              最初の案件を登録する →
-            </Link>
-          </div>
+          <EmptyState
+            icon="◯"
+            title="まだ案件が登録されていません"
+            description="最初の案件を登録して、行動を積み上げていきましょう。"
+            cta={{ href: '/deals/new', label: '案件を登録する' }}
+          />
         ) : (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-slate-50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">案件名</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">顧客</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">担当</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">ステージ</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">金額</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((d) => (
-                  <tr key={d.id} className="border-b border-border last:border-0 hover:bg-slate-50 transition-colors">
-                    <td className="px-4 py-3">
-                      <Link href={`/deals/${d.id}`} className="text-ink hover:underline font-medium">
-                        {d.title}
-                      </Link>
-                    </td>
-                    <td className="px-4 py-3 text-sm text-muted">{d.customer_name ?? '—'}</td>
-                    <td className="px-4 py-3 text-sm text-muted">{d.assignee_name ?? '—'}</td>
-                    <td className="px-4 py-3">
-                      <span className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium ${STAGE_COLOR[d.stage] ?? ''}`}>
+          <>
+            <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <StatCard label="入金確定累計" value={formatYen(totalRevenue)} tone="up" big />
+              <StatCard label="パイプライン" value={formatYen(totalPipeline)} tone="accent" big />
+              <StatCard label="進行中の案件" value={totalActive} sub={`全${rows.length}件中`} big />
+            </section>
+
+            {grouped.map((g) => (
+              <section key={g.stage}>
+                <SectionHeading
+                  eyebrow={g.stage.toUpperCase()}
+                  title={STAGE_LABEL[g.stage] ?? g.stage}
+                  count={g.items.length}
+                />
+                <div className="bg-card border border-border rounded-xl divide-y divide-border">
+                  {g.items.map((d) => (
+                    <Link
+                      key={d.id}
+                      href={`/deals/${d.id}`}
+                      className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
+                    >
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium shrink-0 ${STAGE_COLOR[d.stage] ?? ''}`}
+                      >
                         {STAGE_LABEL[d.stage] ?? d.stage}
                       </span>
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums text-sm text-ink">
-                      {formatYen(d.amount)}
-                      {d.revenue_type !== 'spot' && d.monthly_amount ? (
-                        <span className="block text-xs text-muted">月 {formatYen(d.monthly_amount)}</span>
-                      ) : null}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                      <span className="flex-1 text-sm text-ink truncate font-medium">
+                        {d.title}
+                      </span>
+                      <span className="text-xs text-muted shrink-0 hidden md:inline w-32 truncate">
+                        {d.customer_name ?? '—'}
+                      </span>
+                      <span className="text-xs text-muted shrink-0 hidden md:inline w-20 truncate">
+                        {d.assignee_name ?? '—'}
+                      </span>
+                      <span className="text-right shrink-0">
+                        <span className="font-mono tabular-nums text-sm text-ink font-semibold block">
+                          {formatYen(d.amount)}
+                        </span>
+                        {d.revenue_type !== 'spot' && d.monthly_amount ? (
+                          <span className="text-xs text-amber-700 font-mono tabular-nums">
+                            月 {formatYen(d.monthly_amount)}
+                          </span>
+                        ) : null}
+                      </span>
+                    </Link>
+                  ))}
+                </div>
+              </section>
+            ))}
+          </>
         )}
       </div>
     </main>

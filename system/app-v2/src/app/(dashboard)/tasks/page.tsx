@@ -2,9 +2,13 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
-import { tasks, deals, members } from '@/db/schema';
-import { eq, and, isNull, desc, ne } from 'drizzle-orm';
+import { tasks, deals } from '@/db/schema';
+import { eq, and, isNull, desc } from 'drizzle-orm';
 import { TaskCheckbox } from './task-checkbox';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { SectionHeading } from '@/components/ui/section-heading';
+import { EmptyState } from '@/components/ui/empty-state';
 
 export default async function TasksPage() {
   const session = await auth();
@@ -26,63 +30,135 @@ export default async function TasksPage() {
         eq(tasks.assignee_id, session.user.member_id),
         eq(tasks.company_id, session.user.company_id),
         isNull(tasks.deleted_at),
-      )
+      ),
     )
     .orderBy(desc(tasks.updated_at))
     .limit(100);
 
-  const todoCount = myTasks.filter((t) => t.status !== 'done').length;
-  const doneCount = myTasks.filter((t) => t.status === 'done').length;
+  const todoTasks = myTasks.filter((t) => t.status !== 'done');
+  const doneTasks = myTasks.filter((t) => t.status === 'done');
+  const todoCount = todoTasks.length;
+  const doneCount = doneTasks.length;
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const overdue = todoTasks.filter((t) => {
+    if (!t.due_date) return false;
+    return new Date(`${t.due_date}T00:00:00`).getTime() < today.getTime();
+  }).length;
 
   return (
     <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
-        <div>
-          <h1 className="text-lg font-semibold text-ink">マイタスク</h1>
-          <p className="text-xs text-subtle mt-1">
-            残 <span className="font-mono tabular-nums text-ink">{todoCount}</span> ／ 完了 <span className="font-mono tabular-nums text-ink">{doneCount}</span>
-          </p>
-        </div>
-        <Link
-          href="/tasks/new"
-          className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
-        >
-          新規登録
-        </Link>
-      </header>
+      <PageHeader
+        eyebrow="MY TASKS"
+        title="マイタスク"
+        subtitle={
+          <>
+            残 <span className="font-mono tabular-nums text-ink">{todoCount}</span> ／ 完了{' '}
+            <span className="font-mono tabular-nums text-ink">{doneCount}</span>
+          </>
+        }
+        actions={
+          <Link
+            href="/tasks/new"
+            className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
+          >
+            新規登録
+          </Link>
+        }
+      />
 
-      <div className="px-6 py-6 max-w-3xl mx-auto">
+      <div className="px-6 py-10 max-w-3xl mx-auto space-y-10">
         {myTasks.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-12 text-center">
-            <p className="text-muted">タスクはまだありません</p>
-            <p className="text-xs text-subtle mt-2">案件詳細からタスクを追加できます</p>
-          </div>
+          <EmptyState
+            icon="✓"
+            title="タスクはまだありません"
+            description="案件詳細からタスクを追加できます。"
+            cta={{ href: '/tasks/new', label: 'タスクを登録する' }}
+          />
         ) : (
-          <ul className="space-y-2">
-            {myTasks.map((t) => (
-              <li
-                key={t.id}
-                className={`bg-card border border-border rounded-lg px-4 py-3 flex items-center gap-3 ${
-                  t.status === 'done' ? 'opacity-60' : ''
-                }`}
-              >
-                <TaskCheckbox taskId={t.id} done={t.status === 'done'} />
-                <Link href={`/tasks/${t.id}`} className="flex-1 min-w-0 hover:opacity-80 transition-opacity">
-                  <p className={`text-sm text-ink ${t.status === 'done' ? 'line-through' : ''}`}>
-                    {t.title}
-                  </p>
-                  {t.deal_title && (
-                    <p className="text-xs text-subtle mt-0.5 truncate">
-                      📋 {t.deal_title}
-                    </p>
-                  )}
-                </Link>
-                {t.due_date && (
-                  <p className="text-xs font-mono text-muted shrink-0">{t.due_date}</p>
-                )}
-              </li>
-            ))}
-          </ul>
+          <>
+            <section className="grid grid-cols-3 gap-4">
+              <StatCard label="残タスク" value={todoCount} />
+              <StatCard
+                label="期限切れ"
+                value={overdue}
+                tone={overdue > 0 ? 'down' : 'default'}
+              />
+              <StatCard label="完了" value={doneCount} tone="up" />
+            </section>
+
+            {todoTasks.length > 0 && (
+              <section>
+                <SectionHeading eyebrow="TO DO" title="やる" count={todoTasks.length} />
+                <ul className="space-y-2">
+                  {todoTasks.map((t) => {
+                    const isOverdue =
+                      t.due_date &&
+                      new Date(`${t.due_date}T00:00:00`).getTime() < today.getTime();
+                    return (
+                      <li
+                        key={t.id}
+                        className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm"
+                      >
+                        <TaskCheckbox taskId={t.id} done={false} />
+                        <Link
+                          href={`/tasks/${t.id}`}
+                          className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
+                        >
+                          <p className="text-sm text-ink">{t.title}</p>
+                          {t.deal_title && (
+                            <p className="text-xs text-subtle mt-0.5 truncate">
+                              📋 {t.deal_title}
+                            </p>
+                          )}
+                        </Link>
+                        {t.due_date && (
+                          <p
+                            className={`text-xs font-mono shrink-0 ${
+                              isOverdue ? 'text-kpi-down font-medium' : 'text-muted'
+                            }`}
+                          >
+                            {t.due_date}
+                          </p>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
+            )}
+
+            {doneTasks.length > 0 && (
+              <section>
+                <SectionHeading eyebrow="DONE" title="完了" count={doneTasks.length} />
+                <ul className="space-y-2">
+                  {doneTasks.map((t) => (
+                    <li
+                      key={t.id}
+                      className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 opacity-60"
+                    >
+                      <TaskCheckbox taskId={t.id} done={true} />
+                      <Link
+                        href={`/tasks/${t.id}`}
+                        className="flex-1 min-w-0 hover:opacity-100 transition-opacity"
+                      >
+                        <p className="text-sm text-ink line-through">{t.title}</p>
+                        {t.deal_title && (
+                          <p className="text-xs text-subtle mt-0.5 truncate">
+                            📋 {t.deal_title}
+                          </p>
+                        )}
+                      </Link>
+                      {t.due_date && (
+                        <p className="text-xs font-mono text-muted shrink-0">{t.due_date}</p>
+                      )}
+                    </li>
+                  ))}
+                </ul>
+              </section>
+            )}
+          </>
         )}
       </div>
     </main>

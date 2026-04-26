@@ -5,6 +5,10 @@ import { approvals, members, deals } from '@/db/schema';
 import { eq, desc } from 'drizzle-orm';
 import { alias } from 'drizzle-orm/pg-core';
 import { DecideButtons } from './_components/decide-buttons';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { SectionHeading } from '@/components/ui/section-heading';
+import { EmptyState } from '@/components/ui/empty-state';
 
 const TYPE_LABEL: Record<string, string> = {
   discount: '値引き',
@@ -53,62 +57,139 @@ export default async function ApprovalPage() {
     .limit(100);
 
   const myMemberId = session.user.member_id;
+  const pendingCount = rows.filter((a) => a.status === 'pending').length;
+  const approvedCount = rows.filter((a) => a.status === 'approved').length;
+  const rejectedCount = rows.filter((a) => a.status === 'rejected').length;
+
+  const pendingForMe = rows.filter(
+    (a) => a.status === 'pending' && a.requester_id !== myMemberId,
+  );
+  const myPending = rows.filter((a) => a.status === 'pending' && a.requester_id === myMemberId);
+  const decided = rows.filter((a) => a.status !== 'pending');
 
   return (
     <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4">
-        <h1 className="text-lg font-semibold text-ink">承認</h1>
-      </header>
+      <PageHeader
+        eyebrow="APPROVALS"
+        title="承認"
+        subtitle={
+          <>
+            承認待ち <span className="font-mono tabular-nums text-amber-700">{pendingCount}</span> ／ 全
+            <span className="font-mono tabular-nums text-ink"> {rows.length}</span> 件
+          </>
+        }
+      />
 
-      <div className="px-6 py-6 max-w-5xl mx-auto">
+      <div className="px-6 py-10 max-w-5xl mx-auto space-y-12">
         {rows.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-12 text-center">
-            <p className="text-muted">承認案件はまだありません</p>
-            <p className="text-xs text-subtle mt-2">案件詳細から承認申請できます</p>
-          </div>
+          <EmptyState
+            icon="◯"
+            title="承認案件はまだありません"
+            description="案件詳細から承認申請を起こすと、ここに表示されます。"
+          />
         ) : (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-slate-50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">種類</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">案件</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">申請者</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">承認者</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">状態</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">操作</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((a) => {
-                  const canDecide =
-                    a.status === 'pending' && a.requester_id !== myMemberId;
-                  return (
-                    <tr key={a.id} className="border-b border-border last:border-0 hover:bg-slate-50">
-                      <td className="px-4 py-3 text-sm text-ink">{TYPE_LABEL[a.type] ?? a.type}</td>
-                      <td className="px-4 py-3 text-sm text-muted">{a.deal_title ?? '—'}</td>
-                      <td className="px-4 py-3 text-sm text-muted">{a.requester_name ?? '—'}</td>
-                      <td className="px-4 py-3 text-sm text-muted">{a.approver_name ?? '—'}</td>
-                      <td className="px-4 py-3">
-                        <span className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium ${STATUS_COLOR[a.status] ?? ''}`}>
-                          {STATUS_LABEL[a.status] ?? a.status}
-                        </span>
-                      </td>
-                      <td className="px-4 py-3 text-right">
-                        {canDecide ? (
-                          <DecideButtons approvalId={a.id} />
-                        ) : a.status === 'pending' ? (
-                          <span className="text-xs text-subtle">自分の申請</span>
-                        ) : (
-                          <span className="text-xs text-subtle">—</span>
-                        )}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <section className="grid grid-cols-3 gap-4">
+              <StatCard
+                label="承認待ち"
+                value={pendingCount}
+                tone={pendingCount > 0 ? 'accent' : 'default'}
+              />
+              <StatCard label="承認済み" value={approvedCount} tone="up" />
+              <StatCard
+                label="却下"
+                value={rejectedCount}
+                tone={rejectedCount > 0 ? 'down' : 'default'}
+              />
+            </section>
+
+            {pendingForMe.length > 0 && (
+              <section>
+                <SectionHeading
+                  eyebrow="ACTION REQUIRED"
+                  title="あなたの承認が必要"
+                  count={pendingForMe.length}
+                />
+                <div className="bg-card border border-border rounded-xl divide-y divide-border">
+                  {pendingForMe.map((a) => (
+                    <div
+                      key={a.id}
+                      className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
+                    >
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium shrink-0 ${STATUS_COLOR[a.status]}`}
+                      >
+                        {STATUS_LABEL[a.status]}
+                      </span>
+                      <span className="text-xs text-muted shrink-0 w-16">
+                        {TYPE_LABEL[a.type] ?? a.type}
+                      </span>
+                      <span className="flex-1 text-sm text-ink truncate">
+                        {a.deal_title ?? '—'}
+                      </span>
+                      <span className="text-xs text-muted shrink-0 hidden md:inline">
+                        申請: {a.requester_name ?? '—'}
+                      </span>
+                      <DecideButtons approvalId={a.id} />
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {myPending.length > 0 && (
+              <section>
+                <SectionHeading
+                  eyebrow="MY REQUESTS"
+                  title="自分の申請（承認待ち）"
+                  count={myPending.length}
+                />
+                <div className="bg-card border border-border rounded-xl divide-y divide-border">
+                  {myPending.map((a) => (
+                    <div key={a.id} className="px-5 py-4 flex items-center gap-4">
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium shrink-0 ${STATUS_COLOR[a.status]}`}
+                      >
+                        {STATUS_LABEL[a.status]}
+                      </span>
+                      <span className="text-xs text-muted shrink-0 w-16">
+                        {TYPE_LABEL[a.type] ?? a.type}
+                      </span>
+                      <span className="flex-1 text-sm text-ink truncate">
+                        {a.deal_title ?? '—'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+
+            {decided.length > 0 && (
+              <section>
+                <SectionHeading eyebrow="HISTORY" title="決定済み" count={decided.length} />
+                <div className="bg-card border border-border rounded-xl divide-y divide-border">
+                  {decided.map((a) => (
+                    <div key={a.id} className="px-5 py-4 flex items-center gap-4 opacity-80">
+                      <span
+                        className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium shrink-0 ${STATUS_COLOR[a.status]}`}
+                      >
+                        {STATUS_LABEL[a.status]}
+                      </span>
+                      <span className="text-xs text-muted shrink-0 w-16">
+                        {TYPE_LABEL[a.type] ?? a.type}
+                      </span>
+                      <span className="flex-1 text-sm text-ink truncate">
+                        {a.deal_title ?? '—'}
+                      </span>
+                      <span className="text-xs text-muted shrink-0 hidden md:inline">
+                        承認: {a.approver_name ?? '—'}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              </section>
+            )}
+          </>
         )}
       </div>
     </main>

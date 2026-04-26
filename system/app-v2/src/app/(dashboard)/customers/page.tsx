@@ -4,6 +4,9 @@ import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { customers, deals } from '@/db/schema';
 import { eq, and, isNull, sql, desc } from 'drizzle-orm';
+import { PageHeader } from '@/components/ui/page-header';
+import { StatCard } from '@/components/ui/stat-card';
+import { EmptyState } from '@/components/ui/empty-state';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
@@ -29,49 +32,77 @@ export default async function CustomersPage() {
     .orderBy(desc(sql`COUNT(${deals.id})`))
     .limit(200);
 
+  const totalRevenue = rows.reduce((s, c) => s + (c.total_amount ?? 0), 0);
+  const totalDeals = rows.reduce((s, c) => s + (c.deal_count ?? 0), 0);
+
   return (
     <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center justify-between">
-        <h1 className="text-lg font-semibold text-ink">顧客</h1>
-        <Link
-          href="/customers/new"
-          className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
-        >
-          新規登録
-        </Link>
-      </header>
+      <PageHeader
+        eyebrow="CUSTOMERS"
+        title="顧客"
+        subtitle={
+          <>
+            <span className="font-mono tabular-nums text-ink">{rows.length}</span> 社 ／ 案件{' '}
+            <span className="font-mono tabular-nums text-ink">{totalDeals}</span>
+          </>
+        }
+        actions={
+          <Link
+            href="/customers/new"
+            className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
+          >
+            新規登録
+          </Link>
+        }
+      />
 
-      <div className="px-6 py-6 max-w-5xl mx-auto">
+      <div className="px-6 py-10 max-w-5xl mx-auto space-y-10">
         {rows.length === 0 ? (
-          <div className="bg-card border border-border rounded-xl p-12 text-center">
-            <p className="text-muted">顧客がまだ登録されていません</p>
-          </div>
+          <EmptyState
+            icon="◯"
+            title="顧客がまだ登録されていません"
+            description="顧客を登録すると、案件を紐付けて売上を集計できます。"
+            cta={{ href: '/customers/new', label: '顧客を登録する' }}
+          />
         ) : (
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-slate-50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">顧客名</th>
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">連絡先</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">案件数</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">入金累計</th>
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((c) => (
-                  <tr key={c.id} className="border-b border-border last:border-0 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-ink font-medium">{c.name}</td>
-                    <td className="px-4 py-3 text-xs text-muted">
-                      {c.contact_email && <p>{c.contact_email}</p>}
-                      {c.contact_phone && <p className="font-mono mt-0.5">{c.contact_phone}</p>}
-                    </td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums text-sm text-ink">{c.deal_count}</td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums text-sm text-ink font-semibold">{formatYen(c.total_amount)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              <StatCard label="顧客数" value={rows.length} big />
+              <StatCard label="案件総数" value={totalDeals} big />
+              <StatCard label="入金累計" value={formatYen(totalRevenue)} tone="up" big />
+            </section>
+
+            <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {rows.map((c) => (
+                <Link
+                  key={c.id}
+                  href={`/customers/${c.id}`}
+                  className="bg-card border border-border rounded-xl p-5 shadow-sm hover:border-ink-mid transition-colors block"
+                >
+                  <div className="flex items-baseline justify-between mb-3">
+                    <p className="text-base text-ink font-medium truncate">{c.name}</p>
+                    <p className="font-mono tabular-nums text-xs text-subtle shrink-0 ml-2">
+                      {c.deal_count}件
+                    </p>
+                  </div>
+                  <p className="font-serif italic text-2xl text-ink tabular-nums leading-none">
+                    {formatYen(c.total_amount)}
+                  </p>
+                  <div className="mt-3 space-y-0.5">
+                    {c.contact_email && (
+                      <p className="text-xs text-muted truncate">{c.contact_email}</p>
+                    )}
+                    {c.contact_phone && (
+                      <p className="text-xs font-mono text-muted">{c.contact_phone}</p>
+                    )}
+                    {!c.contact_email && !c.contact_phone && (
+                      <p className="text-xs text-subtle">連絡先未登録</p>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </section>
+          </>
         )}
       </div>
     </main>

@@ -4,6 +4,11 @@ import { db } from '@/lib/db';
 import { actions, members, deals } from '@/db/schema';
 import { eq, and, sql, isNull, gte } from 'drizzle-orm';
 import { WeeklyTabs } from './_components/tabs';
+import { PageHeader } from '@/components/ui/page-header';
+import { HeroValue, StatCard } from '@/components/ui/stat-card';
+import { SectionHeading } from '@/components/ui/section-heading';
+import { EmptyState } from '@/components/ui/empty-state';
+import { getMemberColor, getMemberInitial } from '@/lib/member-color';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
@@ -17,7 +22,6 @@ export default async function WeeklyPage() {
   weekStart.setDate(weekStart.getDate() - 6);
   weekStart.setHours(0, 0, 0, 0);
 
-  // チーム別週次行動量
   const memberStats = await db
     .select({
       id: members.id,
@@ -42,7 +46,6 @@ export default async function WeeklyPage() {
     .groupBy(members.id, members.name)
     .orderBy(sql`COUNT(${actions.id}) DESC`);
 
-  // 会社全体KPI
   const companyKpi = await db
     .select({
       revenue: sql<number>`COALESCE(SUM(${deals.amount}) FILTER (WHERE ${deals.stage} IN ('paid', 'invoiced')), 0)::int`,
@@ -52,52 +55,105 @@ export default async function WeeklyPage() {
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((rows) => rows[0]);
 
+  const totalActions = memberStats.reduce((s, m) => s + m.total, 0);
+  const maxActions = Math.max(...memberStats.map((m) => m.total), 1);
+
   return (
     <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4">
-        <h1 className="text-lg font-semibold text-ink">週次レポート</h1>
-        <p className="text-xs text-subtle mt-1 font-mono">
-          {weekStart.toLocaleDateString('ja-JP')} 〜 {new Date().toLocaleDateString('ja-JP')}
-        </p>
-      </header>
+      <PageHeader
+        eyebrow="WEEKLY"
+        title="週次レポート"
+        subtitle={
+          <span className="font-mono">
+            {weekStart.toLocaleDateString('ja-JP')} 〜 {new Date().toLocaleDateString('ja-JP')}
+          </span>
+        }
+      />
 
       <WeeklyTabs />
 
-      <div className="px-6 py-8 max-w-5xl mx-auto">
-        <section className="mb-8">
-          <p className="text-sm text-muted">会社全体の売上（入金確定）</p>
-          <h2 className="font-serif italic text-5xl md:text-7xl text-ink tracking-tight tabular-nums mt-2">
-            {formatYen(companyKpi?.revenue ?? 0)}
-          </h2>
-          <p className="text-sm text-muted mt-2">進行中：<span className="font-mono tabular-nums text-ink font-medium">{companyKpi?.activeCount ?? 0}</span> 件</p>
-        </section>
+      <div className="px-6 py-10 max-w-5xl mx-auto space-y-12">
+        <HeroValue
+          label="会社全体の売上（入金確定累計）"
+          value={formatYen(companyKpi?.revenue ?? 0)}
+          sub={
+            <>
+              進行中{' '}
+              <span className="font-mono tabular-nums text-ink font-medium">
+                {companyKpi?.activeCount ?? 0}
+              </span>{' '}
+              件 ／ 直近7日 行動量{' '}
+              <span className="font-mono tabular-nums text-ink font-medium">{totalActions}</span>
+            </>
+          }
+        />
 
         <section>
-          <h3 className="text-sm font-medium text-ink mb-4">メンバー別 行動量（直近7日）</h3>
-          <div className="bg-card border border-border rounded-xl overflow-hidden">
-            <table className="w-full">
-              <thead>
-                <tr className="border-b border-border bg-slate-50">
-                  <th className="px-4 py-3 text-left text-xs font-semibold text-muted">メンバー</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">合計</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">電話</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">商談</th>
-                  <th className="px-4 py-3 text-right text-xs font-semibold text-muted">提案</th>
-                </tr>
-              </thead>
-              <tbody>
-                {memberStats.map((m) => (
-                  <tr key={m.id} className="border-b border-border last:border-0 hover:bg-slate-50">
-                    <td className="px-4 py-3 text-sm text-ink font-medium">{m.name}</td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums text-ink font-semibold">{m.total}</td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums text-muted">{m.calls}</td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums text-muted">{m.meetings}</td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums text-muted">{m.proposals}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <SectionHeading
+            eyebrow="ACTIVITY"
+            title="メンバー別 行動量"
+            count={memberStats.length}
+          />
+          {memberStats.length === 0 ? (
+            <EmptyState icon="◯" title="メンバーがまだ登録されていません" />
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {memberStats.map((m) => {
+                const color = getMemberColor(m.id);
+                const initial = getMemberInitial(m.name);
+                const widthPct = Math.round((m.total / maxActions) * 100);
+                return (
+                  <div
+                    key={m.id}
+                    className="bg-card border border-border rounded-xl p-5 shadow-sm"
+                  >
+                    <div className="flex items-center gap-3 mb-3">
+                      <div
+                        className={`w-10 h-10 rounded-lg ${color} flex items-center justify-center text-white text-base font-semibold`}
+                      >
+                        {initial}
+                      </div>
+                      <p className="flex-1 text-sm text-ink font-medium truncate">{m.name}</p>
+                      <p className="font-serif italic text-2xl text-ink tabular-nums leading-none">
+                        {m.total}
+                      </p>
+                    </div>
+                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
+                      <div
+                        className="h-full bg-ink rounded-full transition-all"
+                        style={{ width: `${widthPct}%` }}
+                      />
+                    </div>
+                    <div className="grid grid-cols-3 gap-2 text-center">
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-subtle">電話</p>
+                        <p className="font-mono tabular-nums text-sm text-ink mt-0.5">{m.calls}</p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-subtle">商談</p>
+                        <p className="font-mono tabular-nums text-sm text-ink mt-0.5">
+                          {m.meetings}
+                        </p>
+                      </div>
+                      <div>
+                        <p className="text-[10px] uppercase tracking-wider text-subtle">提案</p>
+                        <p className="font-mono tabular-nums text-sm text-ink mt-0.5">
+                          {m.proposals}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </section>
+
+        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <StatCard label="進行中の案件" value={companyKpi?.activeCount ?? 0} />
+          <StatCard label="今週の電話" value={memberStats.reduce((s, m) => s + m.calls, 0)} />
+          <StatCard label="今週の商談" value={memberStats.reduce((s, m) => s + m.meetings, 0)} />
+          <StatCard label="今週の提案" value={memberStats.reduce((s, m) => s + m.proposals, 0)} />
         </section>
       </div>
     </main>
