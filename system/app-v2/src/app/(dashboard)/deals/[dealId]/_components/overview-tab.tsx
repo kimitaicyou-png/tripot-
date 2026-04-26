@@ -8,6 +8,8 @@ import { TaskQuickAdd } from '@/components/task-quick-add';
 import { LogActionButton } from '@/components/log-action-button';
 import { deleteDeal } from '@/lib/actions/deals';
 import { TRIPOT_CONFIG } from '../../../../../../coaris.config';
+import { NextActionSection } from './next-action-section';
+import { EmailDraftButton } from './email-draft-button';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   call: '📞 電話',
@@ -87,6 +89,8 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
           </p>
         ) : null}
       </section>
+
+      <NextActionSection dealId={dealId} />
 
       <section className="bg-card border border-border rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
         <div>
@@ -180,21 +184,24 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
         )}
       </section>
 
-      <section className="flex items-center justify-end gap-3">
-        <Link
-          href={`/deals/${dealId}/edit`}
-          className="px-4 py-2 bg-card border border-border text-ink text-sm font-medium rounded-lg hover:bg-slate-50"
-        >
-          編集
-        </Link>
-        <form action={handleDelete}>
-          <button
-            type="submit"
-            className="px-4 py-2 bg-red-50 border border-red-200 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100"
+      <section className="flex items-center justify-between gap-3 flex-wrap">
+        <EmailDraftButton dealId={dealId} dealTitle={deal.title} />
+        <div className="flex items-center gap-3">
+          <Link
+            href={`/deals/${dealId}/edit`}
+            className="px-4 py-2 bg-card border border-border text-ink text-sm font-medium rounded-lg hover:bg-slate-50"
           >
-            削除
-          </button>
-        </form>
+            編集
+          </Link>
+          <form action={handleDelete}>
+            <button
+              type="submit"
+              className="px-4 py-2 bg-red-50 border border-red-200 text-red-700 text-sm font-medium rounded-lg hover:bg-red-100"
+            >
+              削除
+            </button>
+          </form>
+        </div>
       </section>
     </div>
   );

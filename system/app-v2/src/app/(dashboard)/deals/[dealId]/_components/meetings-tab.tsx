@@ -1,7 +1,17 @@
 import { listMeetingsForDeal } from '@/lib/actions/meetings';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Badge } from '@/components/ui/badge';
 import { MeetingForm } from './meeting-form';
 import { ProposalFromMeetingButton } from './proposal-from-meeting-button';
+import { SummarizeMeetingButton } from './summarize-meeting-button';
+
+type Need = { tag: string; priority: 'high' | 'medium' | 'low'; context: string };
+
+const PRIORITY_TONE: Record<Need['priority'], 'down' | 'accent' | 'neutral'> = {
+  high: 'down',
+  medium: 'accent',
+  low: 'neutral',
+};
 
 const TYPE_LABEL: Record<string, string> = {
   call: '📞 電話',
@@ -43,10 +53,10 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
             {items.map((m) => (
               <li
                 key={m.id}
-                className="bg-card border border-border rounded-xl p-5 space-y-2"
+                className="bg-card border border-border rounded-xl p-5 space-y-3"
               >
                 <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1">
+                  <div className="flex-1 min-w-0">
                     <p className="text-sm text-ink font-medium">
                       {TYPE_LABEL[m.type] ?? m.type}
                       {m.title ? <span className="ml-2 text-muted">— {m.title}</span> : null}
@@ -55,14 +65,37 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                       {new Date(m.occurred_at).toLocaleString('ja-JP')}
                     </p>
                   </div>
-                  <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
+                  <div className="flex items-center gap-2 shrink-0">
+                    {m.raw_text && (
+                      <SummarizeMeetingButton meetingId={m.id} hasSummary={Boolean(m.summary)} />
+                    )}
+                    <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
+                  </div>
                 </div>
+
                 {m.summary && (
                   <div className="border-l-2 border-border pl-3">
                     <p className="text-xs uppercase tracking-widest text-subtle mb-1">要約</p>
                     <p className="text-sm text-ink whitespace-pre-wrap">{m.summary}</p>
                   </div>
                 )}
+
+                {Array.isArray(m.needs) && m.needs.length > 0 && (
+                  <div>
+                    <p className="text-xs uppercase tracking-widest text-subtle mb-2">
+                      抽出された needs
+                    </p>
+                    <ul className="space-y-1.5">
+                      {(m.needs as Need[]).map((n, i) => (
+                        <li key={i} className="flex items-baseline gap-2">
+                          <Badge tone={PRIORITY_TONE[n.priority] ?? 'neutral'}>{n.tag}</Badge>
+                          <span className="text-xs text-muted flex-1">{n.context}</span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                )}
+
                 {m.raw_text && (
                   <details className="group">
                     <summary className="text-xs text-muted cursor-pointer hover:text-ink list-none">
