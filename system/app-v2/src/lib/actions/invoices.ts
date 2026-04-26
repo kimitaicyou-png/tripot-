@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { eq, and, isNull, desc } from 'drizzle-orm';
+import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { db, logAudit } from '@/lib/db';
-import { invoices } from '@/db/schema';
+import { invoices, estimates } from '@/db/schema';
 
 const invoiceSchema = z.object({
   deal_id: z.string().uuid(),
@@ -88,6 +88,140 @@ export async function markInvoicePaid(invoiceId: string, dealId: string): Promis
     member_id: session.user.member_id,
     company_id: session.user.company_id,
     action: 'invoice.paid',
+    resource_type: 'invoice',
+    resource_id: invoiceId,
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+}
+
+export async function createInvoiceFromEstimate(
+  estimateId: string,
+  dealId: string
+): Promise<{ invoiceId: string }> {
+  const session = await auth();
+  if (!session?.user?.member_id) throw new Error('認証が必要です');
+
+  const estimate = await db
+    .select({
+      id: estimates.id,
+      deal_id: estimates.deal_id,
+      title: estimates.title,
+      subtotal: estimates.subtotal,
+      tax: estimates.tax,
+      total: estimates.total,
+    })
+    .from(estimates)
+    .where(
+      and(
+        eq(estimates.id, estimateId),
+        eq(estimates.company_id, session.user.company_id),
+        isNull(estimates.deleted_at)
+      )
+    )
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!estimate) throw new Error('見積が見つかりません');
+
+  const [maxRow] = await db
+    .select({ max: sql<number>`coalesce(max(${invoices.invoice_number})::text::int, 0)` })
+    .from(invoices)
+    .where(
+      and(
+        eq(invoices.company_id, session.user.company_id),
+        sql`${invoices.invoice_number} ~ '^INV-[0-9]+$'`
+      )
+    );
+  const nextNumber = `INV-${String((maxRow?.max ?? 0) + 1).padStart(5, '0')}`;
+
+  const today = new Date();
+  const dueDate = new Date(today);
+  dueDate.setDate(today.getDate() + 30);
+
+  const [created] = await db
+    .insert(invoices)
+    .values({
+      company_id: session.user.company_id,
+      deal_id: dealId,
+      estimate_id: estimateId,
+      invoice_number: nextNumber,
+      status: 'draft',
+      subtotal: estimate.subtotal ?? 0,
+      tax: estimate.tax ?? 0,
+      total: estimate.total ?? 0,
+      issue_date: today.toISOString().slice(0, 10),
+      due_date: dueDate.toISOString().slice(0, 10),
+    })
+    .returning({ id: invoices.id });
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'invoice.from_estimate',
+    resource_type: 'invoice',
+    resource_id: created!.id,
+    metadata: {
+      estimate_id: estimateId,
+      deal_id: dealId,
+      total: estimate.total,
+      invoice_number: nextNumber,
+    },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  return { invoiceId: created!.id };
+}
+
+export async function updateInvoiceStatus(
+  invoiceId: string,
+  dealId: string,
+  status: 'draft' | 'issued' | 'sent' | 'paid' | 'overdue' | 'voided'
+): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.member_id) throw new Error('認証が必要です');
+
+  const updateData: Record<string, unknown> = {
+    status,
+    updated_at: new Date(),
+  };
+  if (status === 'paid') {
+    updateData.paid_at = new Date().toISOString().slice(0, 10);
+  }
+
+  await db
+    .update(invoices)
+    .set(updateData)
+    .where(
+      and(eq(invoices.id, invoiceId), eq(invoices.company_id, session.user.company_id))
+    );
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: `invoice.${status}`,
+    resource_type: 'invoice',
+    resource_id: invoiceId,
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+}
+
+export async function deleteInvoice(invoiceId: string, dealId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.member_id) throw new Error('認証が必要です');
+
+  await db
+    .update(invoices)
+    .set({ deleted_at: new Date() })
+    .where(
+      and(eq(invoices.id, invoiceId), eq(invoices.company_id, session.user.company_id))
+    );
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'invoice.delete',
     resource_type: 'invoice',
     resource_id: invoiceId,
   });

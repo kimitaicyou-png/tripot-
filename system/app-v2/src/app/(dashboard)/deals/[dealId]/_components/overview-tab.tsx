@@ -10,6 +10,7 @@ import { deleteDeal } from '@/lib/actions/deals';
 import { TRIPOT_CONFIG } from '../../../../../../coaris.config';
 import { NextActionSection } from './next-action-section';
 import { EmailDraftButton } from './email-draft-button';
+import { AttackSection } from './attack-section';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   call: '📞 電話',
@@ -91,6 +92,8 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
       </section>
 
       <NextActionSection dealId={dealId} />
+
+      <AttackSection dealId={dealId} />
 
       <section className="bg-card border border-border rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
         <div>

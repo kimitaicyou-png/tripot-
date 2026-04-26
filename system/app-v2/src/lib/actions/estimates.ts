@@ -116,3 +116,72 @@ export async function listEstimatesForDeal(dealId: string) {
     )
     .orderBy(desc(estimates.version));
 }
+
+const statusUpdateSchema = z.object({
+  status: z.enum(['draft', 'sent', 'accepted', 'declined']),
+});
+
+export async function updateEstimateStatus(
+  estimateId: string,
+  dealId: string,
+  status: 'draft' | 'sent' | 'accepted' | 'declined'
+): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.member_id) throw new Error('認証が必要です');
+
+  const parsed = statusUpdateSchema.safeParse({ status });
+  if (!parsed.success) throw new Error('不正なステータスです');
+
+  const updateData: Record<string, unknown> = {
+    status: parsed.data.status,
+    updated_at: new Date(),
+  };
+  if (parsed.data.status === 'sent') {
+    updateData.sent_at = new Date();
+  }
+
+  await db
+    .update(estimates)
+    .set(updateData)
+    .where(
+      and(
+        eq(estimates.id, estimateId),
+        eq(estimates.company_id, session.user.company_id)
+      )
+    );
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: `estimate.${parsed.data.status}`,
+    resource_type: 'estimate',
+    resource_id: estimateId,
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+}
+
+export async function deleteEstimate(estimateId: string, dealId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.member_id) throw new Error('認証が必要です');
+
+  await db
+    .update(estimates)
+    .set({ deleted_at: new Date() })
+    .where(
+      and(
+        eq(estimates.id, estimateId),
+        eq(estimates.company_id, session.user.company_id)
+      )
+    );
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'estimate.delete',
+    resource_type: 'estimate',
+    resource_id: estimateId,
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+}

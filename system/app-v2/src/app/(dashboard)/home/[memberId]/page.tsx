@@ -5,22 +5,7 @@ import { members, deals, tasks, actions } from '@/db/schema';
 import { eq, and, sql, isNull, gte } from 'drizzle-orm';
 import { LogActionButton } from '@/components/log-action-button';
 import { MorningBrief } from './_components/morning-brief';
-
-const QUOTES = [
-  '打席に立たなければヒットは出ない。',
-  '小さな一歩が、大きな案件を動かす。',
-  '放置は最大の敵。今日連絡するだけで状況は変わる。',
-  '行動量がKPIの源泉。量×質=結果。',
-];
-
-function pickQuote(memberId: string): string {
-  let hash = 0;
-  for (let i = 0; i < memberId.length; i++) {
-    hash = (hash << 5) - hash + memberId.charCodeAt(i);
-    hash = hash & hash;
-  }
-  return QUOTES[Math.abs(hash) % QUOTES.length]!;
-}
+import { pickQuoteForMember } from '@/lib/actions/quotes';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
@@ -83,7 +68,7 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
     .where(and(eq(actions.member_id, memberId), eq(actions.company_id, companyId), gte(actions.occurred_at, weekStart)))
     .then((rows) => rows[0]);
 
-  const quote = pickQuote(memberId);
+  const quote = await pickQuoteForMember(memberId);
 
   return (
     <main className="min-h-screen bg-surface">
@@ -104,9 +89,24 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
           </h1>
         </section>
 
-        <section className="mt-12 border-l-2 border-ink pl-6 py-2">
-          <p className="font-serif italic text-2xl text-ink-mid leading-relaxed">{quote}</p>
-        </section>
+        {quote ? (
+          <section className="mt-12 border-l-2 border-ink pl-6 py-2">
+            <p className="font-serif italic text-2xl text-ink-mid leading-relaxed">{quote.body}</p>
+            {quote.author && (
+              <p className="text-xs text-subtle mt-2">— {quote.author}</p>
+            )}
+          </section>
+        ) : (
+          <section className="mt-12 border-l-2 border-border pl-6 py-2">
+            <p className="text-sm text-muted">
+              名言が未登録です。
+              <a href="/settings/quotes" className="text-ink underline ml-1">
+                設定 → 名言
+              </a>{' '}
+              から「初期データ投入」を実行してください
+            </p>
+          </section>
+        )}
 
         <div className="mt-12">
           <MorningBrief memberId={memberId} />
