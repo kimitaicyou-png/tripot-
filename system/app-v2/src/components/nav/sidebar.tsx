@@ -77,9 +77,12 @@ export function Sidebar({ user }: { user: { name?: string | null; member_id: str
           );
         })}
 
-        <p className="text-[10px] uppercase tracking-widest text-subtle mt-4 mb-2 px-3">
-          設定
-        </p>
+        <Link
+          href="/settings"
+          className="text-[10px] uppercase tracking-widest text-subtle mt-4 mb-2 px-3 hover:text-ink block"
+        >
+          設定 →
+        </Link>
         {SETTINGS_ITEMS.map((item) => (
           <Link
             key={item.href}
