@@ -5,6 +5,7 @@ import { members, deals, tasks, actions } from '@/db/schema';
 import { eq, and, sql, isNull, gte } from 'drizzle-orm';
 import { LogActionButton } from '@/components/log-action-button';
 import { MorningBrief } from './_components/morning-brief';
+import { CommitmentsSection } from './_components/commitments-section';
 import { pickQuoteForMember } from '@/lib/actions/quotes';
 
 function formatYen(value: number | null): string {
@@ -130,6 +131,10 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
             <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{actionStats?.meetings ?? 0}</p>
           </div>
         </section>
+
+        <div className="mt-8">
+          <CommitmentsSection memberId={memberId} />
+        </div>
 
         <section className="mt-8 bg-card border border-border rounded-xl p-5 shadow-sm">
           <p className="text-sm font-medium text-ink mb-3">今週の行動量（直近7日）</p>
