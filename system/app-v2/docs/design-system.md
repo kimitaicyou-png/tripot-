@@ -2,7 +2,7 @@
 
 > tripot v2 が基準値プロジェクト。ここで確立した設計判断が13社→100社への展開の土台になる。
 > 参照先：Atlassian Design System（思想の芯）+ SAP Fiori（密度感のリファレンス）
-> 最終更新：2026-04-26 by ❄️美冬 ＋ 🌸美桜
+> 最終更新：2026-04-27 by ❄️美冬（§7.10 v2 全面改訂）＋ 🌸美桜
 >
 > **関連ドキュメント**：
 > - [`design-patterns.md`](./design-patterns.md) — 業務画面のレイアウトパターン集（Dashboard/List/Detail/Edit の4形 + 操作パターン）
@@ -272,11 +272,14 @@ nav.sidebar.collapsed { width: 64px; }
   background: #3B8FE8;
 }
 
-/* hover 状態 */
+/* hover 状態（translateX 廃止 → 左バー scaleY 出現） */
 .nav-item:hover {
-  background: #162336;
-  transform: translateX(1px);
-  transition: all 80ms cubic-bezier(0.4, 0, 0.2, 1);
+  background: rgba(255,255,255,0.05);
+  color: rgba(255,255,255,0.75);
+  transition: color 120ms ease-out, background 120ms ease-out;
+}
+.nav-item:hover::before {
+  transform: translateY(-50%) scaleY(1);
 }
 
 /* 右境界 */
@@ -331,53 +334,272 @@ box-shadow: 0 1px 2px rgba(0,0,0,0.04);  /* card 標準 */
 
 **禁則**：rounded-2xl 以上（16px超）は使わない、業務感が崩れる。
 
-### 7.10 microinteraction（80ms）
+### 7.10 microinteraction（hover state 全面設計）
+
+> **2026-04-27 v2 更新**：リファレンス調査（Linear / Stripe Dashboard / shadcn/ui / Josh W. Comeau CSS Transitions / Apple HIG HoverEffect WWDC25 / SaaSUI 2026 Trend Map / Tubik UI Trends 2026）をもとに全面改訂。2026 Trend Map と Hover 3層哲学を新設、Asymmetric transition の根拠を Josh W. Comeau 原文引用で強化。
+
+---
+
+#### A. 基本原則（不変の核）
+
+1. **「触れる前と後で何が変わったか即分かる」** — 業務 SaaS の中心価値。3秒判断と連動
+2. **Asymmetric transition** — enter: 125-150ms（snappy）、exit: 250-450ms（relaxed）
+3. **階層がある** — カード（強）> 行（中）> ボタン（中）> nav（弱中）> チャート要素（弱）
+4. **コアリスUI絶対ルール厳守** — `shadow-sm` まで、`font-semibold` 最大
+
+---
+
+#### B. 2026 Trend Map（採用 / 棄却 / 部分採用）
+
+> 調査先：SaaSUI Blog「7 SaaS UI Design Trends 2026」/ Tubik Studio「What's Next 2026」/ Apple WWDC25 "Design hover interactions for visionOS"
+
+| トレンド軸 | コアリス判定 | 理由 |
+|---|---|---|
+| **Spatial UI / 触感的 hover（depth-based）** | ❌ 棄却 | visionOS の eye-tracking 前提の depth-based highlight は 2D 業務 SaaS では過剰。コンテキストが違う |
+| **Glassmorphism（blur + 透過）** | ❌ 棄却 | Linear 公式「データ密度の高い UI では可読性を損なう」。業務 SaaS での採用は逆行 |
+| **触感的 microinteraction（Purpose Motion）** | ✅ 採用 | 装飾ではなく状態通知。行動の確認・フィードバックとして hover を使う。コアリス P1〜P3 と完全一致 |
+| **Calm Design / Progressive Disclosure** | ✅ 採用 | Tooltips は hover 時のみ。複雑さを初期状態で出さない。hover が「情報の扉」として機能 |
+| **Adaptive UI / Role-Based Interface** | 部分採用 | hover 強度を admin ロールで少し強めにするなど、将来の拡張余地として保留 |
+
+**コアリスが hover に求めること**：
+- 「反応を感じる」（生きているインターフェース感）
+- 「どこが押せるか分かる」（操作可能性の提示）
+- 「気づかないくらい自然」（業務の邪魔をしない）
+
+---
+
+#### C. Hover の 3層哲学（Linear / Stripe / Apple 比較）
+
+> 「どの哲学に立つか」を決めないと、画面ごとに hover がバラバラになる。
+
+| プロダクト | 哲学 | 特徴 | コアリスとの整合 |
+|---|---|---|---|
+| **Linear** | 即時性 + 静けさ | 「もし誰もすぐ気づかなければ、それはおそらく良いサイン」。nav は薄い左バー、translateX 禁止。コンテンツエリアを主役にするために nav を意図的に暗くする | ✅ 最も近い。業務に集中させるために hover は控えめに |
+| **Stripe** | 繊細な浮上（subtle elevation） | card が `translateY(-2〜-4px)` + shadow で「浮く」感覚。数値を強調するため card の存在感を hover で高める | ✅ StatCard / Hero card の設計に採用済 |
+| **Apple visionOS** | depth-based（目線に反応） | 「最良のカスタム効果は繊細。小さなビューで機能する」（WWDC25）。2D 画面では HoverEffect を `automatic` + `highlight` が推奨 | ⚠️ 原則は参照するが visionOS 固有の depth は棄却。「subtle but clear」の言葉は採用 |
+
+**コアリスの立場**：**Linear の静けさ + Stripe の浮上感**の組み合わせ。
+- nav / row → Linear 流（静かな左バー、コンテンツ主役）
+- カード → Stripe 流（translateY + shadow で浮く）
+
+---
+
+#### D. Asymmetric transition — Josh W. Comeau の根拠
+
+> 出典：Josh W. Comeau "An Interactive Guide to CSS Transitions" (joshwcomeau.com/animation/css-transitions/)
+
+原文：
+> "For hover animations, I like to make the enter animation quick and snappy, while the exit animation can be a bit more relaxed and lethargic"
+
+Josh の実際の推奨値：enter 125ms / exit 450ms。
+コアリス実装値：enter 120-150ms / exit 200-250ms（業務密度が高いため exit を Josh より短めに設定。450ms は業務 SaaS では少し長い）。
+
+**なぜ asymmetric か**：
+- enter が速い → ユーザーのマウス動作に即座に応答している感覚（レスポンシブ感）
+- exit がゆっくり → 誤ってマウスが外れた時の「跳ね返り感」を消す。滑らかに戻る
+- 均等時間（symmetric）だと、hover 解除時にも同じ速さで動いて「目がチカチカする」感覚になる
 
 ```css
-transition: all 80ms cubic-bezier(0.4, 0, 0.2, 1);
+.element {
+  transition: transform 250ms ease-out, box-shadow 250ms ease-out;
+}
+.element:hover {
+  transition: transform 125ms ease-out, box-shadow 125ms ease-out;
+  transform: translateY(-2px);
+}
 ```
 
-- nav-item hover：`translateX(1px)`
-- StatCard hover：`translateY(-1px)`
-- row hover：inset highlight `0.7 → 0.9`、`translateX(1px)`
-- ボタン active：`scale(0.98)`
+---
+
+#### E. 要素別仕様（確定版）
+
+| 要素 | hover transform | shadow変化 | border変化 | enter ms / exit ms |
+|---|---|---|---|---|
+| **StatCard**（`.stat`） | `translateY(-3px)` | `0 6px 20px 0.09, 0 2px 6px 0.05` | tone 別 border accent color | 150 / 250 |
+| **Hero card**（`.hero`） | `translateY(-2px)` | `0 4px 16px 0.08` | `rgba(0,0,0,0.13)` | 150 / 250 |
+| **row**（行リスト） | なし | `0 1px 6px 0.06` | `rgba(37,99,235,0.14)` + 左 3px primary bar | 120 / 200 |
+| **btn-primary** | `translateY(-1px)` | `0 4px 12px rgba(37,99,235,0.30)` glow | — | 120 / 200 |
+| **btn-secondary** | `translateY(-1px)` | `0 2px 8px rgba(0,0,0,0.07)` | `rgba(0,0,0,0.20)` | 120 / 200 |
+| **btn-ghost** | なし | なし | `rgba(37,99,235,0.12)` bg変化 | 120 / 200 |
+| **btn-danger** | `translateY(-1px)` | `0 2px 8px rgba(220,50,50,0.12)` | danger-border強化 | 120 / 200 |
+| **nav-item** | なし（translateX 永久廃止） | なし | なし / 左 2.5px bar scaleY | 120 / — |
+| **mini bar** | `scaleY(1.08)` from bottom | なし | なし | 100 / — |
+| **btn active / click** | `scale(0.97)` | — | — | 即時 |
+
+---
+
+#### F. CSS パターン集（コピペ用）
+
+```css
+.card {
+  transition: box-shadow 250ms ease-out, border-color 250ms ease-out, transform 250ms ease-out;
+}
+.card:hover {
+  transition: box-shadow 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
+}
+
+.stat:hover {
+  border-color: rgba(0,0,0,0.13);
+  box-shadow: 0 6px 20px rgba(0,0,0,0.09), 0 2px 6px rgba(0,0,0,0.05), inset 0 1px 0 rgba(255,255,255,0.92);
+  transform: translateY(-3px);
+}
+
+.row::before {
+  content: '';
+  position: absolute; left: 0; top: 0; bottom: 0; width: 3px;
+  background: var(--primary);
+  opacity: 0;
+  transition: opacity 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.row:hover::before { opacity: 1; }
+
+.nav-item::before {
+  content: ''; position: absolute; left: 0; top: 50%;
+  transform: translateY(-50%) scaleY(0);
+  transform-origin: center;
+  width: 2.5px; height: 18px;
+  background: rgba(255,255,255,0.35);
+  transition: transform 150ms cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+.nav-item:hover::before { transform: translateY(-50%) scaleY(1); }
+
+.mini-bar:hover {
+  filter: brightness(1.12) saturate(1.2);
+  transform: scaleY(1.08);
+  transform-origin: bottom;
+}
+```
+
+---
+
+#### G. Easing 選定理由
+
+| Easing | 用途 | 理由 |
+|---|---|---|
+| `ease-out` | hover enter / exit 全般 | 自然な減速感。SaaS 標準。Linear / Stripe ともこれ |
+| `cubic-bezier(0.34, 1.56, 0.64, 1)` | bar 出現 / scaleY 出現 | わずかなオーバーシュートで「パチン」と出る感覚。左バーの「確認感」を演出 |
+
+---
+
+#### H. やらない hover（禁則リスト）
+
+> 業務 SaaS の hover は「気づかないくらい自然」が正解。以下は全部 NG。
+
+| 禁則 | 理由 |
+|---|---|
+| `transition: all` | 不要なプロパティまで transition。パフォーマンス劣化 |
+| `translateX` で横揺れ | 「間違えた」感。縦方向（translateY）のみ使用 |
+| `shadow-md` 以上（blur 8px超） | コアリスUI絶対ルール違反。shadow-sm 相当（alpha 0.09 以下）まで |
+| color flash（背景色が瞬間変化） | 目が跳ぶ。bg 変化は bg-subtle に留める |
+| bounce / spring（overshooting 大） | 子供っぽい。bar 出現の cubic-bezier だけ微オーバーシュートを許可 |
+| Glassmorphism blur on hover | データ密度の高い業務 UI で可読性を損なう（Linear 公式が批判済） |
+| hover で色反転 / 白黒反転 | コントラスト崩壊リスク。border-color 強化と translateY の組み合わせで十分 |
+| opacity を 1→0.75 で「暗くする」 | mini bar の旧設計で発生した逆向き。hover は必ず「明るく・強く」する方向 |
 
 ### 7.11 グラフ実装方針（データ駆動 SVG inline）
 
-#### A. Hero sparkline（12週折れ線）
+> **2026-04-27 更新**：隊長指摘「美しいグラフを参考にして作ればいいのにな」を受け、リファレンス調査（shadcn/ui, Mantine Sparkline, Stripe, Vercel Analytics, Linear, artofstyleframe.com）をもとに全面改訂。
+
+#### A. Hero sparkline（12週折れ線）― 設計仕様
+
+**基本寸法**
+- viewBox: `0 0 400 64`（高さ 64px。52px から拡張、呼吸が生まれる）
+- padding: 上下左右 `6px`
+
+**曲線スタイル**（2026年 SaaS スタンダード）
+- カーブタイプ：**monotone cubic**（自然な曲線、Mantine/shadcn の標準。linear は 2020年代前半）
+- 線の太さ：`stroke-width: 1.5`（1px は細すぎ、2px は太すぎ。1.5px が業務 SaaS の最適解）
+- `stroke-linecap: round; stroke-linejoin: round`（エッジを柔らかく）
+- `vector-effect: non-scaling-stroke`（レスポンシブ時に線幅が変わらない）
+
+**グラデーション fill**
+```css
+linearGradient: 上端 opacity 0.16 → 55% で 0.05 → 下端 0.00
+```
+（Mantine 推奨の 0.6 は濃すぎ。shadcn 推奨の 0.2 を上端基準に 0.16 に微調整）
+
+**比較軸（前年同期）**
+- 破線で重ねる：`stroke-dasharray: 3 4; stroke-width: 1; opacity: 0.45`
+- 凡例：今期（実線）/ 前年同期（破線）を右上に legend ドットで表示
+
+**グリッドライン**
+- 水平に 2 本（`stroke-dasharray: 3 4; opacity: 0.045`）
+- 軸ラベルは **使わない**（Stripe / Linear スタイル。余白が呼吸する）
+
+**ドット**
+- 最新点（current）：radius 3.5、fill: kpi-up、stroke: card 2px
+- 最小点（min）：radius 2.5、fill: subtle-plus、opacity: 0.6
+- max は最新点と同じ場合が多いので最新点のみ
+
+**ツールチップ**
+- mousemove で最近傍点を計算し、`position: absolute` の tooltip を表示
+- background: `var(--ink)` / color: `rgba(255,255,255,0.92)` / border-radius: `var(--radius-sm)`
+- `transition: opacity 100ms` で滑らかに出入り
+
+**週ラベル（下軸）**
+- `font-size: 0.625rem; opacity: 0.7`（少し引いた色で存在感を抑える）
+- ラベル：-11w / -9w / -7w / -5w / -3w / -1w / 今週
+
 ```html
-<svg viewBox="0 0 400 40" class="sparkline">
-  <path d="M0,20 L8,18 L16,15 ..." stroke="var(--ink)" stroke-width="1.5" fill="none"/>
-  <circle cx="392" cy="7" r="3" fill="var(--kpi-up)"/>  <!-- 最新週 dot -->
+<svg viewBox="0 0 400 64" class="sparkline-svg">
+  <defs>
+    <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%"   stop-color="var(--kpi-up)" stop-opacity="0.16"/>
+      <stop offset="55%"  stop-color="var(--kpi-up)" stop-opacity="0.05"/>
+      <stop offset="100%" stop-color="var(--kpi-up)" stop-opacity="0.00"/>
+    </linearGradient>
+  </defs>
+  <line class="spark-grid-line" x1="0" y1="21" x2="400" y2="21"/>
+  <line class="spark-grid-line" x1="0" y1="42" x2="400" y2="42"/>
+  <path class="spark-area-prev" d="[monotone cubic 前年データ]"/>
+  <path class="spark-fill" fill="url(#sparkGrad)" d="[monotone cubic 今期 + close]"/>
+  <path class="spark-area" stroke="var(--kpi-up)" d="[monotone cubic 今期]"/>
+  <circle class="spark-dot-min" cx="..." cy="..." r="2.5"/>
+  <circle class="spark-dot" fill="var(--kpi-up)" cx="..." cy="..." r="3.5"/>
 </svg>
 ```
-- 高さ 32-40px
-- min/max ラベル右上（最大値は kpi-up 緑強調）
-- 下軸週ラベル -11w / -9w / -7w / -5w / -3w / -1w / 今週
 
-#### B. StatCard mini bar（4週推移）
-```html
-<div class="mini-bars">
-  <div class="bar" style="height: 60%"></div>
-  <div class="bar" style="height: 75%"></div>
-  <div class="bar" style="height: 80%"></div>
-  <div class="bar bar-current" style="height: 100%"></div>
-</div>
-```
-- 高さ 16-20px
-- 今週分（current）のみカード tone 色（neutral / up緑 / down赤 / accent琥珀）
-- 過去 3 週は border 色（薄）
+#### B. StatCard mini bar（4週推移）― 設計仕様
 
-#### C. データ駆動の保証
-本番 React 組み込み時：
+**基本寸法**
+- 高さ: `28px`（24px から拡張。視認性アップ）
+- gap: `3px`（2px から変更。息が詰まらない）
+- border-radius: `2px 2px 0 0`
+
+**色**
+- neutral: `rgba(0,0,0,0.07)` / current: `rgba(0,0,0,0.32)`
+- up（緑）: `oklch(91% 0.07 152)` / current: `var(--kpi-up)`
+- down（赤）: `oklch(92% 0.07 25)` / current: `var(--kpi-down)`
+- accent（琥珀）: `oklch(92% 0.06 68)` / current: `var(--accent)`
+
+**hover**
+- `opacity: 0.75; filter: brightness(0.92)`（元の 0.7 にプラス brightness で自然な押し込み感）
+
+**フッターラベル**
+- `font-size: 0.625rem; opacity: 0.7`（今週値 eyebrow と統一感）
+
+#### C. データ駆動の保証（本番 React 組み込み）
 ```typescript
-// DB から引いた数字をそのまま流せる構造
 const weekData = await db.select({...}).from(actions).where(weekStart >= 12週前);
-const path = generateSparklinePath(weekData.map(w => w.total), 400, 40);
-return <svg viewBox="0 0 400 40"><path d={path} /></svg>;
+const pts = computePoints(weekData.map(w => w.total), 400, 64, 6, 6);
+const path = monotoneCubic(pts);
+return (
+  <svg viewBox="0 0 400 64">
+    <defs>...</defs>
+    <path d={generateFillPath(pts)} fill="url(#sparkGrad)"/>
+    <path d={path} stroke="var(--kpi-up)" strokeWidth={1.5} fill="none"/>
+    <circle cx={pts[pts.length-1].x} cy={pts[pts.length-1].y} r={3.5} fill="var(--kpi-up)"/>
+  </svg>
+);
 ```
 
-**禁則**：CSS-only の `width: percent%` 棒は、響かない（伸び縮み計算ができない）。必ず SVG inline か React の `.map()` で `<rect height={ratio}/>` 生成。
+**禁則**
+- ❌ `linear` curve（2020年代前半、古い）
+- ❌ `stroke-width: 2` 以上（重い）
+- ❌ グラデーション fill の上端 opacity > 0.25（煩い）
+- ❌ ドットを全点に付ける（last/min/max のみ）
+- ❌ 軸ラベルに `text-gray-400`（`subtle-plus` 相当 = #888888 以上を使うこと）
+- ❌ mini bar の gap < 3px（詰まる）
 
 ### 7.12 リファレンス（美冬+美桜が参考にした業務SaaS）
 
