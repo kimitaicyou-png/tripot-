@@ -118,7 +118,12 @@ export default async function ProductionPage() {
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
-                          <p className="text-base font-medium text-ink truncate">{c.title}</p>
+                          <Link
+                            href={`/production/${c.id}`}
+                            className="text-base font-medium text-ink truncate block hover:underline"
+                          >
+                            {c.title}
+                          </Link>
                           {c.deal_id && c.deal_title && (
                             <Link
                               href={`/deals/${c.deal_id}`}
