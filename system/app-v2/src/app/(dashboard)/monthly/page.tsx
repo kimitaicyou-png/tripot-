@@ -6,6 +6,7 @@ import { deals, budgets } from '@/db/schema';
 import { eq, and, sql, isNull } from 'drizzle-orm';
 import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue, StatCard } from '@/components/ui/stat-card';
+import { SendToHqButton } from './_components/send-to-hq-button';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
@@ -60,12 +61,15 @@ export default async function MonthlyPage() {
         title={`${year}年 ${month}月`}
         subtitle="今月の実績 vs 計画"
         actions={
-          <Link
-            href={`/monthly/detail/${yearMonth}`}
-            className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
-          >
-            ドリルダウン →
-          </Link>
+          <div className="flex items-center gap-3 flex-wrap">
+            <SendToHqButton yearMonth={yearMonth} />
+            <Link
+              href={`/monthly/detail/${yearMonth}`}
+              className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
+            >
+              ドリルダウン →
+            </Link>
+          </div>
         }
       />
 
