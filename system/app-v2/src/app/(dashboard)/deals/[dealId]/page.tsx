@@ -3,7 +3,7 @@ import { redirect, notFound } from 'next/navigation';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
-import { deals, members, customers, meetings, proposals, estimates, invoices } from '@/db/schema';
+import { deals, members, customers, meetings, proposals, estimates, invoices, deal_contracts, deal_artifacts, deal_comments } from '@/db/schema';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
 import { DealTabs } from './_components/deal-tabs';
 import { OverviewTab } from './_components/overview-tab';
@@ -11,6 +11,7 @@ import { MeetingsTab } from './_components/meetings-tab';
 import { ProposalsTab } from './_components/proposals-tab';
 import { EstimatesTab } from './_components/estimates-tab';
 import { InvoicesTab } from './_components/invoices-tab';
+import { ResourcesTab } from './_components/resources-tab';
 
 export default async function DealDetailPage({ params }: { params: Promise<{ dealId: string }> }) {
   const session = await auth();
@@ -18,7 +19,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
 
   const { dealId } = await params;
 
-  const [deal, mCountRow, pCountRow, eCountRow, iCountRow] = await Promise.all([
+  const [deal, mCountRow, pCountRow, eCountRow, iCountRow, contractsRow, artifactsRow, commentsRow] = await Promise.all([
     db
       .select({
         id: deals.id,
@@ -86,6 +87,36 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
           isNull(invoices.deleted_at)
         )
       ),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(deal_contracts)
+      .where(
+        and(
+          eq(deal_contracts.deal_id, dealId),
+          eq(deal_contracts.company_id, session.user.company_id),
+          isNull(deal_contracts.deleted_at)
+        )
+      ),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(deal_artifacts)
+      .where(
+        and(
+          eq(deal_artifacts.deal_id, dealId),
+          eq(deal_artifacts.company_id, session.user.company_id),
+          isNull(deal_artifacts.deleted_at)
+        )
+      ),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(deal_comments)
+      .where(
+        and(
+          eq(deal_comments.deal_id, dealId),
+          eq(deal_comments.company_id, session.user.company_id),
+          isNull(deal_comments.deleted_at)
+        )
+      ),
   ]);
 
   if (!deal) notFound();
@@ -94,11 +125,17 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
   const stageLabel = stageDef?.label ?? deal.stage;
   const stageBadge = stageDef?.badgeClass ?? 'bg-slate-100 text-slate-700';
 
+  const resourceCount =
+    (contractsRow[0]?.n ?? 0) +
+    (artifactsRow[0]?.n ?? 0) +
+    (commentsRow[0]?.n ?? 0);
+
   const counts = {
     meetings: mCountRow[0]?.n ?? 0,
     proposals: pCountRow[0]?.n ?? 0,
     estimates: eCountRow[0]?.n ?? 0,
     invoices: iCountRow[0]?.n ?? 0,
+    resources: resourceCount,
   };
 
   return (
@@ -122,6 +159,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
         proposals={<ProposalsTab dealId={dealId} />}
         estimates={<EstimatesTab dealId={dealId} />}
         invoices={<InvoicesTab dealId={dealId} />}
+        resources={<ResourcesTab dealId={dealId} />}
       />
     </main>
   );

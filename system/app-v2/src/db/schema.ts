@@ -1536,6 +1536,92 @@ export const rolePermissionsRelations = relations(role_permissions, ({ one }) =>
 }));
 
 /* ============================================================
+ * deal_contracts — 案件配下の契約書（B1.10 personal 孤児）
+ * ============================================================ */
+
+export const deal_contracts = pgTable(
+  'deal_contracts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    company_id: uuid('company_id').notNull().references(() => companies.id),
+    deal_id: uuid('deal_id').notNull().references(() => deals.id),
+    title: text('title').notNull(),
+    contract_type: text('contract_type'), // 業務委託 / 売買 / NDA / その他
+    signed_date: date('signed_date'),
+    expiry_date: date('expiry_date'),
+    file_url: text('file_url'),
+    note: text('note'),
+    created_by: uuid('created_by').references(() => members.id),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    deleted_at: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (t) => ({
+    dealIdx: index('deal_contracts_deal_idx').on(t.deal_id),
+  })
+);
+
+/* ============================================================
+ * deal_artifacts — 案件配下の成果物（B1.10 personal 孤児）
+ * ============================================================ */
+
+export const deal_artifacts = pgTable(
+  'deal_artifacts',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    company_id: uuid('company_id').notNull().references(() => companies.id),
+    deal_id: uuid('deal_id').notNull().references(() => deals.id),
+    title: text('title').notNull(),
+    artifact_type: text('artifact_type'), // 議事録 / 提案書 / 仕様書 / 納品物 / その他
+    file_url: text('file_url'),
+    note: text('note'),
+    created_by: uuid('created_by').references(() => members.id),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    deleted_at: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (t) => ({
+    dealIdx: index('deal_artifacts_deal_idx').on(t.deal_id),
+  })
+);
+
+/* ============================================================
+ * deal_comments — 案件配下の社内コメント（B1.10 personal 孤児）
+ * ============================================================ */
+
+export const deal_comments = pgTable(
+  'deal_comments',
+  {
+    id: uuid('id').primaryKey().defaultRandom(),
+    company_id: uuid('company_id').notNull().references(() => companies.id),
+    deal_id: uuid('deal_id').notNull().references(() => deals.id),
+    member_id: uuid('member_id').notNull().references(() => members.id),
+    body: text('body').notNull(),
+    created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
+    deleted_at: timestamp('deleted_at', { withTimezone: true }),
+  },
+  (t) => ({
+    dealIdx: index('deal_comments_deal_idx').on(t.deal_id, t.created_at),
+  })
+);
+
+export const dealContractsRelations = relations(deal_contracts, ({ one }) => ({
+  company: one(companies, { fields: [deal_contracts.company_id], references: [companies.id] }),
+  deal: one(deals, { fields: [deal_contracts.deal_id], references: [deals.id] }),
+  createdBy: one(members, { fields: [deal_contracts.created_by], references: [members.id] }),
+}));
+
+export const dealArtifactsRelations = relations(deal_artifacts, ({ one }) => ({
+  company: one(companies, { fields: [deal_artifacts.company_id], references: [companies.id] }),
+  deal: one(deals, { fields: [deal_artifacts.deal_id], references: [deals.id] }),
+  createdBy: one(members, { fields: [deal_artifacts.created_by], references: [members.id] }),
+}));
+
+export const dealCommentsRelations = relations(deal_comments, ({ one }) => ({
+  company: one(companies, { fields: [deal_comments.company_id], references: [companies.id] }),
+  deal: one(deals, { fields: [deal_comments.deal_id], references: [deals.id] }),
+  member: one(members, { fields: [deal_comments.member_id], references: [members.id] }),
+}));
+
+/* ============================================================
  * Type exports（NextAuth・API ルートで使う）
  * ============================================================ */
 
@@ -1597,3 +1683,9 @@ export type RecruitingCandidate = typeof recruiting_pipeline.$inferSelect;
 export type AptitudeTest = typeof aptitude_tests.$inferSelect;
 export type Resource = typeof resources.$inferSelect;
 export type Email = typeof emails.$inferSelect;
+export type DealContract = typeof deal_contracts.$inferSelect;
+export type NewDealContract = typeof deal_contracts.$inferInsert;
+export type DealArtifact = typeof deal_artifacts.$inferSelect;
+export type NewDealArtifact = typeof deal_artifacts.$inferInsert;
+export type DealComment = typeof deal_comments.$inferSelect;
+export type NewDealComment = typeof deal_comments.$inferInsert;

@@ -15,6 +15,13 @@
       "when": 1777211304850,
       "tag": "0001_unknown_ben_grimm",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1777307213621,
+      "tag": "0002_b1_10_deal_resources",
+      "breakpoints": true
     }
   ]
 }

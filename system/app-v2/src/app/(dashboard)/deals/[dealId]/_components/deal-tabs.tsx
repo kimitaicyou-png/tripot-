@@ -8,6 +8,7 @@ type Counts = {
   proposals: number;
   estimates: number;
   invoices: number;
+  resources: number;
 };
 
 export function DealTabs({
@@ -18,6 +19,7 @@ export function DealTabs({
   proposals,
   estimates,
   invoices,
+  resources,
 }: {
   initialTab?: string;
   counts: Counts;
@@ -26,6 +28,7 @@ export function DealTabs({
   proposals: ReactNode;
   estimates: ReactNode;
   invoices: ReactNode;
+  resources: ReactNode;
 }) {
   const [tab, setTab] = useState(initialTab);
 
@@ -38,6 +41,7 @@ export function DealTabs({
           <TabsTrigger value="proposals" count={counts.proposals}>提案書</TabsTrigger>
           <TabsTrigger value="estimates" count={counts.estimates}>見積</TabsTrigger>
           <TabsTrigger value="invoices" count={counts.invoices}>請求</TabsTrigger>
+          <TabsTrigger value="resources" count={counts.resources}>資料</TabsTrigger>
         </TabsList>
       </div>
 
@@ -47,6 +51,7 @@ export function DealTabs({
         <TabsContent value="proposals">{proposals}</TabsContent>
         <TabsContent value="estimates">{estimates}</TabsContent>
         <TabsContent value="invoices">{invoices}</TabsContent>
+        <TabsContent value="resources">{resources}</TabsContent>
       </div>
     </Tabs>
   );

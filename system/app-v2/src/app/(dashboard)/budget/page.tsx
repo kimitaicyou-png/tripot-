@@ -21,11 +21,21 @@ function formatMan(value: number | null): string {
 
 const MONTH_LABEL = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 
-export default async function BudgetPage() {
+type SearchParams = { year?: string };
+
+export default async function BudgetPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
 
-  const year = new Date().getFullYear();
+  const sp = await searchParams;
+  const requestedYear = Number(sp.year ?? new Date().getFullYear());
+  const year = Number.isInteger(requestedYear) && requestedYear >= 2020 && requestedYear <= 2099
+    ? requestedYear
+    : new Date().getFullYear();
   const yearStart = new Date(year, 0, 1);
   const yearEnd = new Date(year, 11, 31, 23, 59, 59);
 
@@ -85,7 +95,23 @@ export default async function BudgetPage() {
       <PageHeader
         eyebrow="ANNUAL PLAN"
         title={`${year}年 事業計画`}
-        subtitle="年間目標 ＆ 月別計画 vs 実績"
+        subtitle={
+          <span className="flex items-center gap-3">
+            <Link
+              href={`/budget?year=${year - 1}`}
+              className="px-2 py-0.5 text-xs border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+            >
+              ← {year - 1}年
+            </Link>
+            <span>年間目標 ＆ 月別計画 vs 実績</span>
+            <Link
+              href={`/budget?year=${year + 1}`}
+              className="px-2 py-0.5 text-xs border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+            >
+              {year + 1}年 →
+            </Link>
+          </span>
+        }
         actions={
           <div className="flex items-center gap-3 flex-wrap">
             <BudgetAlertButton />
