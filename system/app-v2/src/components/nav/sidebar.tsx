@@ -23,6 +23,7 @@ const NAV_ITEMS: NavItem[] = [
 
 const SETTINGS_ITEMS: NavItem[] = [
   { href: '/settings/company', label: '会社', icon: '🏢' },
+  { href: '/settings/roles', label: '権限', icon: '🛡️' },
   { href: '/settings/quotes', label: '名言', icon: '🎴' },
   { href: '/settings/templates', label: 'テンプレ', icon: '📁' },
   { href: '/settings/vendors', label: '外注先', icon: '🏭' },

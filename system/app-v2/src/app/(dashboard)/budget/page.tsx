@@ -2,11 +2,12 @@ import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
-import { budgets, deals } from '@/db/schema';
+import { budgets, deals, budget_actuals } from '@/db/schema';
 import { eq, and, sql, isNull, gte, lte } from 'drizzle-orm';
 import { BudgetEditor } from './_components/budget-editor';
+import { ActualsImportDialog } from './_components/actuals-import-dialog';
 import { PageHeader } from '@/components/ui/page-header';
-import { HeroValue, StatCard } from '@/components/ui/stat-card';
+import { HeroValue } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 
 function formatYen(value: number | null): string {
@@ -27,31 +28,50 @@ export default async function BudgetPage() {
   const yearStart = new Date(year, 0, 1);
   const yearEnd = new Date(year, 11, 31, 23, 59, 59);
 
-  const budgetRows = await db
-    .select()
-    .from(budgets)
-    .where(and(eq(budgets.company_id, session.user.company_id), eq(budgets.year, year)))
-    .orderBy(budgets.month);
+  const lastYear = year - 1;
 
-  const actuals = await db
-    .select({
-      month: sql<number>`EXTRACT(MONTH FROM ${deals.paid_at})::int`,
-      revenue: sql<number>`COALESCE(SUM(${deals.amount}), 0)::int`,
-    })
-    .from(deals)
-    .where(
-      and(
-        eq(deals.company_id, session.user.company_id),
-        isNull(deals.deleted_at),
-        sql`${deals.stage} IN ('paid', 'invoiced')`,
-        gte(deals.paid_at, yearStart.toISOString().slice(0, 10)),
-        lte(deals.paid_at, yearEnd.toISOString().slice(0, 10)),
+  const [budgetRows, actuals, lastYearActuals] = await Promise.all([
+    db
+      .select()
+      .from(budgets)
+      .where(and(eq(budgets.company_id, session.user.company_id), eq(budgets.year, year)))
+      .orderBy(budgets.month),
+    db
+      .select({
+        month: sql<number>`EXTRACT(MONTH FROM ${deals.paid_at})::int`,
+        revenue: sql<number>`COALESCE(SUM(${deals.amount}), 0)::int`,
+      })
+      .from(deals)
+      .where(
+        and(
+          eq(deals.company_id, session.user.company_id),
+          isNull(deals.deleted_at),
+          sql`${deals.stage} IN ('paid', 'invoiced')`,
+          gte(deals.paid_at, yearStart.toISOString().slice(0, 10)),
+          lte(deals.paid_at, yearEnd.toISOString().slice(0, 10)),
+        ),
+      )
+      .groupBy(sql`EXTRACT(MONTH FROM ${deals.paid_at})`),
+    db
+      .select({
+        month: budget_actuals.month,
+        revenue: budget_actuals.revenue,
+      })
+      .from(budget_actuals)
+      .where(
+        and(
+          eq(budget_actuals.company_id, session.user.company_id),
+          eq(budget_actuals.year, lastYear)
+        )
       ),
-    )
-    .groupBy(sql`EXTRACT(MONTH FROM ${deals.paid_at})`);
+  ]);
 
   const actualMap = new Map<number, number>();
   for (const a of actuals) actualMap.set(a.month, a.revenue);
+
+  const lastYearMap = new Map<number, number>();
+  for (const r of lastYearActuals) lastYearMap.set(r.month, r.revenue ?? 0);
+  const lastYearTotal = Array.from(lastYearMap.values()).reduce((s, v) => s + v, 0);
 
   const totalTarget = budgetRows.reduce((s, b) => s + (b.target_revenue ?? 0), 0);
   const totalActual = Array.from(actualMap.values()).reduce((s, v) => s + v, 0);
@@ -65,6 +85,7 @@ export default async function BudgetPage() {
         eyebrow="ANNUAL PLAN"
         title={`${year}年 事業計画`}
         subtitle="年間目標 ＆ 月別計画 vs 実績"
+        actions={<ActualsImportDialog />}
       />
 
       <div className="px-6 py-10 max-w-5xl mx-auto space-y-12">
@@ -125,14 +146,27 @@ export default async function BudgetPage() {
         </section>
 
         <section>
-          <SectionHeading eyebrow="MONTHLY" title="月別 計画 vs 実績" />
+          <SectionHeading
+            eyebrow="MONTHLY"
+            title="月別 計画 vs 実績"
+            action={
+              lastYearTotal > 0 ? (
+                <span className="text-xs text-subtle">
+                  昨年合計 <span className="font-mono text-ink">{formatYen(lastYearTotal)}</span>
+                </span>
+              ) : null
+            }
+          />
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
             {months.map((m) => {
               const target = budgetRows.find((b) => b.month === m)?.target_revenue ?? 0;
               const actual = actualMap.get(m) ?? 0;
+              const lastYearVal = lastYearMap.get(m) ?? 0;
               const rate = target > 0 ? Math.round((actual / target) * 100) : 0;
               const tone =
                 target === 0 ? 'subtle' : rate >= 100 ? 'up' : rate >= 80 ? 'default' : 'down';
+              const yoyPct =
+                lastYearVal > 0 ? Math.round((actual / lastYearVal - 1) * 100) : null;
               const link = `/monthly/detail/${year}-${String(m).padStart(2, '0')}`;
               return (
                 <Link
@@ -167,6 +201,24 @@ export default async function BudgetPage() {
                         {formatMan(actual)}
                       </span>
                     </div>
+                    {lastYearVal > 0 && (
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-border mt-1">
+                        <span className="text-subtle">昨年同月</span>
+                        <span className="font-mono tabular-nums text-subtle">
+                          {formatMan(lastYearVal)}
+                          {yoyPct !== null && (
+                            <span
+                              className={`ml-1 ${
+                                yoyPct >= 0 ? 'text-kpi-up' : 'text-kpi-down'
+                              }`}
+                            >
+                              ({yoyPct >= 0 ? '+' : ''}
+                              {yoyPct}%)
+                            </span>
+                          )}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <div className="h-1 bg-slate-100 rounded-full overflow-hidden mt-3">
                     <div
