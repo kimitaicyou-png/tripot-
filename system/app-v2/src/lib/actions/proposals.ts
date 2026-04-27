@@ -179,6 +179,71 @@ export async function updateProposalStatus(
   return { success: true };
 }
 
+export type SlidesUpdateResult = {
+  success: boolean;
+  error?: string;
+  slideCount?: number;
+};
+
+export async function updateProposalSlides(
+  proposalId: string,
+  dealId: string,
+  rawJson: string
+): Promise<SlidesUpdateResult> {
+  const session = await auth();
+  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
+
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(rawJson);
+  } catch (e) {
+    const err = e instanceof Error ? e.message : String(e);
+    return { success: false, error: `JSON パースエラー: ${err}` };
+  }
+
+  if (!Array.isArray(parsed)) {
+    return { success: false, error: 'slides は配列である必要があります' };
+  }
+
+  if (parsed.length > 100) {
+    return { success: false, error: 'スライドは100枚までです' };
+  }
+
+  for (let i = 0; i < parsed.length; i++) {
+    const s = parsed[i];
+    if (typeof s !== 'object' || s === null) {
+      return { success: false, error: `slide[${i}] はオブジェクトである必要があります` };
+    }
+    const obj = s as Record<string, unknown>;
+    if (typeof obj.type !== 'string') {
+      return { success: false, error: `slide[${i}].type が文字列ではありません` };
+    }
+    if (typeof obj.title !== 'string') {
+      return { success: false, error: `slide[${i}].title が文字列ではありません` };
+    }
+  }
+
+  const [updated] = await db
+    .update(proposals)
+    .set({ slides: parsed, updated_at: new Date() })
+    .where(and(eq(proposals.id, proposalId), eq(proposals.company_id, session.user.company_id)))
+    .returning({ id: proposals.id });
+
+  if (!updated) return { success: false, error: '提案書が見つかりません' };
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'proposal.update_slides',
+    resource_type: 'proposal',
+    resource_id: proposalId,
+    metadata: { slide_count: parsed.length },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  return { success: true, slideCount: parsed.length };
+}
+
 export async function listProposalsForDeal(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
