@@ -12,6 +12,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ProductionStatusButton } from '../_components/production-status-button';
+import { ProductionEditForm } from './_components/production-edit-form';
 import { BugForm } from './_components/bug-form';
 import { BugRow } from './_components/bug-row';
 import { TestCaseForm } from './_components/test-case-form';
@@ -100,7 +101,17 @@ export default async function ProductionCardDetailPage({
           </span>
         }
         back={{ href: '/production', label: '製造管理' }}
-        actions={<ProductionStatusButton cardId={cardId} currentStatus={card.status} />}
+        actions={
+          <div className="flex items-center gap-3 flex-wrap">
+            <ProductionStatusButton cardId={cardId} currentStatus={card.status} />
+            <ProductionEditForm
+              cardId={cardId}
+              title={card.title}
+              estimatedCost={card.estimated_cost ?? 0}
+              actualCost={card.actual_cost ?? 0}
+            />
+          </div>
+        }
       />
 
       <div className="px-6 py-10 max-w-5xl mx-auto space-y-10">

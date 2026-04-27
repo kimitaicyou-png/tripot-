@@ -100,6 +100,77 @@ export async function updateProductionCardStatus(
   return { success: true };
 }
 
+const updateSchema = z.object({
+  title: z.string().min(1).max(200),
+  estimated_cost: z.coerce.number().int().nonnegative().default(0),
+  actual_cost: z.coerce.number().int().nonnegative().default(0),
+});
+
+export async function updateProductionCard(
+  cardId: string,
+  _prev: ProductionFormState,
+  formData: FormData
+): Promise<ProductionFormState> {
+  const session = await auth();
+  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
+
+  const parsed = updateSchema.safeParse({
+    title: formData.get('title'),
+    estimated_cost: formData.get('estimated_cost') ?? 0,
+    actual_cost: formData.get('actual_cost') ?? 0,
+  });
+
+  if (!parsed.success) return { errors: { _form: parsed.error.errors.map((e) => e.message) } };
+
+  const [updated] = await db
+    .update(production_cards)
+    .set({
+      title: parsed.data.title,
+      estimated_cost: parsed.data.estimated_cost,
+      actual_cost: parsed.data.actual_cost,
+      updated_at: new Date(),
+    })
+    .where(and(eq(production_cards.id, cardId), eq(production_cards.company_id, session.user.company_id)))
+    .returning({ id: production_cards.id });
+
+  if (!updated) return { errors: { _form: ['カードが見つかりません'] } };
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'production_card.update',
+    resource_type: 'production_card',
+    resource_id: cardId,
+    metadata: { title: parsed.data.title, estimated_cost: parsed.data.estimated_cost, actual_cost: parsed.data.actual_cost },
+  });
+
+  revalidatePath(`/production/${cardId}`);
+  revalidatePath('/production');
+  return { success: true };
+}
+
+export async function deleteProductionCard(cardId: string): Promise<void> {
+  const session = await auth();
+  if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
+
+  await db
+    .update(production_cards)
+    .set({ deleted_at: new Date() })
+    .where(and(eq(production_cards.id, cardId), eq(production_cards.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'production_card.delete',
+    resource_type: 'production_card',
+    resource_id: cardId,
+  });
+
+  revalidatePath('/production');
+}
+
 export async function listProductionCards() {
   const session = await auth();
   if (!session?.user?.member_id) return [];
