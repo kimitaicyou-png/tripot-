@@ -6,6 +6,7 @@ import { usePathname } from 'next/navigation';
 const TABS = [
   { href: '/weekly', label: '行動量' },
   { href: '/weekly/cf', label: 'CF予測' },
+  { href: '/weekly/pl', label: 'PL' },
   { href: '/weekly/input', label: '入力' },
 ] as const;
 

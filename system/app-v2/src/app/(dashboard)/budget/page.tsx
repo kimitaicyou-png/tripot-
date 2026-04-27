@@ -6,6 +6,7 @@ import { budgets, deals, budget_actuals } from '@/db/schema';
 import { eq, and, sql, isNull, gte, lte } from 'drizzle-orm';
 import { BudgetEditor } from './_components/budget-editor';
 import { ActualsImportDialog } from './_components/actuals-import-dialog';
+import { BudgetAlertButton } from './_components/budget-alert-button';
 import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
@@ -85,7 +86,12 @@ export default async function BudgetPage() {
         eyebrow="ANNUAL PLAN"
         title={`${year}年 事業計画`}
         subtitle="年間目標 ＆ 月別計画 vs 実績"
-        actions={<ActualsImportDialog />}
+        actions={
+          <div className="flex items-center gap-3 flex-wrap">
+            <BudgetAlertButton />
+            <ActualsImportDialog />
+          </div>
+        }
       />
 
       <div className="px-6 py-10 max-w-5xl mx-auto space-y-12">
