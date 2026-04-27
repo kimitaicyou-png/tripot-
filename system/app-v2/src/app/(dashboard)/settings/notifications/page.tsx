@@ -1,0 +1,54 @@
+import Link from 'next/link';
+import { redirect } from 'next/navigation';
+import { auth } from '@/auth';
+import { listMyPreferences } from '@/lib/actions/notification-prefs';
+import {
+  RULE_KEYS,
+  RULE_LABELS,
+  RULE_DESCRIPTIONS,
+} from '@/lib/notification-prefs-meta';
+import { PrefRow } from './_components/pref-row';
+
+export default async function SettingsNotificationsPage() {
+  const session = await auth();
+  if (!session?.user?.member_id) redirect('/login');
+
+  const memberId = session.user.member_id;
+  const prefs = await listMyPreferences(memberId);
+  const prefMap = new Map(prefs.map((p) => [p.rule_key, p]));
+
+  return (
+    <main className="min-h-screen bg-surface">
+      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
+        <Link href="/settings" className="text-muted hover:text-ink text-sm">← 設定</Link>
+        <h1 className="text-lg font-semibold text-ink">通知設定</h1>
+      </header>
+
+      <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
+        <p className="text-sm text-muted">
+          {session.user.name ?? '自分'} の通知ルール。各ルールごとに配信チャネル（アプリ / Slack / LINE / メール）と
+          ミュート設定を選べます。
+        </p>
+
+        <ul className="space-y-3">
+          {RULE_KEYS.map((rk) => {
+            const pref = prefMap.get(rk);
+            const channels = Array.isArray(pref?.channels) ? (pref!.channels as string[]) : ['app'];
+            const isMuted = pref?.is_muted === 1;
+            return (
+              <PrefRow
+                key={rk}
+                memberId={memberId}
+                ruleKey={rk}
+                ruleLabel={RULE_LABELS[rk] ?? rk}
+                ruleDescription={RULE_DESCRIPTIONS[rk] ?? ''}
+                initialChannels={channels}
+                initialMuted={isMuted}
+              />
+            );
+          })}
+        </ul>
+      </div>
+    </main>
+  );
+}

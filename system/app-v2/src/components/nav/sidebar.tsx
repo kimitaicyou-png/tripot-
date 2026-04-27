@@ -2,6 +2,7 @@ import Link from 'next/link';
 import { signOut } from '@/auth';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 import { getMemberColor, getMemberInitial } from '@/lib/member-color';
+import { unreadCountForMember } from '@/lib/actions/notifications';
 
 type NavItem = {
   href: string;
@@ -27,15 +28,17 @@ const SETTINGS_ITEMS: NavItem[] = [
   { href: '/settings/quotes', label: '名言', icon: '🎴' },
   { href: '/settings/templates', label: 'テンプレ', icon: '📁' },
   { href: '/settings/vendors', label: '外注先', icon: '🏭' },
+  { href: '/settings/notifications', label: '通知設定', icon: '🔔' },
   { href: '/settings/integrations', label: '連携', icon: '🔌' },
   { href: '/settings/audit', label: '監査', icon: '🪵' },
   { href: '/settings/mf', label: 'MF', icon: '💴' },
 ];
 
-export function Sidebar({ user }: { user: { name?: string | null; member_id: string; role: string } }) {
+export async function Sidebar({ user }: { user: { name?: string | null; member_id: string; role: string } }) {
   const memberId = user.member_id;
   const initial = getMemberInitial(user.name ?? '');
   const color = getMemberColor(memberId);
+  const unreadCount = await unreadCountForMember(memberId);
 
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col bg-card border-r border-border h-screen sticky top-0">
@@ -77,6 +80,19 @@ export function Sidebar({ user }: { user: { name?: string | null; member_id: str
             </Link>
           );
         })}
+
+        <Link
+          href="/notifications"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-ink-mid hover:bg-slate-50 transition-colors"
+        >
+          <span className="text-base">🔔</span>
+          <span className="font-medium flex-1">通知</span>
+          {unreadCount > 0 && (
+            <span className="text-xs font-mono tabular-nums text-card bg-amber-500 px-2 py-0.5 rounded-full">
+              {unreadCount}
+            </span>
+          )}
+        </Link>
 
         <Link
           href="/settings"
