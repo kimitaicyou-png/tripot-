@@ -145,6 +145,40 @@ export async function deleteProposal(proposalId: string, dealId?: string): Promi
   if (dealId) revalidatePath(`/deals/${dealId}`);
 }
 
+export type ProposalStatus = 'draft' | 'shared' | 'won' | 'lost' | 'archived';
+
+export async function updateProposalStatus(
+  proposalId: string,
+  status: ProposalStatus,
+  dealId?: string
+): Promise<{ success: boolean; error?: string }> {
+  const session = await auth();
+  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
+
+  const allowed: ProposalStatus[] = ['draft', 'shared', 'won', 'lost', 'archived'];
+  if (!allowed.includes(status)) return { success: false, error: '不正なステータス' };
+
+  const [updated] = await db
+    .update(proposals)
+    .set({ status, updated_at: new Date() })
+    .where(and(eq(proposals.id, proposalId), eq(proposals.company_id, session.user.company_id)))
+    .returning({ id: proposals.id });
+
+  if (!updated) return { success: false, error: '提案書が見つかりません' };
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'proposal.update_status',
+    resource_type: 'proposal',
+    resource_id: proposalId,
+    metadata: { new_status: status },
+  });
+
+  if (dealId) revalidatePath(`/deals/${dealId}`);
+  return { success: true };
+}
+
 export async function listProposalsForDeal(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];

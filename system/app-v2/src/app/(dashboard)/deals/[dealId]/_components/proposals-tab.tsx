@@ -4,6 +4,8 @@ import { Badge } from '@/components/ui/badge';
 import { ProposalGenerateButton } from './proposal-generate-button';
 import { SlideRendererInline } from './slide-renderer-inline';
 import { SlidePresentation } from './slide-presentation';
+import { ProposalStatusActions } from './proposal-status-actions';
+import type { ProposalStatus } from '@/lib/actions/proposals';
 
 const STATUS_LABEL: Record<string, string> = {
   draft: '下書き',
@@ -69,6 +71,12 @@ export async function ProposalsTab({ dealId }: { dealId: string }) {
                       {STATUS_LABEL[p.status] ?? p.status}
                     </Badge>
                   </div>
+
+                  <ProposalStatusActions
+                    proposalId={p.id}
+                    dealId={dealId}
+                    currentStatus={p.status as ProposalStatus}
+                  />
 
                   {slides.length > 0 && (
                     <>
