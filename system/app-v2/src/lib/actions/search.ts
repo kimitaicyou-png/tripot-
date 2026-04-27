@@ -2,7 +2,7 @@
 
 import { eq, and, isNull, sql, or } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db } from '@/lib/db';
+import { db, setTenantContext } from '@/lib/db';
 import { deals, customers, tasks, meetings, members } from '@/db/schema';
 
 export type SearchHit = {
@@ -22,6 +22,7 @@ function ilikeWrap(q: string): string {
 export async function globalSearch(query: string): Promise<SearchHit[]> {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
 
   const trimmed = query.trim();
   if (trimmed.length < 1) return [];

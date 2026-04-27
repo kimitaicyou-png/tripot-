@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { vendors } from '@/db/schema';
 
 const vendorSchema = z.object({
@@ -24,6 +24,7 @@ export type VendorFormState = {
 export async function listVendors() {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(vendors)
@@ -42,6 +43,7 @@ export async function createVendor(
 ): Promise<VendorFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const skillsRaw = (formData.get('skills') ?? '').toString().trim();
   const skills = skillsRaw
@@ -90,6 +92,7 @@ export async function updateVendor(
 ): Promise<VendorFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const skillsRaw = (formData.get('skills') ?? '').toString().trim();
   const skills = skillsRaw
@@ -135,6 +138,7 @@ export async function updateVendor(
 export async function deleteVendor(vendorId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(vendors)

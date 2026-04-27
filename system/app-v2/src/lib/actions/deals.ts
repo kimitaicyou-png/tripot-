@@ -12,7 +12,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { deals } from '@/db/schema';
 
 const dealSchema = z.object({
@@ -44,6 +44,7 @@ export async function createDeal(_prev: DealFormState, formData: FormData): Prom
   if (!session?.user?.member_id) {
     return { errors: { _form: ['認証が必要です'] } };
   }
+  await setTenantContext(session.user.company_id);
 
   const parsed = dealSchema.safeParse({
     title: formData.get('title'),
@@ -88,6 +89,7 @@ export async function updateDeal(dealId: string, _prev: DealFormState, formData:
   if (!session?.user?.member_id) {
     return { errors: { _form: ['認証が必要です'] } };
   }
+  await setTenantContext(session.user.company_id);
 
   const parsed = dealSchema.partial().safeParse({
     title: formData.get('title') ?? undefined,
@@ -126,6 +128,7 @@ export async function deleteDeal(dealId: string): Promise<void> {
   if (!session?.user?.member_id) {
     throw new Error('認証が必要です');
   }
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(deals)
@@ -161,6 +164,7 @@ export async function updateDealTargetMeta(
 ): Promise<TargetMetaState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const targetRevenueRaw = String(formData.get('target_revenue') ?? '').trim();
   const targetGpRaw = String(formData.get('target_gp') ?? '').trim();
@@ -218,6 +222,7 @@ export async function updateDealRunningMeta(
 ): Promise<RunningMetaState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const nextRenewalDateRaw = String(formData.get('next_renewal_date') ?? '').trim();
   const autoRenew = formData.get('auto_renew') === 'on';
@@ -269,6 +274,7 @@ export async function updateDealInternalNote(
 ): Promise<InternalNoteState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const note = String(formData.get('internal_note') ?? '').slice(0, 4000);
 

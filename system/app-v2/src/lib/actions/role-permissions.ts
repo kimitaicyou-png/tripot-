@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, sql } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { role_permissions } from '@/db/schema';
 import {
   ACTIONS_BY_RESOURCE,
@@ -47,6 +47,7 @@ export type PermissionFormState = {
 export async function listRolePermissions() {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(role_permissions)
@@ -59,6 +60,7 @@ export async function seedDefaultRolePermissions(): Promise<{
 }> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   const [existingRow] = await db
     .select({ n: sql<number>`count(*)::int` })
@@ -122,6 +124,7 @@ export async function updateRolePermission(
 ): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   const parsed = updateSchema.safeParse({ role, resource, action, allowed });
   if (!parsed.success) throw new Error('入力エラー');

@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { leaves, members } from '@/db/schema';
 
 const leaveSchema = z.object({
@@ -23,6 +23,7 @@ export type LeaveFormState = {
 export async function listLeaves(rangeStart: string, rangeEnd: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
 
   return db
     .select({
@@ -52,6 +53,7 @@ export async function createLeave(
 ): Promise<LeaveFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = leaveSchema.safeParse({
     member_id: formData.get('member_id'),
@@ -91,6 +93,7 @@ export async function createLeave(
 export async function deleteLeave(leaveId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .delete(leaves)

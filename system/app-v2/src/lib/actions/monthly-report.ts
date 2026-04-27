@@ -3,7 +3,7 @@
 import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { companies, notifications } from '@/db/schema';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 import { buildKpiForCompany } from '@/lib/bridge/translator';
@@ -20,6 +20,7 @@ export async function sendMonthlyReportToHq(yearMonth: string): Promise<SendRepo
   if (!session?.user?.member_id) {
     return { success: false, message: '認証が必要です' };
   }
+  await setTenantContext(session.user.company_id);
 
   const companyId = session.user.company_id;
 

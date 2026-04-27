@@ -5,11 +5,10 @@ import { db } from '@/lib/db';
 import { actions, members, deals } from '@/db/schema';
 import { eq, and, sql, isNull, gte } from 'drizzle-orm';
 import { WeeklyTabs } from './_components/tabs';
+import { MemberActivityGrid } from './_components/member-activity-grid';
+import { WeeklyTotals } from './_components/weekly-totals';
 import { PageHeader } from '@/components/ui/page-header';
-import { HeroValue, StatCard } from '@/components/ui/stat-card';
-import { SectionHeading } from '@/components/ui/section-heading';
-import { EmptyState } from '@/components/ui/empty-state';
-import { getMemberColor, getMemberInitial } from '@/lib/member-color';
+import { HeroValue } from '@/components/ui/stat-card';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
@@ -106,73 +105,16 @@ export default async function WeeklyPage({
           }
         />
 
-        <section>
-          <SectionHeading
-            eyebrow="ACTIVITY"
-            title="メンバー別 行動量"
-            count={memberStats.length}
-          />
-          {memberStats.length === 0 ? (
-            <EmptyState icon="◯" title="メンバーがまだ登録されていません" />
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {memberStats.map((m) => {
-                const color = getMemberColor(m.id);
-                const initial = getMemberInitial(m.name);
-                const widthPct = Math.round((m.total / maxActions) * 100);
-                return (
-                  <div
-                    key={m.id}
-                    className="bg-card border border-border rounded-xl p-5 shadow-sm"
-                  >
-                    <div className="flex items-center gap-3 mb-3">
-                      <div
-                        className={`w-10 h-10 rounded-lg ${color} flex items-center justify-center text-white text-base font-semibold`}
-                      >
-                        {initial}
-                      </div>
-                      <p className="flex-1 text-sm text-ink font-medium truncate">{m.name}</p>
-                      <p className="font-serif italic text-2xl text-ink tabular-nums leading-none">
-                        {m.total}
-                      </p>
-                    </div>
-                    <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
-                      <div
-                        className="h-full bg-ink rounded-full transition-all"
-                        style={{ width: `${widthPct}%` }}
-                      />
-                    </div>
-                    <div className="grid grid-cols-3 gap-2 text-center">
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-subtle">電話</p>
-                        <p className="font-mono tabular-nums text-sm text-ink mt-0.5">{m.calls}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-subtle">商談</p>
-                        <p className="font-mono tabular-nums text-sm text-ink mt-0.5">
-                          {m.meetings}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] uppercase tracking-wider text-subtle">提案</p>
-                        <p className="font-mono tabular-nums text-sm text-ink mt-0.5">
-                          {m.proposals}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </section>
+        <MemberActivityGrid members={memberStats} />
 
-        <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <StatCard label="進行中の案件" value={companyKpi?.activeCount ?? 0} />
-          <StatCard label="今週の電話" value={memberStats.reduce((s, m) => s + m.calls, 0)} />
-          <StatCard label="今週の商談" value={memberStats.reduce((s, m) => s + m.meetings, 0)} />
-          <StatCard label="今週の提案" value={memberStats.reduce((s, m) => s + m.proposals, 0)} />
-        </section>
+        <WeeklyTotals
+          totals={{
+            activeCount: companyKpi?.activeCount ?? 0,
+            calls: memberStats.reduce((s, m) => s + m.calls, 0),
+            meetings: memberStats.reduce((s, m) => s + m.meetings, 0),
+            proposals: memberStats.reduce((s, m) => s + m.proposals, 0),
+          }}
+        />
       </div>
     </main>
   );

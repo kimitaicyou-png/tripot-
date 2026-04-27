@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { invoices, estimates } from '@/db/schema';
 
 const invoiceSchema = z.object({
@@ -31,6 +31,7 @@ export async function createInvoice(
 ): Promise<InvoiceFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = invoiceSchema.safeParse({
     deal_id: formData.get('deal_id'),
@@ -78,6 +79,7 @@ export async function createInvoice(
 export async function markInvoicePaid(invoiceId: string, dealId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(invoices)
@@ -101,6 +103,7 @@ export async function createInvoiceFromEstimate(
 ): Promise<{ invoiceId: string }> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   const estimate = await db
     .select({
@@ -180,6 +183,7 @@ export async function updateInvoiceStatus(
 ): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   const updateData: Record<string, unknown> = {
     status,
@@ -210,6 +214,7 @@ export async function updateInvoiceStatus(
 export async function deleteInvoice(invoiceId: string, dealId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(invoices)
@@ -232,6 +237,7 @@ export async function deleteInvoice(invoiceId: string, dealId: string): Promise<
 export async function listInvoicesForDeal(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(invoices)

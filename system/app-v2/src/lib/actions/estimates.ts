@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { estimates } from '@/db/schema';
 
 const lineItemSchema = z.object({
@@ -45,6 +45,7 @@ export async function createEstimate(
 ): Promise<EstimateFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const lineItemsRaw = formData.get('line_items');
   let lineItems: unknown = [];
@@ -104,6 +105,7 @@ export async function createEstimate(
 export async function listEstimatesForDeal(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(estimates)
@@ -128,6 +130,7 @@ export async function updateEstimateStatus(
 ): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   const parsed = statusUpdateSchema.safeParse({ status });
   if (!parsed.success) throw new Error('不正なステータスです');
@@ -164,6 +167,7 @@ export async function updateEstimateStatus(
 export async function deleteEstimate(estimateId: string, dealId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(estimates)

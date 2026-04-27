@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { lost_deals, deals } from '@/db/schema';
 
 const reasonSchema = z.object({
@@ -22,6 +22,7 @@ export type LostDealFormState = {
 export async function getLostDealForDeal(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return null;
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(lost_deals)
@@ -41,6 +42,7 @@ export async function recordLostDeal(
 ): Promise<LostDealFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = reasonSchema.safeParse({
     deal_id: formData.get('deal_id'),

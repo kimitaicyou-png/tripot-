@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { proposals } from '@/db/schema';
 
 const proposalSchema = z.object({
@@ -34,6 +34,7 @@ export async function createProposal(
 ): Promise<ProposalFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const slidesRaw = formData.get('slides');
   let slides: unknown[] = [];
@@ -90,6 +91,7 @@ export async function updateProposal(
 ): Promise<ProposalFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const slidesRaw = formData.get('slides');
   let slides: unknown[] | undefined;
@@ -128,6 +130,7 @@ export async function updateProposal(
 export async function deleteProposal(proposalId: string, dealId?: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(proposals)
@@ -154,6 +157,7 @@ export async function updateProposalStatus(
 ): Promise<{ success: boolean; error?: string }> {
   const session = await auth();
   if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
+  await setTenantContext(session.user.company_id);
 
   const allowed: ProposalStatus[] = ['draft', 'shared', 'won', 'lost', 'archived'];
   if (!allowed.includes(status)) return { success: false, error: '不正なステータス' };
@@ -192,6 +196,7 @@ export async function updateProposalSlides(
 ): Promise<SlidesUpdateResult> {
   const session = await auth();
   if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
+  await setTenantContext(session.user.company_id);
 
   let parsed: unknown;
   try {
@@ -247,6 +252,7 @@ export async function updateProposalSlides(
 export async function listProposalsForDeal(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(proposals)

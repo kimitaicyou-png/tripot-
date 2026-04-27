@@ -3,12 +3,13 @@
 import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { notification_prefs } from '@/db/schema';
 
 export async function listMyPreferences(memberId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(notification_prefs)
@@ -28,6 +29,7 @@ export async function upsertPreference(
 ): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   if (memberId !== session.user.member_id && session.user.role === 'member') {
     throw new Error('他人の通知設定は変更できません');

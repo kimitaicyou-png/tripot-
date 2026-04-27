@@ -8,7 +8,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { tasks } from '@/db/schema';
 
 const taskSchema = z.object({
@@ -27,6 +27,7 @@ export type TaskFormState = {
 export async function createTask(_prev: TaskFormState, formData: FormData): Promise<TaskFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = taskSchema.safeParse({
     title: formData.get('title'),
@@ -64,6 +65,7 @@ export async function createTask(_prev: TaskFormState, formData: FormData): Prom
 export async function toggleTaskStatus(taskId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   const task = await db
     .select({ status: tasks.status, deal_id: tasks.deal_id })
@@ -107,6 +109,7 @@ export async function updateTask(
 ): Promise<TaskFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = taskUpdateSchema.safeParse({
     title: formData.get('title') ?? undefined,
@@ -148,6 +151,7 @@ export async function updateTask(
 export async function deleteTask(taskId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(tasks)

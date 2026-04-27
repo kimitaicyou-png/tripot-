@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, desc } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { commitments } from '@/db/schema';
 
 const commitmentSchema = z.object({
@@ -22,6 +22,7 @@ export type CommitmentFormState = {
 export async function listCommitmentsForMember(memberId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(commitments)
@@ -41,6 +42,7 @@ export async function createCommitment(
 ): Promise<CommitmentFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = commitmentSchema.safeParse({
     text: formData.get('text'),
@@ -78,6 +80,7 @@ export async function createCommitment(
 export async function completeCommitment(commitmentId: string, memberId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(commitments)
@@ -106,6 +109,7 @@ export async function completeCommitment(commitmentId: string, memberId: string)
 export async function deleteCommitment(commitmentId: string, memberId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .delete(commitments)

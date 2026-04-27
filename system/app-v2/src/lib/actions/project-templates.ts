@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, sql } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { project_templates } from '@/db/schema';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 
@@ -22,6 +22,7 @@ export type ProjectTemplateFormState = {
 export async function listProjectTemplates() {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(project_templates)
@@ -40,6 +41,7 @@ export async function createProjectTemplate(
 ): Promise<ProjectTemplateFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = templateSchema.safeParse({
     name: formData.get('name'),
@@ -77,6 +79,7 @@ export async function updateProjectTemplate(
 ): Promise<ProjectTemplateFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = templateSchema.safeParse({
     name: formData.get('name'),
@@ -114,6 +117,7 @@ export async function updateProjectTemplate(
 export async function deleteProjectTemplate(templateId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(project_templates)
@@ -139,6 +143,7 @@ export async function deleteProjectTemplate(templateId: string): Promise<void> {
 export async function seedDefaultTemplates(): Promise<{ inserted: number; skipped: number }> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   const seeds = TRIPOT_CONFIG.projectTemplates ?? [];
   if (seeds.length === 0) return { inserted: 0, skipped: 0 };

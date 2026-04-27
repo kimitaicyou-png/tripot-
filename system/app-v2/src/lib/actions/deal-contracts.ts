@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { deal_contracts } from '@/db/schema';
 
 const schema = z.object({
@@ -28,6 +28,7 @@ export async function createDealContract(
 ): Promise<ContractFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = schema.safeParse({
     title: formData.get('title'),
@@ -71,6 +72,7 @@ export async function createDealContract(
 export async function deleteDealContract(contractId: string, dealId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(deal_contracts)
@@ -91,6 +93,7 @@ export async function deleteDealContract(contractId: string, dealId: string): Pr
 export async function listDealContracts(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
 
   return db
     .select()

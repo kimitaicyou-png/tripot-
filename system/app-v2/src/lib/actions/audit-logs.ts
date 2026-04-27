@@ -2,7 +2,7 @@
 
 import { eq, and, gte, lte, sql, desc } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db } from '@/lib/db';
+import { db, setTenantContext } from '@/lib/db';
 import { audit_logs, members } from '@/db/schema';
 
 export type AuditFilter = {
@@ -17,6 +17,7 @@ export type AuditFilter = {
 export async function listAuditLogs(filter: AuditFilter = {}) {
   const session = await auth();
   if (!session?.user?.member_id) return { rows: [], total: 0 };
+  await setTenantContext(session.user.company_id);
 
   const conditions = [eq(audit_logs.company_id, session.user.company_id)];
 
@@ -69,6 +70,7 @@ export async function listAuditLogs(filter: AuditFilter = {}) {
 export async function listAuditableMembers() {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select({ id: members.id, name: members.name })
     .from(members)

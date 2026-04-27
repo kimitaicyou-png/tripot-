@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { attack_plans } from '@/db/schema';
 
 const planSchema = z.object({
@@ -25,6 +25,7 @@ export type AttackPlanFormState = {
 export async function getAttackPlanForDeal(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return null;
+  await setTenantContext(session.user.company_id);
   const rows = await db
     .select()
     .from(attack_plans)
@@ -44,6 +45,7 @@ export async function upsertAttackPlan(
 ): Promise<AttackPlanFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = planSchema.safeParse({
     deal_id: formData.get('deal_id'),

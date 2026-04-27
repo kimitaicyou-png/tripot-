@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { meetings } from '@/db/schema';
 
 const meetingSchema = z.object({
@@ -37,6 +37,7 @@ export async function createMeeting(
   if (!session?.user?.member_id) {
     return { errors: { _form: ['認証が必要です'] } };
   }
+  await setTenantContext(session.user.company_id);
 
   const parsed = meetingSchema.safeParse({
     deal_id: formData.get('deal_id') || null,
@@ -93,6 +94,7 @@ export async function updateMeeting(
   if (!session?.user?.member_id) {
     return { errors: { _form: ['認証が必要です'] } };
   }
+  await setTenantContext(session.user.company_id);
 
   const parsed = meetingSchema.partial().safeParse({
     type: formData.get('type') ?? undefined,
@@ -131,6 +133,7 @@ export async function updateMeeting(
 export async function deleteMeeting(meetingId: string, dealId?: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(meetings)
@@ -151,6 +154,7 @@ export async function deleteMeeting(meetingId: string, dealId?: string): Promise
 export async function listMeetingsForDeal(dealId: string) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(meetings)

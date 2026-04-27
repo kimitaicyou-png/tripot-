@@ -5,7 +5,7 @@ import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { customers } from '@/db/schema';
 
 const customerSchema = z.object({
@@ -22,6 +22,7 @@ export type CustomerFormState = {
 export async function createCustomer(_prev: CustomerFormState, formData: FormData): Promise<CustomerFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = customerSchema.safeParse({
     name: formData.get('name'),
@@ -60,6 +61,7 @@ export async function updateCustomer(
 ): Promise<CustomerFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = customerSchema.safeParse({
     name: formData.get('name'),
@@ -95,6 +97,7 @@ export async function updateCustomer(
 export async function deleteCustomer(customerId: string): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   await db
     .update(customers)

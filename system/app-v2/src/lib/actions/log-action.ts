@@ -10,7 +10,7 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { actions } from '@/db/schema';
 
 const actionSchema = z.object({
@@ -27,6 +27,7 @@ export type ActionFormState = {
 export async function logActionEntry(_prev: ActionFormState, formData: FormData): Promise<ActionFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = actionSchema.safeParse({
     type: formData.get('type'),
@@ -84,6 +85,7 @@ export async function bulkLogActions(
 ): Promise<BulkActionFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = bulkActionSchema.safeParse(payload);
   if (!parsed.success) {

@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, gte, lte } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { budget_actuals } from '@/db/schema';
 
 const actualSchema = z.object({
@@ -27,6 +27,7 @@ export type BudgetActualFormState = {
 export async function listBudgetActualsForYear(year: number) {
   const session = await auth();
   if (!session?.user?.member_id) return [];
+  await setTenantContext(session.user.company_id);
   return db
     .select()
     .from(budget_actuals)
@@ -46,6 +47,7 @@ export async function upsertBudgetActual(
 ): Promise<{ inserted: boolean }> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  await setTenantContext(session.user.company_id);
 
   const operating_profit = data.revenue - data.cogs - data.sga;
 
@@ -153,6 +155,7 @@ export async function importBudgetActualsFromCsv(
 ): Promise<BudgetActualFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const csv = (formData.get('csv') ?? '').toString();
   if (!csv.trim()) {

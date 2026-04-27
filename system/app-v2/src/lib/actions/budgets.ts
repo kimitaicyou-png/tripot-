@@ -4,7 +4,7 @@ import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { budgets } from '@/db/schema';
 
 const budgetSchema = z.object({
@@ -23,6 +23,7 @@ export type BudgetFormState = {
 export async function upsertBudget(_prev: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
   const session = await auth();
   if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+  await setTenantContext(session.user.company_id);
 
   const parsed = budgetSchema.safeParse({
     year: formData.get('year'),
