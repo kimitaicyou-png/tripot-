@@ -58,3 +58,67 @@ export async function logActionEntry(_prev: ActionFormState, formData: FormData)
   revalidatePath('/weekly');
   return { success: true };
 }
+
+const bulkActionSchema = z.object({
+  entries: z
+    .array(
+      z.object({
+        member_id: z.string().uuid(),
+        type: z.enum(['call', 'meeting', 'proposal', 'email', 'visit', 'other']),
+        count: z.number().int().min(0).max(999),
+      })
+    )
+    .min(1)
+    .max(500),
+  occurred_on: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
+});
+
+export type BulkActionFormState = {
+  errors?: { _form?: string[] };
+  success?: boolean;
+  inserted?: number;
+};
+
+export async function bulkLogActions(
+  payload: { entries: Array<{ member_id: string; type: string; count: number }>; occurred_on?: string }
+): Promise<BulkActionFormState> {
+  const session = await auth();
+  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+
+  const parsed = bulkActionSchema.safeParse(payload);
+  if (!parsed.success) {
+    return { errors: { _form: ['入力に誤りがあります'] } };
+  }
+
+  const occurredAt = parsed.data.occurred_on
+    ? new Date(`${parsed.data.occurred_on}T12:00:00+09:00`)
+    : new Date();
+
+  const rows = parsed.data.entries
+    .filter((e) => e.count > 0)
+    .flatMap((e) =>
+      Array.from({ length: e.count }, () => ({
+        company_id: session.user.company_id,
+        member_id: e.member_id,
+        type: e.type as 'call' | 'meeting' | 'proposal' | 'email' | 'visit' | 'other',
+        note: '週次入力',
+        occurred_at: occurredAt,
+      }))
+    );
+
+  if (rows.length === 0) return { success: true, inserted: 0 };
+
+  await db.insert(actions).values(rows);
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'action.bulk_log',
+    resource_type: 'action',
+    metadata: { count: rows.length, occurred_on: parsed.data.occurred_on ?? null },
+  });
+
+  revalidatePath('/weekly');
+  revalidatePath('/weekly/input');
+  return { success: true, inserted: rows.length };
+}
