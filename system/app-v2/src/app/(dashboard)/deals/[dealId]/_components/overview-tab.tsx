@@ -14,6 +14,8 @@ import { AttackSection } from './attack-section';
 import { ApprovalRequestButton } from './approval-request-button';
 import { LostDealSection } from './lost-deal-section';
 import { InternalNoteSection } from './internal-note-section';
+import { RunningSection } from './running-section';
+import { TargetSection } from './target-section';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   call: '📞 電話',
@@ -192,6 +194,55 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
       </section>
 
       <LostDealSection dealId={dealId} currentStage={deal.stage} />
+
+      <TargetSection
+        dealId={dealId}
+        currentAmount={deal.amount}
+        currentExpectedClose={deal.expected_close_date}
+        targetRevenue={
+          typeof (deal.metadata as Record<string, unknown> | null)?.target_revenue === 'number'
+            ? ((deal.metadata as Record<string, unknown>).target_revenue as number)
+            : 0
+        }
+        targetGp={
+          typeof (deal.metadata as Record<string, unknown> | null)?.target_gp === 'number'
+            ? ((deal.metadata as Record<string, unknown>).target_gp as number)
+            : 0
+        }
+        targetCloseDate={
+          typeof (deal.metadata as Record<string, unknown> | null)?.target_close_date === 'string'
+            ? ((deal.metadata as Record<string, unknown>).target_close_date as string)
+            : null
+        }
+        winReason={
+          typeof (deal.metadata as Record<string, unknown> | null)?.win_reason === 'string'
+            ? ((deal.metadata as Record<string, unknown>).win_reason as string)
+            : ''
+        }
+      />
+
+      {(deal.revenue_type === 'running' || deal.revenue_type === 'both') && (
+        <RunningSection
+          dealId={dealId}
+          monthlyAmount={deal.monthly_amount}
+          nextRenewalDate={
+            typeof (deal.metadata as Record<string, unknown> | null)?.next_renewal_date === 'string'
+              ? ((deal.metadata as Record<string, unknown>).next_renewal_date as string)
+              : null
+          }
+          autoRenew={(deal.metadata as Record<string, unknown> | null)?.auto_renew === true}
+          renewalCount={
+            typeof (deal.metadata as Record<string, unknown> | null)?.renewal_count === 'number'
+              ? ((deal.metadata as Record<string, unknown>).renewal_count as number)
+              : 0
+          }
+          renewalNote={
+            typeof (deal.metadata as Record<string, unknown> | null)?.renewal_note === 'string'
+              ? ((deal.metadata as Record<string, unknown>).renewal_note as string)
+              : ''
+          }
+        />
+      )}
 
       <InternalNoteSection
         dealId={dealId}

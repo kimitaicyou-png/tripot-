@@ -149,6 +149,119 @@ export type InternalNoteState = {
   success?: boolean;
 };
 
+export type TargetMetaState = {
+  errors?: { _form?: string[] };
+  success?: boolean;
+};
+
+export async function updateDealTargetMeta(
+  dealId: string,
+  _prev: TargetMetaState,
+  formData: FormData
+): Promise<TargetMetaState> {
+  const session = await auth();
+  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+
+  const targetRevenueRaw = String(formData.get('target_revenue') ?? '').trim();
+  const targetGpRaw = String(formData.get('target_gp') ?? '').trim();
+  const targetCloseRaw = String(formData.get('target_close_date') ?? '').trim();
+  const winReason = String(formData.get('win_reason') ?? '').trim().slice(0, 500);
+
+  const targetRevenue = /^\d+$/.test(targetRevenueRaw) ? Math.min(99_999_999_999, Number(targetRevenueRaw)) : 0;
+  const targetGp = /^\d+$/.test(targetGpRaw) ? Math.min(99_999_999_999, Number(targetGpRaw)) : 0;
+  const targetCloseDate = /^\d{4}-\d{2}-\d{2}$/.test(targetCloseRaw) ? targetCloseRaw : null;
+
+  const existing = await db.query.deals.findFirst({
+    where: (d, { and: aand, eq: eeq }) => aand(eeq(d.id, dealId), eeq(d.company_id, session.user.company_id)),
+    columns: { metadata: true },
+  });
+
+  if (!existing) return { errors: { _form: ['案件が見つかりません'] } };
+
+  const meta = (existing.metadata as Record<string, unknown> | null) ?? {};
+  const nextMeta = {
+    ...meta,
+    target_revenue: targetRevenue,
+    target_gp: targetGp,
+    target_close_date: targetCloseDate,
+    win_reason: winReason,
+    target_meta_updated_at: new Date().toISOString(),
+  };
+
+  await db
+    .update(deals)
+    .set({ metadata: nextMeta })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.update_target_meta',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { target_revenue: targetRevenue, target_gp: targetGp, target_close_date: targetCloseDate },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  return { success: true };
+}
+
+export type RunningMetaState = {
+  errors?: { _form?: string[] };
+  success?: boolean;
+};
+
+export async function updateDealRunningMeta(
+  dealId: string,
+  _prev: RunningMetaState,
+  formData: FormData
+): Promise<RunningMetaState> {
+  const session = await auth();
+  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+
+  const nextRenewalDateRaw = String(formData.get('next_renewal_date') ?? '').trim();
+  const autoRenew = formData.get('auto_renew') === 'on';
+  const renewalCountRaw = String(formData.get('renewal_count') ?? '').trim();
+  const renewalNote = String(formData.get('renewal_note') ?? '').trim().slice(0, 500);
+
+  const nextRenewalDate = /^\d{4}-\d{2}-\d{2}$/.test(nextRenewalDateRaw) ? nextRenewalDateRaw : null;
+  const renewalCount = /^\d+$/.test(renewalCountRaw) ? Math.min(999, Number(renewalCountRaw)) : 0;
+
+  const existing = await db.query.deals.findFirst({
+    where: (d, { and: aand, eq: eeq }) => aand(eeq(d.id, dealId), eeq(d.company_id, session.user.company_id)),
+    columns: { metadata: true },
+  });
+
+  if (!existing) return { errors: { _form: ['案件が見つかりません'] } };
+
+  const meta = (existing.metadata as Record<string, unknown> | null) ?? {};
+  const nextMeta = {
+    ...meta,
+    next_renewal_date: nextRenewalDate,
+    auto_renew: autoRenew,
+    renewal_count: renewalCount,
+    renewal_note: renewalNote,
+    running_meta_updated_at: new Date().toISOString(),
+  };
+
+  await db
+    .update(deals)
+    .set({ metadata: nextMeta })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.update_running_meta',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { next_renewal_date: nextRenewalDate, auto_renew: autoRenew, renewal_count: renewalCount },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  return { success: true };
+}
+
 export async function updateDealInternalNote(
   dealId: string,
   _prev: InternalNoteState,
