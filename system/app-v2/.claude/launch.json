@@ -1,0 +1,17 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "tripot-v2",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["next", "dev", "--port", "3100", "--turbopack"],
+      "port": 3100
+    },
+    {
+      "name": "tripot-v2-mockup",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "3200"],
+      "port": 3200
+    }
+  ]
+}

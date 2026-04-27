@@ -1,0 +1,1081 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>コアリスUI — 最小1画面（ナビ + 文字 + 数字）</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans+JP:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0F0F0F;
+    --ink-mid: #1C1C1C;
+    --muted: #2A2A2A;
+    --subtle: #6B6B6B;
+    --subtle-plus: #888888;
+    --surface: #F5F5F5;
+    --surface-raised: #FAFAFA;
+    --card: #FFFFFF;
+    --border: rgba(0,0,0,0.07);
+    --border-mid: rgba(0,0,0,0.055);
+    --border-strong: rgba(0,0,0,0.13);
+    --border-hairline: rgba(0,0,0,0.04);
+    --primary: oklch(50% 0.16 240);
+    --primary-hover: oklch(44% 0.16 240);
+    --primary-subtle: oklch(97% 0.04 240);
+    --kpi-up: oklch(44% 0.14 152);
+    --kpi-up-bg: oklch(97% 0.04 152);
+    --kpi-up-border: oklch(88% 0.08 152);
+    --kpi-down: oklch(50% 0.18 25);
+    --kpi-down-bg: oklch(97% 0.04 25);
+    --kpi-down-border: oklch(88% 0.08 25);
+    --accent: oklch(57% 0.13 68);
+    --accent-bg: oklch(97% 0.03 68);
+    --accent-border: oklch(88% 0.07 68);
+    --sidebar-bg: #080F1A;
+    --sidebar-bg2: #060D16;
+    --sidebar-bg-hover: rgba(255,255,255,0.05);
+    --sidebar-bg-active: rgba(59,143,232,0.14);
+    --sidebar-text: rgba(255,255,255,0.52);
+    --sidebar-text-mid: rgba(255,255,255,0.75);
+    --sidebar-text-active: rgba(255,255,255,0.96);
+    --sidebar-label: rgba(255,255,255,0.24);
+    --sidebar-border: rgba(255,255,255,0.055);
+    --sidebar-accent: oklch(68% 0.15 240);
+    --sidebar-accent-glow: rgba(59,143,232,0.22);
+    --radius-card: 12px;
+    --radius-btn: 7px;
+    --radius-sm: 5px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    font-size: 16px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  body {
+    background: var(--surface);
+    color: var(--ink);
+    font-family: 'IBM Plex Sans JP', 'IBM Plex Sans', 'Hiragino Sans', 'Yu Gothic UI', sans-serif;
+    font-size: 1rem;
+    line-height: 1.6;
+    letter-spacing: 0.005em;
+    font-feature-settings: "palt" 1;
+  }
+
+  .layout {
+    display: grid;
+    grid-template-columns: var(--sidebar-width, 212px) 1fr;
+    min-height: 100vh;
+    transition: grid-template-columns 220ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .layout.collapsed {
+    --sidebar-width: 60px;
+    grid-template-columns: 60px 1fr;
+  }
+  @media (max-width: 720px) {
+    .layout { grid-template-columns: 1fr; }
+    nav.sidebar { display: none; }
+  }
+
+  /* ─── sidebar ─── */
+  nav.sidebar {
+    background: linear-gradient(180deg, var(--sidebar-bg) 0%, var(--sidebar-bg2) 100%);
+    border-right: 1px solid rgba(255,255,255,0.065);
+    padding: 1.25rem 0.75rem 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow: hidden;
+    transition: padding 220ms cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: inset -1px 0 0 rgba(255,255,255,0.04), 1px 0 0 rgba(0,0,0,0.18);
+  }
+  .layout.collapsed nav.sidebar {
+    padding: 1.25rem 0.375rem 1rem;
+    align-items: center;
+  }
+
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    margin-bottom: 1.5rem;
+    padding: 0 0.5rem;
+    overflow: hidden;
+    min-height: 2rem;
+  }
+  .brand-icon {
+    flex-shrink: 0;
+    width: 26px;
+    height: 26px;
+    background: linear-gradient(135deg, var(--sidebar-accent) 0%, oklch(58% 0.17 230) 100%);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 0 0 1px rgba(255,255,255,0.12), 0 2px 8px var(--sidebar-accent-glow);
+  }
+  .brand-icon svg { display: block; }
+  .brand-text {
+    overflow: hidden;
+    white-space: nowrap;
+    opacity: 1;
+    transition: opacity 160ms cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .layout.collapsed .brand-text { opacity: 0; width: 0; }
+  .brand-mark {
+    font-family: 'IBM Plex Sans', 'IBM Plex Sans JP', sans-serif;
+    font-weight: 600;
+    font-size: 0.875rem;
+    letter-spacing: -0.01em;
+    color: rgba(255,255,255,0.94);
+    display: block;
+    line-height: 1.2;
+  }
+  .brand-sub {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--sidebar-label);
+    font-weight: 500;
+    display: block;
+    line-height: 1.4;
+  }
+
+  .nav-group-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.18em;
+    color: var(--sidebar-label);
+    font-weight: 500;
+    padding: 1rem 0.75rem 0.25rem;
+    white-space: nowrap;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 160ms;
+    height: auto;
+  }
+  .layout.collapsed .nav-group-label {
+    opacity: 0;
+    height: 0;
+    padding: 0;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-sm);
+    color: var(--sidebar-text);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    transition: color 80ms ease, background 80ms ease, transform 80ms ease;
+    position: relative;
+    letter-spacing: 0.06em;
+    white-space: nowrap;
+    overflow: hidden;
+    width: 100%;
+  }
+  .nav-item svg {
+    flex-shrink: 0;
+    opacity: 0.6;
+    transition: opacity 80ms ease;
+  }
+  .nav-item:hover {
+    color: var(--sidebar-text-mid);
+    background: var(--sidebar-bg-hover);
+    transform: translateX(1px);
+  }
+  .nav-item:hover svg { opacity: 0.85; }
+  .nav-item.active {
+    color: var(--sidebar-text-active);
+    background: var(--sidebar-bg-active);
+    box-shadow: inset 0 0 0 1px rgba(59,143,232,0.18);
+  }
+  .nav-item.active svg { opacity: 1; }
+  .nav-item.active::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 2.5px;
+    height: 18px;
+    background: var(--sidebar-accent);
+    border-radius: 0 2px 2px 0;
+    box-shadow: 0 0 6px var(--sidebar-accent-glow);
+  }
+  .nav-label {
+    flex: 1;
+    overflow: hidden;
+    opacity: 1;
+    transition: opacity 160ms;
+  }
+  .layout.collapsed .nav-label { opacity: 0; width: 0; flex: none; }
+  .nav-item .count {
+    flex-shrink: 0;
+    font-size: 0.75rem;
+    color: var(--sidebar-label);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    background: rgba(255,255,255,0.07);
+    padding: 1px 5px;
+    border-radius: 4px;
+    font-weight: 600;
+    letter-spacing: 0;
+    transition: opacity 160ms;
+    border: 1px solid rgba(255,255,255,0.06);
+  }
+  .layout.collapsed .nav-item .count { opacity: 0; width: 0; padding: 0; border: none; }
+
+  .count-dot {
+    display: none;
+    position: absolute;
+    top: 6px;
+    right: 6px;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--sidebar-accent);
+    border: 1.5px solid var(--sidebar-bg);
+    box-shadow: 0 0 4px var(--sidebar-accent-glow);
+  }
+  .layout.collapsed .count-dot { display: block; }
+
+  .sidebar-spacer { flex: 1; }
+
+  .sidebar-divider {
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.08) 20%, rgba(255,255,255,0.08) 80%, transparent);
+    margin: 0.5rem 0;
+  }
+
+  .collapse-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.5rem 0.625rem;
+    border-radius: var(--radius-sm);
+    color: var(--sidebar-label);
+    background: transparent;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 0.875rem;
+    font-weight: 500;
+    letter-spacing: 0.06em;
+    width: 100%;
+    transition: all 80ms ease;
+    white-space: nowrap;
+    overflow: hidden;
+  }
+  .collapse-btn:hover { color: var(--sidebar-text-mid); background: var(--sidebar-bg-hover); }
+  .collapse-btn svg { flex-shrink: 0; transition: transform 220ms cubic-bezier(0.4, 0, 0.2, 1); }
+  .layout.collapsed .collapse-btn svg { transform: rotate(180deg); }
+  .collapse-label {
+    opacity: 1;
+    transition: opacity 160ms;
+  }
+  .layout.collapsed .collapse-label { opacity: 0; width: 0; }
+
+  /* ─── main ─── */
+  main {
+    padding: 3rem 3rem;
+    max-width: 1120px;
+    min-width: 0;
+    background: var(--surface);
+  }
+  @media (max-width: 600px) {
+    main { padding: 1.5rem 1.25rem; }
+  }
+
+  .eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 500;
+    color: var(--subtle-plus);
+    margin-bottom: 0.5rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  h1 {
+    font-size: clamp(1.75rem, 2.5vw, 2rem);
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    margin-bottom: 0.375rem;
+    line-height: 1.3;
+    font-family: 'IBM Plex Sans JP', 'IBM Plex Sans', sans-serif;
+  }
+  .subtitle {
+    font-size: 0.875rem;
+    color: var(--subtle);
+    letter-spacing: 0.005em;
+    line-height: 1.6;
+  }
+
+  .page-header {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: end;
+    gap: 1.5rem;
+    margin-bottom: 2.5rem;
+    padding-bottom: 2rem;
+    border-bottom: 1px solid transparent;
+    box-shadow: 0 1px 0 rgba(0,0,0,0.06);
+  }
+  .page-header .actions { display: flex; gap: 0.5rem; }
+
+  /* ─── hero ─── */
+  .hero {
+    margin-bottom: 2rem;
+    padding: 2rem 2.5rem;
+    background: var(--card);
+    border-radius: var(--radius-card);
+    border: 1px solid rgba(0,0,0,0.09);
+    box-shadow:
+      0 1px 3px rgba(0,0,0,0.06),
+      inset 0 1px 0 rgba(255,255,255,0.92);
+  }
+  .hero-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.16em;
+    font-weight: 500;
+    color: var(--subtle-plus);
+    margin-bottom: 0.75rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .hero-value {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: clamp(2.875rem, 5.5vw, 5rem);
+    line-height: 1.0;
+    letter-spacing: -0.025em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "ss01", "zero";
+    margin-bottom: 1rem;
+  }
+  .hero-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+  }
+  .hero-delta {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.3125rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--kpi-up);
+    background: var(--kpi-up-bg);
+    padding: 0.25rem 0.625rem;
+    border: 1px solid var(--kpi-up-border);
+    border-radius: var(--radius-sm);
+    letter-spacing: 0.01em;
+    font-variant-numeric: tabular-nums;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .hero-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1.25rem;
+  }
+
+  /* ─── sparkline（hero 直下 12週折れ線）─── */
+  .sparkline-wrap {
+    margin-top: 1.5rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--border-hairline);
+  }
+  .sparkline-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+  }
+  .sparkline-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+    color: var(--subtle-plus);
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .sparkline-range {
+    display: flex;
+    gap: 1rem;
+    font-size: 0.75rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-variant-numeric: tabular-nums;
+    color: var(--subtle);
+    letter-spacing: 0;
+  }
+  .sparkline-range .hi { color: var(--kpi-up); font-weight: 600; }
+  .sparkline-range .lo { color: var(--subtle-plus); }
+  .sparkline-svg {
+    display: block;
+    width: 100%;
+    height: 40px;
+    overflow: visible;
+  }
+  .sparkline-svg .spark-area {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+    vector-effect: non-scaling-stroke;
+  }
+  .sparkline-svg .spark-fill {
+    fill: url(#sparkGrad);
+    stroke: none;
+  }
+  .sparkline-svg .spark-dot {
+    fill: var(--kpi-up);
+    stroke: var(--card);
+    stroke-width: 1.5;
+  }
+  .sparkline-weeks {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 0.375rem;
+    font-size: 0.6875rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--subtle-plus);
+    letter-spacing: 0;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* ─── mini bar（StatCard 下端 4週推移）─── */
+  .mini-bar-wrap {
+    margin-top: 0.875rem;
+    padding-top: 0.75rem;
+    border-top: 1px solid var(--border-hairline);
+  }
+  .mini-bars {
+    display: flex;
+    align-items: flex-end;
+    gap: 3px;
+    height: 20px;
+  }
+  .mini-bar {
+    flex: 1;
+    border-radius: 2px 2px 0 0;
+    min-height: 2px;
+    transition: opacity 120ms ease;
+  }
+  .mini-bar:hover { opacity: 0.75; }
+  .mini-bar-foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 4px;
+    font-size: 0.6875rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+    color: var(--subtle-plus);
+    letter-spacing: 0;
+  }
+  .stat .mini-bar { background: rgba(0,0,0,0.14); }
+  .stat.up   .mini-bar { background: var(--kpi-up-border); }
+  .stat.up   .mini-bar.current { background: var(--kpi-up); }
+  .stat.down .mini-bar { background: var(--kpi-down-border); }
+  .stat.down .mini-bar.current { background: var(--kpi-down); }
+  .stat.accent .mini-bar { background: var(--accent-border); }
+  .stat.accent .mini-bar.current { background: var(--accent); }
+  .stat .mini-bar.current { background: var(--ink); }
+
+  /* ─── stats bento ─── */
+  .stats {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr 1fr 1fr;
+    gap: 0.75rem;
+    margin-bottom: 2rem;
+  }
+  @media (max-width: 960px) {
+    .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  }
+
+  .stat {
+    background: var(--card);
+    border: 1px solid rgba(0,0,0,0.07);
+    border-radius: var(--radius-card);
+    padding: 1.5rem;
+    box-shadow:
+      0 1px 2px rgba(0,0,0,0.04),
+      inset 0 1px 0 rgba(255,255,255,0.88);
+    transition: box-shadow 120ms ease, transform 120ms ease;
+    position: relative;
+    overflow: hidden;
+  }
+  .stat::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    border-radius: var(--radius-card) var(--radius-card) 0 0;
+    background: rgba(0,0,0,0.10);
+  }
+  .stat:hover {
+    box-shadow:
+      0 2px 8px rgba(0,0,0,0.08),
+      inset 0 1px 0 rgba(255,255,255,0.88);
+    transform: translateY(-1px);
+  }
+  .stat-label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    font-weight: 500;
+    color: var(--subtle-plus);
+    margin-bottom: 0.625rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .stat-value {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-weight: 600;
+    font-size: 2rem;
+    line-height: 1.0;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "ss01", "zero";
+    margin-bottom: 0.5rem;
+  }
+  .stat-sub { font-size: 0.875rem; color: var(--subtle); letter-spacing: 0.005em; line-height: 1.6; }
+
+  .stat.up::after { background: var(--kpi-up); }
+  .stat.up .stat-value { color: var(--kpi-up); }
+  .stat.up .stat-sub   { color: var(--kpi-up); }
+
+  .stat.down::after { background: var(--kpi-down); }
+  .stat.down .stat-value { color: var(--kpi-down); }
+  .stat.down .stat-sub   { color: var(--kpi-down); }
+
+  .stat.accent::after { background: var(--accent); }
+  .stat.accent .stat-value { color: var(--accent); }
+  .stat.accent .stat-sub   { color: var(--accent); }
+
+  /* ─── section list ─── */
+  section.list {
+    margin-bottom: 3rem;
+  }
+  .section-head {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+  }
+  .section-eyebrow {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    font-weight: 500;
+    color: var(--subtle-plus);
+    margin-bottom: 0.25rem;
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+  .section-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--ink);
+    letter-spacing: -0.01em;
+    line-height: 1.4;
+    font-family: 'IBM Plex Sans JP', 'IBM Plex Sans', sans-serif;
+  }
+  .section-count {
+    font-size: 0.875rem;
+    color: var(--subtle);
+    margin-left: 0.5rem;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum";
+    font-family: 'IBM Plex Sans', sans-serif;
+  }
+
+  .row {
+    display: grid;
+    grid-template-columns: 1fr auto auto auto;
+    gap: 1.25rem;
+    padding: 1rem 1.25rem;
+    background: var(--card);
+    border: 1px solid rgba(0,0,0,0.055);
+    border-radius: 8px;
+    margin-bottom: 0.375rem;
+    align-items: center;
+    transition: background 100ms ease, border-color 100ms ease, transform 100ms ease, box-shadow 100ms ease;
+    line-height: 1.6;
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+  .row:hover {
+    background: var(--surface-raised);
+    border-color: rgba(0,0,0,0.10);
+    transform: translateX(1px);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .row-name {
+    font-weight: 500;
+    color: var(--ink);
+    letter-spacing: 0.005em;
+    font-size: 1rem;
+    font-family: 'IBM Plex Sans JP', 'IBM Plex Sans', sans-serif;
+  }
+  .row-meta { font-size: 0.875rem; color: var(--subtle); letter-spacing: 0.005em; line-height: 1.6; }
+  .row-value {
+    font-family: 'IBM Plex Sans', sans-serif;
+    font-variant-numeric: tabular-nums;
+    font-feature-settings: "tnum", "ss01", "zero";
+    font-weight: 600;
+    color: var(--ink-mid);
+    letter-spacing: -0.01em;
+    font-size: 0.9375rem;
+  }
+
+  /* ─── buttons ─── */
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-btn);
+    font-family: 'IBM Plex Sans JP', 'IBM Plex Sans', sans-serif;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border: 1px solid transparent;
+    cursor: pointer;
+    transition: background 100ms ease, color 100ms ease, border-color 100ms ease, transform 80ms ease, box-shadow 100ms ease;
+    text-decoration: none;
+    line-height: 1.3;
+    letter-spacing: 0.01em;
+    white-space: nowrap;
+  }
+  .btn:active { transform: scale(0.97); }
+
+  .btn-primary {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+    box-shadow: 0 1px 3px rgba(37,99,235,0.2), inset 0 1px 0 rgba(255,255,255,0.16);
+  }
+  .btn-primary:hover {
+    background: var(--primary-hover);
+    border-color: var(--primary-hover);
+    box-shadow: 0 2px 8px rgba(37,99,235,0.28), inset 0 1px 0 rgba(255,255,255,0.16);
+  }
+
+  .btn-secondary {
+    background: var(--card);
+    color: var(--ink-mid);
+    border-color: var(--border-strong);
+    box-shadow: 0 1px 2px rgba(0,0,0,0.04), inset 0 1px 0 rgba(255,255,255,0.8);
+  }
+  .btn-secondary:hover {
+    background: var(--surface-raised);
+    border-color: var(--border-strong);
+    color: var(--ink);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--subtle-plus);
+    border-color: transparent;
+  }
+  .btn-ghost:hover {
+    color: var(--primary);
+    background: var(--primary-subtle);
+    border-color: transparent;
+  }
+
+  .btn-danger {
+    background: var(--kpi-down-bg);
+    color: var(--kpi-down);
+    border-color: var(--kpi-down-border);
+  }
+  .btn-danger:hover {
+    background: oklch(94% 0.04 25);
+  }
+
+  .btn-sm { padding: 0.3125rem 0.75rem; font-size: 0.875rem; }
+  .btn-lg { padding: 0.625rem 1.5rem; font-size: 1rem; }
+</style>
+</head>
+<body>
+<div class="layout" id="layout">
+  <nav class="sidebar">
+    <div class="brand">
+      <div class="brand-icon">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.92)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <span class="brand-mark">coaris</span>
+        <span class="brand-sub">tripot</span>
+      </div>
+    </div>
+
+    <a class="nav-item active" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+        <polyline points="9 22 9 12 15 12 15 22"/>
+      </svg>
+      <span class="nav-label">ホーム</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="2" y="7" width="20" height="14" rx="2" ry="2"/>
+        <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/>
+      </svg>
+      <span class="nav-label">案件</span>
+      <span class="count">12</span>
+      <span class="count-dot"></span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+        <circle cx="9" cy="7" r="4"/>
+        <path d="M23 21v-2a4 4 0 0 0-3-3.87"/>
+        <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
+      </svg>
+      <span class="nav-label">顧客</span>
+      <span class="count">38</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="9 11 12 14 22 4"/>
+        <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+      </svg>
+      <span class="nav-label">タスク</span>
+      <span class="count">5</span>
+      <span class="count-dot"></span>
+    </a>
+
+    <div class="nav-group-label">経営</div>
+    <a class="nav-item" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/>
+      </svg>
+      <span class="nav-label">週次</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+        <line x1="16" y1="2" x2="16" y2="6"/>
+        <line x1="8" y1="2" x2="8" y2="6"/>
+        <line x1="3" y1="10" x2="21" y2="10"/>
+      </svg>
+      <span class="nav-label">月次</span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <line x1="18" y1="20" x2="18" y2="10"/>
+        <line x1="12" y1="20" x2="12" y2="4"/>
+        <line x1="6" y1="20" x2="6" y2="14"/>
+      </svg>
+      <span class="nav-label">年予算</span>
+    </a>
+
+    <div class="nav-group-label">運用</div>
+    <a class="nav-item" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+        <polyline points="22 4 12 14.01 9 11.01"/>
+      </svg>
+      <span class="nav-label">承認</span>
+      <span class="count">2</span>
+      <span class="count-dot"></span>
+    </a>
+    <a class="nav-item" href="#">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="12" cy="8" r="4"/>
+        <path d="M6 20v-2a4 4 0 0 1 4-4h4a4 4 0 0 1 4 4v2"/>
+      </svg>
+      <span class="nav-label">チーム</span>
+    </a>
+
+    <div class="sidebar-spacer"></div>
+    <div class="sidebar-divider"></div>
+
+    <button class="collapse-btn" id="collapseBtn" onclick="toggleSidebar()">
+      <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+      <span class="collapse-label">閉じる</span>
+    </button>
+  </nav>
+
+  <main>
+    <header class="page-header">
+      <div>
+        <div class="eyebrow">Member · 土岐 公人</div>
+        <h1>今週のあなたの数字</h1>
+        <p class="subtitle">2026年4月20日 — 4月26日</p>
+      </div>
+      <div class="actions">
+        <button class="btn btn-secondary">エクスポート</button>
+        <button class="btn btn-primary">＋ 行動を記録</button>
+      </div>
+    </header>
+
+    <div class="hero">
+      <div class="hero-label">入金累計</div>
+      <div class="hero-value">¥3,820,000</div>
+      <div class="hero-meta">
+        <span class="hero-delta">↑ 先週比 +12%</span>
+      </div>
+
+      <div class="sparkline-wrap">
+        <div class="sparkline-meta">
+          <span class="sparkline-label">直近12週の入金推移</span>
+          <span class="sparkline-range">
+            <span class="lo">最小 ¥1.8M</span>
+            <span class="hi">最大 ¥4.1M</span>
+          </span>
+        </div>
+        <svg class="sparkline-svg" viewBox="0 0 400 40" preserveAspectRatio="none"
+             aria-label="直近12週入金推移グラフ" role="img">
+          <defs>
+            <linearGradient id="sparkGrad" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stop-color="var(--ink)" stop-opacity="0.10"/>
+              <stop offset="100%" stop-color="var(--ink)" stop-opacity="0.00"/>
+            </linearGradient>
+          </defs>
+          <path class="spark-fill"
+            d="M0,28 L33,26 L67,29 L100,22 L133,24 L167,18 L200,20 L233,16 L267,14 L300,17 L333,12 L367,9 L400,8 L400,40 L0,40 Z"/>
+          <path class="spark-area"
+            data-points="28,26,29,22,24,18,20,16,14,17,12,9,8"
+            d="M0,28 L33,26 L67,29 L100,22 L133,24 L167,18 L200,20 L233,16 L267,14 L300,17 L333,12 L367,9 L400,8"/>
+          <circle class="spark-dot" cx="400" cy="8" r="3"/>
+        </svg>
+        <div class="sparkline-weeks">
+          <span>-11w</span>
+          <span>-9w</span>
+          <span>-7w</span>
+          <span>-5w</span>
+          <span>-3w</span>
+          <span>-1w</span>
+          <span>今週</span>
+        </div>
+      </div>
+
+      <div class="hero-actions">
+        <a class="btn btn-secondary" href="#">月次の数字を見る →</a>
+        <a class="btn btn-ghost" href="#">CF予測</a>
+      </div>
+    </div>
+
+    <div class="stats">
+      <div class="stat">
+        <div class="stat-label">進行中案件</div>
+        <div class="stat-value">12</div>
+        <div class="stat-sub">先週 11 件</div>
+        <div class="mini-bar-wrap">
+          <div class="mini-bars"
+               data-values="9,11,11,12"
+               data-max="14">
+            <div class="mini-bar" style="height:64%"></div>
+            <div class="mini-bar" style="height:79%"></div>
+            <div class="mini-bar" style="height:79%"></div>
+            <div class="mini-bar current" style="height:86%"></div>
+          </div>
+          <div class="mini-bar-foot">
+            <span>-3w</span>
+            <span>今週</span>
+          </div>
+        </div>
+      </div>
+      <div class="stat up">
+        <div class="stat-label">今月入金</div>
+        <div class="stat-value">¥9.2M</div>
+        <div class="stat-sub">↑ vs 計画 102%</div>
+        <div class="mini-bar-wrap">
+          <div class="mini-bars"
+               data-values="6200000,7100000,8400000,9200000"
+               data-max="10000000">
+            <div class="mini-bar" style="height:62%"></div>
+            <div class="mini-bar" style="height:71%"></div>
+            <div class="mini-bar" style="height:84%"></div>
+            <div class="mini-bar current" style="height:92%"></div>
+          </div>
+          <div class="mini-bar-foot">
+            <span>-3w</span>
+            <span>今週</span>
+          </div>
+        </div>
+      </div>
+      <div class="stat down">
+        <div class="stat-label">残営業日</div>
+        <div class="stat-value">3</div>
+        <div class="stat-sub">↓ ラスト追込み</div>
+        <div class="mini-bar-wrap">
+          <div class="mini-bars"
+               data-values="20,15,10,3"
+               data-max="22">
+            <div class="mini-bar" style="height:91%"></div>
+            <div class="mini-bar" style="height:68%"></div>
+            <div class="mini-bar" style="height:45%"></div>
+            <div class="mini-bar current" style="height:14%"></div>
+          </div>
+          <div class="mini-bar-foot">
+            <span>月初</span>
+            <span>今日</span>
+          </div>
+        </div>
+      </div>
+      <div class="stat accent">
+        <div class="stat-label">承認待ち</div>
+        <div class="stat-value">2</div>
+        <div class="stat-sub">○ 値引き 1 / 経費 1</div>
+        <div class="mini-bar-wrap">
+          <div class="mini-bars"
+               data-values="5,3,4,2"
+               data-max="6">
+            <div class="mini-bar" style="height:83%"></div>
+            <div class="mini-bar" style="height:50%"></div>
+            <div class="mini-bar" style="height:67%"></div>
+            <div class="mini-bar current" style="height:33%"></div>
+          </div>
+          <div class="mini-bar-foot">
+            <span>-3w</span>
+            <span>今週</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="list">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Recent</div>
+          <div>
+            <span class="section-title">直近の案件</span>
+            <span class="section-count">3件</span>
+          </div>
+        </div>
+        <div class="section-action">
+          <a class="btn btn-secondary btn-sm" href="#">案件一覧 →</a>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <div class="row-name">株式会社マロニエ</div>
+          <div class="row-meta">提案中 · 担当 谷藤</div>
+        </div>
+        <div class="row-meta">商談 4回</div>
+        <div class="row-value">¥1,200,000</div>
+        <a class="btn btn-ghost btn-sm" href="#">詳細 →</a>
+      </div>
+
+      <div class="row">
+        <div>
+          <div class="row-name">合同会社カンナ</div>
+          <div class="row-meta">受注 · 担当 川添</div>
+        </div>
+        <div class="row-meta">商談 2回</div>
+        <div class="row-value">¥820,000</div>
+        <a class="btn btn-ghost btn-sm" href="#">詳細 →</a>
+      </div>
+
+      <div class="row">
+        <div>
+          <div class="row-name">有限会社ヒノキ</div>
+          <div class="row-meta">制作中 · 担当 栗尾</div>
+        </div>
+        <div class="row-meta">商談 6回</div>
+        <div class="row-value">¥1,800,000</div>
+        <a class="btn btn-ghost btn-sm" href="#">詳細 →</a>
+      </div>
+    </section>
+
+    <section class="list">
+      <div class="section-head">
+        <div>
+          <div class="section-eyebrow">Buttons · 規約サンプル</div>
+          <div><span class="section-title">操作の4トーン</span></div>
+        </div>
+      </div>
+      <div class="row" style="grid-template-columns: 1fr auto;">
+        <div>
+          <div class="row-name" style="margin-bottom:3px">Primary（決定操作）</div>
+          <div class="row-meta">記録・保存・送信</div>
+        </div>
+        <button class="btn btn-primary">＋ 行動を記録</button>
+      </div>
+      <div class="row" style="grid-template-columns: 1fr auto;">
+        <div>
+          <div class="row-name" style="margin-bottom:3px">Secondary（次操作）</div>
+          <div class="row-meta">画面遷移・補助操作</div>
+        </div>
+        <button class="btn btn-secondary">月次へ →</button>
+      </div>
+      <div class="row" style="grid-template-columns: 1fr auto;">
+        <div>
+          <div class="row-name" style="margin-bottom:3px">Ghost（軽い操作）</div>
+          <div class="row-meta">行内アクション・キャンセル</div>
+        </div>
+        <button class="btn btn-ghost">詳細</button>
+      </div>
+      <div class="row" style="grid-template-columns: 1fr auto;">
+        <div>
+          <div class="row-name" style="margin-bottom:3px">Danger（破壊的操作）</div>
+          <div class="row-meta">削除・取消（必ず確認 Dialog 経由）</div>
+        </div>
+        <button class="btn btn-danger">削除</button>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+  var layout = document.getElementById('layout');
+  var collapsed = localStorage.getItem('sidebar-collapsed') === 'true';
+  if (collapsed) layout.classList.add('collapsed');
+
+  function toggleSidebar() {
+    collapsed = !collapsed;
+    layout.classList.toggle('collapsed', collapsed);
+    localStorage.setItem('sidebar-collapsed', collapsed);
+  }
+
+  function generateSparklinePath(values, width, height, padding) {
+    var w = width || 400;
+    var h = height || 40;
+    var p = padding || 4;
+    var min = Math.min.apply(null, values);
+    var max = Math.max.apply(null, values);
+    var range = max - min || 1;
+    var stepX = (w - p * 2) / (values.length - 1);
+    return values.map(function(v, i) {
+      var x = p + i * stepX;
+      var y = h - p - ((v - min) / range) * (h - p * 2);
+      return (i === 0 ? 'M' : 'L') + x.toFixed(1) + ',' + y.toFixed(1);
+    }).join(' ');
+  }
+
+  function generateMiniBarsHTML(values, maxVal, tone) {
+    var max = maxVal || Math.max.apply(null, values);
+    return values.map(function(v, i) {
+      var pct = Math.round((v / max) * 100);
+      var isCurrent = i === values.length - 1;
+      return '<div class="mini-bar' + (isCurrent ? ' current' : '') + '" style="height:' + pct + '%"></div>';
+    }).join('');
+  }
+</script>
+</body>
+</html>
