@@ -92,6 +92,47 @@ CREATE POLICY tenant_isolation_mf_invoices ON mf_invoices
   USING (company_id = current_setting('app.current_company_id', true)::uuid);
 
 -- ============================================================
+-- 2.5 Phase A 以降の追加テーブル群への自動拡張（v2 56テーブル全対応）
+-- ============================================================
+-- 上記の手書き 13 テーブル以外、company_id カラムを持つ全テーブルに
+-- 同形式のテナント分離ポリシーを動的に作成する。
+-- DROP POLICY IF EXISTS → CREATE POLICY の冪等性確保。
+
+DO $$
+DECLARE r RECORD;
+DECLARE policy_name TEXT;
+BEGIN
+  FOR r IN
+    SELECT t.tablename
+    FROM pg_tables t
+    WHERE t.schemaname = 'public'
+      AND t.tablename NOT IN (
+        'companies', 'members', 'customers', 'deals', 'tasks', 'actions',
+        'budgets', 'weekly_summaries', 'monthly_summaries', 'approvals',
+        'audit_logs', 'mf_journals', 'mf_invoices',
+        '__drizzle_migrations'
+      )
+      AND EXISTS (
+        SELECT 1 FROM information_schema.columns c
+        WHERE c.table_schema = 'public'
+          AND c.table_name = t.tablename
+          AND c.column_name = 'company_id'
+      )
+  LOOP
+    EXECUTE format('ALTER TABLE %I ENABLE ROW LEVEL SECURITY', r.tablename);
+
+    policy_name := 'tenant_isolation_' || r.tablename;
+    EXECUTE format('DROP POLICY IF EXISTS %I ON %I', policy_name, r.tablename);
+    EXECUTE format(
+      'CREATE POLICY %I ON %I FOR ALL USING (company_id = current_setting(''app.current_company_id'', true)::uuid)',
+      policy_name, r.tablename
+    );
+  END LOOP;
+
+  RAISE NOTICE 'RLS auto-extension complete';
+END $$;
+
+-- ============================================================
 -- 3. 確認クエリ（適用後の検証用）
 -- ============================================================
 
