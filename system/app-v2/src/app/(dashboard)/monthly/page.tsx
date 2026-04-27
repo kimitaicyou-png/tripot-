@@ -64,6 +64,12 @@ export default async function MonthlyPage() {
           <div className="flex items-center gap-3 flex-wrap">
             <SendToHqButton yearMonth={yearMonth} />
             <Link
+              href={`/monthly/finance?ym=${yearMonth}`}
+              className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
+            >
+              ファイナンス →
+            </Link>
+            <Link
               href={`/monthly/detail/${yearMonth}`}
               className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
             >
