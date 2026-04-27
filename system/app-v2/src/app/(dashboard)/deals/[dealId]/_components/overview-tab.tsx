@@ -13,6 +13,7 @@ import { EmailDraftButton } from './email-draft-button';
 import { AttackSection } from './attack-section';
 import { ApprovalRequestButton } from './approval-request-button';
 import { LostDealSection } from './lost-deal-section';
+import { InternalNoteSection } from './internal-note-section';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   call: '📞 電話',
@@ -37,6 +38,7 @@ export type DealOverview = {
   expected_close_date: string | null;
   ordered_at: string | null;
   paid_at: string | null;
+  metadata: Record<string, unknown> | null;
   assignee_name: string | null;
   customer_name: string | null;
 };
@@ -190,6 +192,20 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
       </section>
 
       <LostDealSection dealId={dealId} currentStage={deal.stage} />
+
+      <InternalNoteSection
+        dealId={dealId}
+        initialNote={
+          typeof (deal.metadata as Record<string, unknown> | null)?.internal_note === 'string'
+            ? ((deal.metadata as Record<string, unknown>).internal_note as string)
+            : ''
+        }
+        updatedAt={
+          typeof (deal.metadata as Record<string, unknown> | null)?.internal_note_updated_at === 'string'
+            ? ((deal.metadata as Record<string, unknown>).internal_note_updated_at as string)
+            : null
+        }
+      />
 
       <section className="flex items-center justify-between gap-3 flex-wrap">
         <div className="flex items-center gap-3 flex-wrap">

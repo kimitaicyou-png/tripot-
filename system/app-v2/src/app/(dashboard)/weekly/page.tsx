@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -14,9 +15,18 @@ function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
 }
 
-export default async function WeeklyPage() {
+type SearchParams = { focus?: string };
+
+export default async function WeeklyPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
+
+  const sp = await searchParams;
+  const presentation = sp.focus === 'presentation';
 
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - 6);
@@ -68,11 +78,19 @@ export default async function WeeklyPage() {
             {weekStart.toLocaleDateString('ja-JP')} 〜 {new Date().toLocaleDateString('ja-JP')}
           </span>
         }
+        actions={
+          <Link
+            href={presentation ? '/weekly' : '/weekly?focus=presentation'}
+            className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+          >
+            {presentation ? '通常表示' : '大画面モード'}
+          </Link>
+        }
       />
 
       <WeeklyTabs />
 
-      <div className="px-6 py-10 max-w-5xl mx-auto space-y-12">
+      <div className={`${presentation ? 'max-w-7xl text-lg' : 'max-w-5xl'} mx-auto px-6 py-10 space-y-12`}>
         <HeroValue
           label="会社全体の売上（入金確定累計）"
           value={formatYen(companyKpi?.revenue ?? 0)}

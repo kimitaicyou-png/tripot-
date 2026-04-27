@@ -30,6 +30,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
         expected_close_date: deals.expected_close_date,
         ordered_at: deals.ordered_at,
         paid_at: deals.paid_at,
+        metadata: deals.metadata,
         assignee_name: members.name,
         customer_name: customers.name,
       })
@@ -116,7 +117,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
 
       <DealTabs
         counts={counts}
-        overview={<OverviewTab deal={deal} />}
+        overview={<OverviewTab deal={{ ...deal, metadata: (deal.metadata as Record<string, unknown> | null) ?? null }} />}
         meetings={<MeetingsTab dealId={dealId} />}
         proposals={<ProposalsTab dealId={dealId} />}
         estimates={<EstimatesTab dealId={dealId} />}

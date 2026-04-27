@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -68,9 +69,18 @@ function shortDate(d: Date): string {
   return `${d.getMonth() + 1}/${d.getDate()}`;
 }
 
-export default async function WeeklyCfPage() {
+type SearchParams = { focus?: string };
+
+export default async function WeeklyCfPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
+
+  const sp = await searchParams;
+  const presentation = sp.focus === 'presentation';
 
   const today = new Date();
   const week0Start = startOfWeek(today);
@@ -141,11 +151,19 @@ export default async function WeeklyCfPage() {
             {shortDate(week0Start)}〜{shortDate(horizonEnd)}
           </span>
         }
+        actions={
+          <Link
+            href={presentation ? '/weekly/cf' : '/weekly/cf?focus=presentation'}
+            className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+          >
+            {presentation ? '通常表示' : '大画面モード'}
+          </Link>
+        }
       />
 
       <WeeklyTabs />
 
-      <div className="px-6 py-10 max-w-5xl mx-auto space-y-12">
+      <div className={`${presentation ? 'max-w-7xl text-lg' : 'max-w-5xl'} mx-auto px-6 py-10 space-y-12`}>
         <HeroValue
           label="6週合計（確度加重）"
           value={formatYen(totalWeighted)}

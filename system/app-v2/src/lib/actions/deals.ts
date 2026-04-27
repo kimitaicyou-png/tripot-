@@ -143,3 +143,46 @@ export async function deleteDeal(dealId: string): Promise<void> {
   revalidatePath('/deals');
   redirect('/deals');
 }
+
+export type InternalNoteState = {
+  errors?: { _form?: string[] };
+  success?: boolean;
+};
+
+export async function updateDealInternalNote(
+  dealId: string,
+  _prev: InternalNoteState,
+  formData: FormData
+): Promise<InternalNoteState> {
+  const session = await auth();
+  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
+
+  const note = String(formData.get('internal_note') ?? '').slice(0, 4000);
+
+  const existing = await db.query.deals.findFirst({
+    where: (d, { and: aand, eq: eeq }) => aand(eeq(d.id, dealId), eeq(d.company_id, session.user.company_id)),
+    columns: { metadata: true },
+  });
+
+  if (!existing) return { errors: { _form: ['案件が見つかりません'] } };
+
+  const meta = (existing.metadata as Record<string, unknown> | null) ?? {};
+  const nextMeta = { ...meta, internal_note: note, internal_note_updated_at: new Date().toISOString(), internal_note_by: session.user.member_id };
+
+  await db
+    .update(deals)
+    .set({ metadata: nextMeta })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.update_internal_note',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { length: note.length },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  return { success: true };
+}
