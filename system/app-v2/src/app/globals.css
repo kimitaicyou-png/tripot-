@@ -29,3 +29,23 @@ html, body {
 body {
   font-feature-settings: 'rlig' 1, 'calt' 1;
 }
+
+@page {
+  size: A4 landscape;
+  margin: 12mm;
+}
+
+@media print {
+  html, body {
+    background: #ffffff !important;
+  }
+  .print\:hidden {
+    display: none !important;
+  }
+  .print\:p-8 {
+    padding: 2rem !important;
+  }
+  .print\:bg-white {
+    background-color: #ffffff !important;
+  }
+}

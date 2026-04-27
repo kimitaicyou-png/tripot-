@@ -60,6 +60,14 @@ export default async function TeamPage() {
             <span className="font-mono tabular-nums text-ink">{totalActive}</span>
           </>
         }
+        actions={
+          <Link
+            href="/team/leaves"
+            className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+          >
+            休暇カレンダー →
+          </Link>
+        }
       />
 
       <div className="px-6 py-10 max-w-5xl mx-auto space-y-10">
