@@ -3,6 +3,7 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { ProposalGenerateButton } from './proposal-generate-button';
 import { SlideRendererInline } from './slide-renderer-inline';
+import { SlidePresentation } from './slide-presentation';
 
 const STATUS_LABEL: Record<string, string> = {
   draft: '下書き',
@@ -70,7 +71,12 @@ export async function ProposalsTab({ dealId }: { dealId: string }) {
                   </div>
 
                   {slides.length > 0 && (
-                    <SlideRendererInline slides={slides} />
+                    <>
+                      <div className="flex justify-end">
+                        <SlidePresentation slides={slides} proposalTitle={p.title} />
+                      </div>
+                      <SlideRendererInline slides={slides} />
+                    </>
                   )}
                 </li>
               );
