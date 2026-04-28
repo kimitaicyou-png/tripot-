@@ -39,7 +39,7 @@ export function ProductionEditForm(props: Props) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="px-3 py-1.5 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+          className="px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
         >
           ✎ 編集
         </button>
@@ -50,7 +50,7 @@ export function ProductionEditForm(props: Props) {
           className={`px-3 py-1.5 text-xs border rounded transition-colors disabled:opacity-40 ${
             confirming
               ? 'text-red-700 border-red-700 hover:bg-red-50'
-              : 'text-muted border-border hover:text-red-700 hover:border-red-700'
+              : 'text-gray-700 border-gray-200 hover:text-red-700 hover:border-red-700'
           }`}
         >
           {deletePending ? '...' : confirming ? '本当に削除' : '削除'}
@@ -63,42 +63,42 @@ export function ProductionEditForm(props: Props) {
     <form
       action={formAction}
       onSubmit={() => setTimeout(() => setEditing(false), 200)}
-      className="bg-card border border-border rounded-lg p-5 space-y-4"
+      className="bg-white border border-gray-200 rounded-lg p-5 space-y-4"
     >
-      <p className="text-xs uppercase tracking-widest text-subtle">制作カード 編集</p>
+      <p className="text-xs uppercase tracking-widest text-gray-500">制作カード 編集</p>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">タイトル</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">タイトル</span>
         <input
           type="text"
           name="title"
           required
           maxLength={200}
           defaultValue={props.title}
-          className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+          className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
         />
       </label>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">見積コスト（円）</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">見積コスト（円）</span>
           <input
             type="number"
             name="estimated_cost"
             min={0}
             defaultValue={props.estimatedCost}
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink font-mono tabular-nums"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 font-mono tabular-nums"
           />
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">実績コスト（円）</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">実績コスト（円）</span>
           <input
             type="number"
             name="actual_cost"
             min={0}
             defaultValue={props.actualCost}
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink font-mono tabular-nums"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 font-mono tabular-nums"
           />
         </label>
       </div>
@@ -111,14 +111,14 @@ export function ProductionEditForm(props: Props) {
         <button
           type="button"
           onClick={() => setEditing(false)}
-          className="px-4 py-2 text-sm text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+          className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
         >
           キャンセル
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="px-5 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="px-5 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '保存中...' : '保存'}
         </button>

@@ -17,7 +17,7 @@ export function TestCaseForm({ cardId }: { cardId: string }) {
         await formAction(fd);
         formRef.current?.reset();
       }}
-      className="bg-card border border-border rounded-lg p-4 space-y-2"
+      className="bg-white border border-gray-200 rounded-lg p-4 space-y-2"
     >
       <input
         type="text"
@@ -25,14 +25,14 @@ export function TestCaseForm({ cardId }: { cardId: string }) {
         required
         maxLength={200}
         placeholder="テストケース名（例：ログイン後にダッシュボードにリダイレクト）"
-        className="w-full px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+        className="w-full px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
       />
       <textarea
         name="expected"
         rows={2}
         maxLength={2000}
         placeholder="期待される結果（任意）"
-        className="w-full px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink resize-y"
+        className="w-full px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 resize-y"
       />
       <div className="flex items-center justify-between">
         {state.errors?._form && (
@@ -42,7 +42,7 @@ export function TestCaseForm({ cardId }: { cardId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="ml-auto px-4 py-1.5 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '追加中...' : '＋ 追加'}
         </button>

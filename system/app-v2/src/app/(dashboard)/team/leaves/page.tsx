@@ -61,16 +61,16 @@ export default async function LeavesPage({
   }, 0);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="LEAVES"
         title="休暇カレンダー"
         subtitle={
           <>
-            <span className="font-mono tabular-nums text-ink">{rangeStart}</span> 〜{' '}
-            <span className="font-mono tabular-nums text-ink">{rangeEnd}</span> ／ 取得{' '}
-            <span className="font-mono tabular-nums text-ink">{leavesRows.length}</span>件{' '}
-            <span className="font-mono tabular-nums text-ink">{totalDays}</span>日
+            <span className="font-mono tabular-nums text-gray-900">{rangeStart}</span> 〜{' '}
+            <span className="font-mono tabular-nums text-gray-900">{rangeEnd}</span> ／ 取得{' '}
+            <span className="font-mono tabular-nums text-gray-900">{leavesRows.length}</span>件{' '}
+            <span className="font-mono tabular-nums text-gray-900">{totalDays}</span>日
           </>
         }
         back={{ href: '/team', label: 'チーム' }}

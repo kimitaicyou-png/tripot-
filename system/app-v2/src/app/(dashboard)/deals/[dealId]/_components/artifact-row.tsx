@@ -31,7 +31,7 @@ export function ArtifactRow(props: Props) {
   }
 
   return (
-    <li className="flex items-start gap-4 px-5 py-4 bg-card border border-border rounded-lg">
+    <li className="flex items-start gap-4 px-5 py-4 bg-white border border-gray-200 rounded-lg">
       <div className="flex-1 min-w-0 space-y-1">
         <div className="flex items-baseline gap-2 flex-wrap">
           {props.file_url ? (
@@ -39,18 +39,18 @@ export function ArtifactRow(props: Props) {
               href={props.file_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-base font-medium text-ink hover:underline"
+              className="text-base font-medium text-gray-900 hover:underline"
             >
               {props.title} ↗
             </a>
           ) : (
-            <p className="text-base font-medium text-ink">{props.title}</p>
+            <p className="text-base font-medium text-gray-900">{props.title}</p>
           )}
           {props.artifact_type && (
-            <span className="text-xs uppercase tracking-widest text-subtle">{props.artifact_type}</span>
+            <span className="text-xs uppercase tracking-widest text-gray-500">{props.artifact_type}</span>
           )}
         </div>
-        {props.note && <p className="text-xs text-subtle whitespace-pre-wrap">{props.note}</p>}
+        {props.note && <p className="text-xs text-gray-500 whitespace-pre-wrap">{props.note}</p>}
       </div>
       <button
         type="button"
@@ -59,7 +59,7 @@ export function ArtifactRow(props: Props) {
         className={`shrink-0 px-3 py-1.5 text-xs border rounded transition-colors disabled:opacity-40 ${
           confirming
             ? 'text-red-700 border-red-700 hover:bg-red-50'
-            : 'text-muted border-border hover:text-ink hover:border-ink'
+            : 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-900'
         }`}
       >
         {pending ? '...' : confirming ? '本当に削除' : '削除'}

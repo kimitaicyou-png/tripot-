@@ -202,7 +202,7 @@ export default async function MonthlyDetailPage({
   const maxByAssignee = Math.max(...byAssignee.map((a) => a.revenue), 1);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="MONTHLY · DETAIL"
         title={`${year}年 ${month}月 ドリルダウン`}
@@ -211,13 +211,13 @@ export default async function MonthlyDetailPage({
           <>
             <Link
               href={`/monthly/detail/${prev}`}
-              className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
+              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
             >
               ← 前月
             </Link>
             <Link
               href={`/monthly/detail/${next}`}
-              className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
+              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
             >
               翌月 →
             </Link>
@@ -233,15 +233,15 @@ export default async function MonthlyDetailPage({
             targetRevenue > 0 ? (
               <>
                 目標{' '}
-                <span className="font-mono tabular-nums text-ink">{formatYen(targetRevenue)}</span>
+                <span className="font-mono tabular-nums text-gray-900">{formatYen(targetRevenue)}</span>
                 {' '}に対し{' '}
                 <span
                   className={`font-mono tabular-nums font-medium ${
                     progressRate >= 100
-                      ? 'text-kpi-up'
+                      ? 'text-emerald-700'
                       : progressRate >= 80
-                        ? 'text-ink'
-                        : 'text-kpi-down'
+                        ? 'text-gray-900'
+                        : 'text-red-700'
                   }`}
                 >
                   {progressRate}%
@@ -274,28 +274,28 @@ export default async function MonthlyDetailPage({
 
         <section>
           <SectionHeading eyebrow="ACTIVITY" title="今月の行動量" />
-          <div className="bg-card border border-border rounded-xl p-6 grid grid-cols-4 gap-4 text-center">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 grid grid-cols-4 gap-4 text-center">
             <div>
-              <p className="text-xs uppercase tracking-wider text-subtle">合計</p>
-              <p className="font-semibold text-3xl text-ink mt-1 tabular-nums">
+              <p className="text-xs uppercase tracking-wider text-gray-500">合計</p>
+              <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
                 {actionStats?.total ?? 0}
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-subtle">電話</p>
-              <p className="font-semibold text-3xl text-ink mt-1 tabular-nums">
+              <p className="text-xs uppercase tracking-wider text-gray-500">電話</p>
+              <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
                 {actionStats?.calls ?? 0}
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-subtle">商談</p>
-              <p className="font-semibold text-3xl text-ink mt-1 tabular-nums">
+              <p className="text-xs uppercase tracking-wider text-gray-500">商談</p>
+              <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
                 {actionStats?.meetings ?? 0}
               </p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-subtle">提案</p>
-              <p className="font-semibold text-3xl text-ink mt-1 tabular-nums">
+              <p className="text-xs uppercase tracking-wider text-gray-500">提案</p>
+              <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
                 {actionStats?.proposals ?? 0}
               </p>
             </div>
@@ -307,14 +307,14 @@ export default async function MonthlyDetailPage({
           {paidDeals.length === 0 ? (
             <EmptyState icon="◯" title="この月に入金確定した案件はありません" />
           ) : (
-            <div className="bg-card border border-border rounded-xl divide-y divide-border">
+            <div className="bg-white border border-gray-200 rounded-xl divide-y divide-border">
               {paidDeals.map((d) => (
                 <Link
                   key={d.id}
                   href={`/deals/${d.id}`}
                   className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
                 >
-                  <span className="text-xs font-mono text-subtle w-20 shrink-0">
+                  <span className="text-xs font-mono text-gray-500 w-20 shrink-0">
                     {d.paid_at ?? '—'}
                   </span>
                   <span
@@ -322,14 +322,14 @@ export default async function MonthlyDetailPage({
                   >
                     {STAGE_LABEL[d.stage] ?? d.stage}
                   </span>
-                  <span className="flex-1 text-sm text-ink truncate font-medium">{d.title}</span>
-                  <span className="text-xs text-muted shrink-0 hidden md:inline">
+                  <span className="flex-1 text-sm text-gray-900 truncate font-medium">{d.title}</span>
+                  <span className="text-xs text-gray-700 shrink-0 hidden md:inline">
                     {d.customer_name ?? '—'}
                   </span>
-                  <span className="text-xs text-muted shrink-0 hidden md:inline">
+                  <span className="text-xs text-gray-700 shrink-0 hidden md:inline">
                     {d.assignee_name ?? '—'}
                   </span>
-                  <span className="font-mono tabular-nums text-sm text-ink font-semibold shrink-0">
+                  <span className="font-mono tabular-nums text-sm text-gray-900 font-semibold shrink-0">
                     {formatYen(d.amount)}
                   </span>
                 </Link>
@@ -341,22 +341,22 @@ export default async function MonthlyDetailPage({
         <section className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <SectionHeading eyebrow="BY CUSTOMER" title="顧客別売上" count={byCustomer.length} />
-            <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
               {byCustomer.length === 0 ? (
-                <p className="text-sm text-muted text-center py-4">データなし</p>
+                <p className="text-sm text-gray-700 text-center py-4">データなし</p>
               ) : (
                 byCustomer.map((c) => {
                   const w = Math.round((c.revenue / maxByCustomer) * 100);
                   return (
                     <div key={c.id}>
                       <div className="flex items-center justify-between mb-1.5">
-                        <p className="text-sm text-ink truncate">{c.name}</p>
-                        <p className="font-mono tabular-nums text-xs text-ink font-medium shrink-0 ml-2">
+                        <p className="text-sm text-gray-900 truncate">{c.name}</p>
+                        <p className="font-mono tabular-nums text-xs text-gray-900 font-medium shrink-0 ml-2">
                           {formatYen(c.revenue)}
                         </p>
                       </div>
                       <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden">
-                        <div className="h-full bg-ink rounded-full" style={{ width: `${w}%` }} />
+                        <div className="h-full bg-gray-900 rounded-full" style={{ width: `${w}%` }} />
                       </div>
                     </div>
                   );
@@ -366,17 +366,17 @@ export default async function MonthlyDetailPage({
           </div>
           <div>
             <SectionHeading eyebrow="BY ASSIGNEE" title="担当者別売上" count={byAssignee.length} />
-            <div className="bg-card border border-border rounded-xl p-5 space-y-3">
+            <div className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
               {byAssignee.length === 0 ? (
-                <p className="text-sm text-muted text-center py-4">データなし</p>
+                <p className="text-sm text-gray-700 text-center py-4">データなし</p>
               ) : (
                 byAssignee.map((a) => {
                   const w = Math.round((a.revenue / maxByAssignee) * 100);
                   return (
                     <div key={a.id}>
                       <div className="flex items-center justify-between mb-1.5">
-                        <p className="text-sm text-ink truncate">{a.name}</p>
-                        <p className="font-mono tabular-nums text-xs text-ink font-medium shrink-0 ml-2">
+                        <p className="text-sm text-gray-900 truncate">{a.name}</p>
+                        <p className="font-mono tabular-nums text-xs text-gray-900 font-medium shrink-0 ml-2">
                           {formatYen(a.revenue)}
                         </p>
                       </div>

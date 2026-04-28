@@ -48,8 +48,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
 
       <section className="md:w-1/2 bg-white flex items-center justify-center p-8 md:p-16">
         <div className="w-full max-w-sm">
-          <h1 className="text-2xl font-semibold text-ink tracking-tight">tripot にサインイン</h1>
-          <p className="text-sm text-muted mt-2">
+          <h1 className="text-2xl font-semibold text-gray-900 tracking-tight">tripot にサインイン</h1>
+          <p className="text-sm text-gray-700 mt-2">
             {TRIPOT_CONFIG.auth.allowedEmailDomains.map((d) => `@${d}`).join(' / ')} のメールでログイン
           </p>
 
@@ -68,7 +68,7 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
           >
             <button
               type="submit"
-              className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-white border border-border rounded-lg hover:border-ink-mid transition-colors active:scale-[0.98] cursor-pointer"
+              className="w-full flex items-center justify-center gap-3 px-5 py-3.5 bg-white border border-gray-200 rounded-lg hover:border-gray-700 transition-colors active:scale-[0.98] cursor-pointer"
             >
               <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 01-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4" />
@@ -76,11 +76,11 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05" />
                 <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335" />
               </svg>
-              <span className="text-sm font-medium text-ink">Google でサインイン</span>
+              <span className="text-sm font-medium text-gray-900">Google でサインイン</span>
             </button>
           </form>
 
-          <p className="text-xs text-subtle text-center mt-8 leading-relaxed">
+          <p className="text-xs text-gray-500 text-center mt-8 leading-relaxed">
             社内 Google アカウントのみアクセス可能です
           </p>
         </div>

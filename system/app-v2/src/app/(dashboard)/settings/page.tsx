@@ -105,14 +105,14 @@ export default async function SettingsHubPage() {
   ];
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="text-muted hover:text-ink text-sm">← ホーム</Link>
-        <h1 className="text-lg font-semibold text-ink">設定</h1>
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/" className="text-gray-700 hover:text-gray-900 text-sm">← ホーム</Link>
+        <h1 className="text-lg font-semibold text-gray-900">設定</h1>
       </header>
 
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
-        <p className="text-sm text-muted">
+        <p className="text-sm text-gray-700">
           システム全体の設定ハブ。13社展開時もここから coaris.config の値を確認・編集できる構造。
         </p>
 
@@ -121,18 +121,18 @@ export default async function SettingsHubPage() {
             <li key={item.href}>
               <Link
                 href={item.href}
-                className="block bg-card border border-border rounded-xl p-5 hover:border-ink transition-colors"
+                className="block bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-900 transition-colors"
               >
                 <div className="flex items-start gap-4">
                   <span className="text-3xl">{item.icon}</span>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline justify-between gap-3">
-                      <p className="text-sm text-ink font-medium">{item.title}</p>
+                      <p className="text-sm text-gray-900 font-medium">{item.title}</p>
                       {item.status && (
-                        <span className="text-xs font-mono text-subtle">{item.status}</span>
+                        <span className="text-xs font-mono text-gray-500">{item.status}</span>
                       )}
                     </div>
-                    <p className="text-xs text-muted mt-1">{item.description}</p>
+                    <p className="text-xs text-gray-700 mt-1">{item.description}</p>
                   </div>
                 </div>
               </Link>

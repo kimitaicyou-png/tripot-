@@ -57,7 +57,7 @@ export default async function MonthlyPage() {
   const remaining = calculateRemainingDays(year, month);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="MONTHLY"
         title={`${year}年 ${month}月`}
@@ -67,13 +67,13 @@ export default async function MonthlyPage() {
             <SendToHqButton yearMonth={yearMonth} />
             <Link
               href={`/monthly/finance?ym=${yearMonth}`}
-              className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
+              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
             >
               ファイナンス →
             </Link>
             <Link
               href={`/monthly/detail/${yearMonth}`}
-              className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50"
+              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
             >
               ドリルダウン →
             </Link>
@@ -89,15 +89,15 @@ export default async function MonthlyPage() {
             targetRevenue > 0 ? (
               <>
                 目標{' '}
-                <span className="font-mono tabular-nums text-ink">{formatYen(targetRevenue)}</span>
+                <span className="font-mono tabular-nums text-gray-900">{formatYen(targetRevenue)}</span>
                 {' '}に対し{' '}
                 <span
                   className={`font-mono tabular-nums font-medium ${
                     progressRate >= 100
-                      ? 'text-kpi-up'
+                      ? 'text-emerald-700'
                       : progressRate >= 80
-                        ? 'text-ink'
-                        : 'text-kpi-down'
+                        ? 'text-gray-900'
+                        : 'text-red-700'
                   }`}
                 >
                   {progressRate}%

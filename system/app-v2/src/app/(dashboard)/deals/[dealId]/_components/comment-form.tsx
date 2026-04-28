@@ -17,7 +17,7 @@ export function CommentForm({ dealId }: { dealId: string }) {
         await formAction(fd);
         formRef.current?.reset();
       }}
-      className="bg-card border border-border rounded-lg p-4 space-y-2"
+      className="bg-white border border-gray-200 rounded-lg p-4 space-y-2"
     >
       <textarea
         name="body"
@@ -25,7 +25,7 @@ export function CommentForm({ dealId }: { dealId: string }) {
         required
         maxLength={2000}
         placeholder="案件についての社内コメント（顧客には見せない）"
-        className="w-full px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink resize-y"
+        className="w-full px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 resize-y"
       />
       <div className="flex items-center justify-between">
         {state.errors?._form && (
@@ -35,7 +35,7 @@ export function CommentForm({ dealId }: { dealId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="ml-auto px-4 py-1.5 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '投稿中...' : '投稿'}
         </button>

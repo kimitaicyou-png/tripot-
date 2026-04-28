@@ -8,19 +8,6 @@
 @theme {
   --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, 'Hiragino Sans', sans-serif;
   --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Menlo, monospace;
-
-  /* 正典：秋美+隊長「Tripot Design System v1.0」§1 カラーパレット
-   * 旧トークン名 → Tailwind 標準色マッピング（互換層、Phase 2 で全ファイル書き換え予定）
-   */
-  --color-ink: #111827;          /* gray-900：見出し・本文主役 */
-  --color-ink-mid: #374151;      /* gray-700：hover 強調 */
-  --color-muted: #374151;        /* gray-700：本文 */
-  --color-subtle: #6B7280;       /* gray-500：補足・ラベル */
-  --color-surface: #F9FAFB;      /* gray-50：ページ背景 */
-  --color-card: #FFFFFF;         /* カード背景 */
-  --color-border: #E5E7EB;       /* gray-200：ボーダー */
-  --color-kpi-up: #047857;       /* emerald-700：完了・プラス */
-  --color-kpi-down: #B91C1C;     /* red-700：危険・マイナス */
 }
 
 html, body {

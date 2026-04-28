@@ -86,49 +86,49 @@ export default async function CustomerDetailPage({
   const handleDelete = deleteCustomer.bind(null, customerId);
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/customers" className="text-muted hover:text-ink text-sm">
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/customers" className="text-gray-700 hover:text-gray-900 text-sm">
           ← 顧客一覧
         </Link>
-        <h1 className="text-lg font-semibold text-ink truncate">{customer.name}</h1>
+        <h1 className="text-lg font-semibold text-gray-900 truncate">{customer.name}</h1>
       </header>
 
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
-        <section className="bg-card border border-border rounded-xl p-6">
-          <p className="text-xs text-subtle">入金累計</p>
-          <p className="font-semibold text-5xl text-ink tracking-tight tabular-nums mt-1">
+        <section className="bg-white border border-gray-200 rounded-xl p-6">
+          <p className="text-xs text-gray-500">入金累計</p>
+          <p className="font-semibold text-5xl text-gray-900 tracking-tight tabular-nums mt-1">
             {formatYen(totalRevenue)}
           </p>
         </section>
 
-        <section className="bg-card border border-border rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+        <section className="bg-white border border-gray-200 rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
           <div>
-            <p className="text-xs text-subtle mb-1">メール</p>
-            <p className="text-ink font-medium">{customer.contact_email ?? '—'}</p>
+            <p className="text-xs text-gray-500 mb-1">メール</p>
+            <p className="text-gray-900 font-medium">{customer.contact_email ?? '—'}</p>
           </div>
           <div>
-            <p className="text-xs text-subtle mb-1">電話番号</p>
-            <p className="text-ink font-medium font-mono">{customer.contact_phone ?? '—'}</p>
+            <p className="text-xs text-gray-500 mb-1">電話番号</p>
+            <p className="text-gray-900 font-medium font-mono">{customer.contact_phone ?? '—'}</p>
           </div>
           <div>
-            <p className="text-xs text-subtle mb-1">登録日</p>
-            <p className="text-ink font-medium font-mono">
+            <p className="text-xs text-gray-500 mb-1">登録日</p>
+            <p className="text-gray-900 font-medium font-mono">
               {new Date(customer.created_at).toLocaleDateString('ja-JP')}
             </p>
           </div>
           <div>
-            <p className="text-xs text-subtle mb-1">案件数</p>
-            <p className="text-ink font-medium font-mono tabular-nums">{customerDeals.length} 件</p>
+            <p className="text-xs text-gray-500 mb-1">案件数</p>
+            <p className="text-gray-900 font-medium font-mono tabular-nums">{customerDeals.length} 件</p>
           </div>
         </section>
 
-        <section className="bg-card border border-border rounded-xl p-6">
-          <h3 className="text-sm font-medium text-ink mb-3">
-            案件 <span className="text-xs text-subtle font-normal">{customerDeals.length}件</span>
+        <section className="bg-white border border-gray-200 rounded-xl p-6">
+          <h3 className="text-sm font-medium text-gray-900 mb-3">
+            案件 <span className="text-xs text-gray-500 font-normal">{customerDeals.length}件</span>
           </h3>
           {customerDeals.length === 0 ? (
-            <p className="text-sm text-muted">この顧客の案件はまだありません</p>
+            <p className="text-sm text-gray-700">この顧客の案件はまだありません</p>
           ) : (
             <ul className="divide-y divide-border">
               {customerDeals.map((d) => (
@@ -138,11 +138,11 @@ export default async function CustomerDetailPage({
                   >
                     {STAGE_LABEL[d.stage] ?? d.stage}
                   </span>
-                  <Link href={`/deals/${d.id}`} className="flex-1 text-sm text-ink hover:underline truncate">
+                  <Link href={`/deals/${d.id}`} className="flex-1 text-sm text-gray-900 hover:underline truncate">
                     {d.title}
                   </Link>
-                  <span className="text-xs text-muted shrink-0">{d.assignee_name ?? '—'}</span>
-                  <span className="font-mono tabular-nums text-sm text-ink shrink-0">
+                  <span className="text-xs text-gray-700 shrink-0">{d.assignee_name ?? '—'}</span>
+                  <span className="font-mono tabular-nums text-sm text-gray-900 shrink-0">
                     {formatYen(d.amount)}
                   </span>
                 </li>
@@ -154,7 +154,7 @@ export default async function CustomerDetailPage({
         <section className="flex items-center justify-end gap-3">
           <Link
             href={`/customers/${customerId}/edit`}
-            className="px-4 py-2 bg-card border border-border text-ink text-sm font-medium rounded-lg hover:bg-slate-50"
+            className="px-4 py-2 bg-white border border-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-slate-50"
           >
             編集
           </Link>

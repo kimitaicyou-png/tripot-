@@ -49,20 +49,20 @@ export default async function TaskDetailPage({
   const handleDelete = deleteTask.bind(null, taskId);
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/tasks" className="text-muted hover:text-ink text-sm">
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/tasks" className="text-gray-700 hover:text-gray-900 text-sm">
           ← マイタスク
         </Link>
-        <h1 className="text-lg font-semibold text-ink truncate">{task.title}</h1>
+        <h1 className="text-lg font-semibold text-gray-900 truncate">{task.title}</h1>
       </header>
 
       <div className="px-6 py-8 max-w-2xl mx-auto space-y-6">
-        <section className="bg-card border border-border rounded-xl p-6">
+        <section className="bg-white border border-gray-200 rounded-xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <TaskCheckbox taskId={taskId} done={task.status === 'done'} />
             <p
-              className={`text-base text-ink font-medium ${
+              className={`text-base text-gray-900 font-medium ${
                 task.status === 'done' ? 'line-through opacity-60' : ''
               }`}
             >
@@ -70,18 +70,18 @@ export default async function TaskDetailPage({
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm pt-4 border-t border-border">
+          <div className="grid grid-cols-2 gap-x-6 gap-y-3 text-sm pt-4 border-t border-gray-200">
             <div>
-              <p className="text-xs text-subtle mb-1">担当</p>
-              <p className="text-ink font-medium">{task.assignee_name ?? '—'}</p>
+              <p className="text-xs text-gray-500 mb-1">担当</p>
+              <p className="text-gray-900 font-medium">{task.assignee_name ?? '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-subtle mb-1">期限</p>
-              <p className="text-ink font-medium font-mono">{task.due_date ?? '—'}</p>
+              <p className="text-xs text-gray-500 mb-1">期限</p>
+              <p className="text-gray-900 font-medium font-mono">{task.due_date ?? '—'}</p>
             </div>
             <div>
-              <p className="text-xs text-subtle mb-1">紐付き案件</p>
-              <p className="text-ink font-medium">
+              <p className="text-xs text-gray-500 mb-1">紐付き案件</p>
+              <p className="text-gray-900 font-medium">
                 {task.deal_id && task.deal_title ? (
                   <Link href={`/deals/${task.deal_id}`} className="hover:underline">
                     {task.deal_title}
@@ -92,26 +92,26 @@ export default async function TaskDetailPage({
               </p>
             </div>
             <div>
-              <p className="text-xs text-subtle mb-1">予定コスト</p>
-              <p className="text-ink font-medium font-mono tabular-nums">
+              <p className="text-xs text-gray-500 mb-1">予定コスト</p>
+              <p className="text-gray-900 font-medium font-mono tabular-nums">
                 ¥{(task.estimated_cost ?? 0).toLocaleString('ja-JP')}
               </p>
             </div>
             <div>
-              <p className="text-xs text-subtle mb-1">作成日</p>
-              <p className="text-ink font-medium font-mono">
+              <p className="text-xs text-gray-500 mb-1">作成日</p>
+              <p className="text-gray-900 font-medium font-mono">
                 {new Date(task.created_at).toLocaleDateString('ja-JP')}
               </p>
             </div>
             <div>
-              <p className="text-xs text-subtle mb-1">状態</p>
-              <p className="text-ink font-medium">{task.status === 'done' ? '完了' : 'やる'}</p>
+              <p className="text-xs text-gray-500 mb-1">状態</p>
+              <p className="text-gray-900 font-medium">{task.status === 'done' ? '完了' : 'やる'}</p>
             </div>
           </div>
         </section>
 
-        <section className="bg-card border border-border rounded-xl p-6">
-          <h3 className="text-sm font-medium text-ink mb-4">編集</h3>
+        <section className="bg-white border border-gray-200 rounded-xl p-6">
+          <h3 className="text-sm font-medium text-gray-900 mb-4">編集</h3>
           <TaskEditForm
             taskId={taskId}
             initial={{

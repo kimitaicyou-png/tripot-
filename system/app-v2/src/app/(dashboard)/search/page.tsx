@@ -41,14 +41,14 @@ export default async function SearchPage({
   }, {});
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="text-muted hover:text-ink text-sm">← ホーム</Link>
-        <h1 className="text-lg font-semibold text-ink">横断検索</h1>
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/" className="text-gray-700 hover:text-gray-900 text-sm">← ホーム</Link>
+        <h1 className="text-lg font-semibold text-gray-900">横断検索</h1>
       </header>
 
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
-        <p className="text-sm text-muted">
+        <p className="text-sm text-gray-700">
           案件 / 顧客 / タスク / 議事録 / メンバー を一括検索（部分一致、ILIKE）。
         </p>
 
@@ -58,19 +58,19 @@ export default async function SearchPage({
             name="q"
             defaultValue={q}
             placeholder="キーワードを入力（例: A社 / 来週 / 提案書）"
-            className="flex-1 px-4 py-3 text-base text-ink bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/20"
+            className="flex-1 px-4 py-3 text-base text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             autoFocus
           />
           <button
             type="submit"
-            className="px-6 py-3 text-sm bg-ink text-card font-medium rounded-lg hover:bg-ink-mid"
+            className="px-6 py-3 text-sm bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-700"
           >
             検索
           </button>
         </form>
 
         {!q ? (
-          <p className="text-sm text-muted text-center py-8">
+          <p className="text-sm text-gray-700 text-center py-8">
             キーワードを入力してください
           </p>
         ) : hits.length === 0 ? (
@@ -81,29 +81,29 @@ export default async function SearchPage({
           />
         ) : (
           <div className="space-y-6">
-            <p className="text-sm text-muted">
-              <span className="font-mono text-ink">{hits.length}</span> 件ヒット
+            <p className="text-sm text-gray-700">
+              <span className="font-mono text-gray-900">{hits.length}</span> 件ヒット
             </p>
             {(['deal', 'customer', 'task', 'meeting', 'member'] as const).map((kind) => {
               const items = grouped[kind] ?? [];
               if (items.length === 0) return null;
               return (
                 <section key={kind}>
-                  <p className="text-xs uppercase tracking-widest text-subtle mb-3">
-                    {KIND_LABEL[kind]} <span className="font-mono text-ink">{items.length}</span>
+                  <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">
+                    {KIND_LABEL[kind]} <span className="font-mono text-gray-900">{items.length}</span>
                   </p>
                   <ul className="space-y-2">
                     {items.map((h) => (
                       <li key={`${h.kind}-${h.id}`}>
                         <Link
                           href={h.href}
-                          className="block bg-card border border-border rounded-xl p-4 hover:border-ink transition-colors"
+                          className="block bg-white border border-gray-200 rounded-xl p-4 hover:border-gray-900 transition-colors"
                         >
                           <div className="flex items-start justify-between gap-3">
                             <div className="flex-1 min-w-0">
-                              <p className="text-sm text-ink font-medium truncate">{h.title}</p>
+                              <p className="text-sm text-gray-900 font-medium truncate">{h.title}</p>
                               {h.subtitle && (
-                                <p className="text-xs text-muted mt-0.5 truncate">{h.subtitle}</p>
+                                <p className="text-xs text-gray-700 mt-0.5 truncate">{h.subtitle}</p>
                               )}
                             </div>
                             <Badge tone={KIND_TONE[h.kind] ?? 'default'}>

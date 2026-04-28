@@ -85,13 +85,13 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
 
   return (
     <div className="space-y-6">
-      <section className="bg-card border border-border rounded-xl p-6">
-        <p className="text-xs uppercase tracking-widest text-subtle">受注金額</p>
-        <p className="font-semibold text-5xl text-ink tracking-tight tabular-nums mt-1">
+      <section className="bg-white border border-gray-200 rounded-xl p-6">
+        <p className="text-xs uppercase tracking-widest text-gray-500">受注金額</p>
+        <p className="font-semibold text-5xl text-gray-900 tracking-tight tabular-nums mt-1">
           {formatYen(deal.amount)}
         </p>
         {deal.revenue_type !== 'spot' && deal.monthly_amount ? (
-          <p className="text-sm text-muted mt-2 font-mono">
+          <p className="text-sm text-gray-700 mt-2 font-mono">
             ＋月額 {formatYen(deal.monthly_amount)}
           </p>
         ) : null}
@@ -101,9 +101,9 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
 
       <AttackSection dealId={dealId} />
 
-      <section className="bg-card border border-border rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
+      <section className="bg-white border border-gray-200 rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
         <div>
-          <p className="text-xs text-subtle mb-1">ステージ</p>
+          <p className="text-xs text-gray-500 mb-1">ステージ</p>
           <span
             className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-lg ${stageBadge}`}
           >
@@ -111,33 +111,33 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
           </span>
         </div>
         <div>
-          <p className="text-xs text-subtle mb-1">担当</p>
-          <p className="text-ink font-medium">{deal.assignee_name ?? '—'}</p>
+          <p className="text-xs text-gray-500 mb-1">担当</p>
+          <p className="text-gray-900 font-medium">{deal.assignee_name ?? '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-subtle mb-1">顧客</p>
-          <p className="text-ink font-medium">{deal.customer_name ?? '—'}</p>
+          <p className="text-xs text-gray-500 mb-1">顧客</p>
+          <p className="text-gray-900 font-medium">{deal.customer_name ?? '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-subtle mb-1">受注予定</p>
-          <p className="text-ink font-medium font-mono">{deal.expected_close_date ?? '—'}</p>
+          <p className="text-xs text-gray-500 mb-1">受注予定</p>
+          <p className="text-gray-900 font-medium font-mono">{deal.expected_close_date ?? '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-subtle mb-1">受注日</p>
-          <p className="text-ink font-medium font-mono">{deal.ordered_at ?? '—'}</p>
+          <p className="text-xs text-gray-500 mb-1">受注日</p>
+          <p className="text-gray-900 font-medium font-mono">{deal.ordered_at ?? '—'}</p>
         </div>
         <div>
-          <p className="text-xs text-subtle mb-1">入金日</p>
-          <p className="text-ink font-medium font-mono">{deal.paid_at ?? '—'}</p>
+          <p className="text-xs text-gray-500 mb-1">入金日</p>
+          <p className="text-gray-900 font-medium font-mono">{deal.paid_at ?? '—'}</p>
         </div>
       </section>
 
-      <section className="bg-card border border-border rounded-xl p-6">
-        <h3 className="text-sm font-medium text-ink mb-3">
-          タスク <span className="text-xs text-subtle font-normal">{dealTasks.length}件</span>
+      <section className="bg-white border border-gray-200 rounded-xl p-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-3">
+          タスク <span className="text-xs text-gray-500 font-normal">{dealTasks.length}件</span>
         </h3>
         {dealTasks.length === 0 ? (
-          <p className="text-sm text-muted">タスクはまだありません</p>
+          <p className="text-sm text-gray-700">タスクはまだありません</p>
         ) : (
           <ul className="space-y-2">
             {dealTasks.map((t) => (
@@ -147,12 +147,12 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
               >
                 <TaskCheckbox taskId={t.id} done={t.status === 'done'} />
                 <p
-                  className={`flex-1 text-sm text-ink ${t.status === 'done' ? 'line-through' : ''}`}
+                  className={`flex-1 text-sm text-gray-900 ${t.status === 'done' ? 'line-through' : ''}`}
                 >
                   {t.title}
                 </p>
                 {t.due_date && (
-                  <span className="text-xs font-mono text-muted">{t.due_date}</span>
+                  <span className="text-xs font-mono text-gray-700">{t.due_date}</span>
                 )}
               </li>
             ))}
@@ -161,29 +161,29 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
         <TaskQuickAdd dealId={dealId} />
       </section>
 
-      <section className="bg-card border border-border rounded-xl p-6">
+      <section className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-center justify-between mb-3">
-          <h3 className="text-sm font-medium text-ink">
+          <h3 className="text-sm font-medium text-gray-900">
             行動履歴{' '}
-            <span className="text-xs text-subtle font-normal">{dealActions.length}件</span>
+            <span className="text-xs text-gray-500 font-normal">{dealActions.length}件</span>
           </h3>
           <LogActionButton dealId={dealId} variant="inline" />
         </div>
         {dealActions.length === 0 ? (
-          <p className="text-sm text-muted">まだ行動が記録されていません</p>
+          <p className="text-sm text-gray-700">まだ行動が記録されていません</p>
         ) : (
           <ul className="space-y-3">
             {dealActions.map((a) => (
-              <li key={a.id} className="flex items-start gap-3 border-l-2 border-border pl-3">
+              <li key={a.id} className="flex items-start gap-3 border-l-2 border-gray-200 pl-3">
                 <div className="flex-1">
-                  <p className="text-sm text-ink">
+                  <p className="text-sm text-gray-900">
                     <span className="font-medium">
                       {ACTION_TYPE_LABEL[a.type] ?? a.type}
                     </span>
-                    <span className="text-muted ml-2">by {a.member_name}</span>
+                    <span className="text-gray-700 ml-2">by {a.member_name}</span>
                   </p>
-                  {a.note && <p className="text-sm text-muted mt-1">{a.note}</p>}
-                  <p className="text-xs font-mono text-subtle mt-1">
+                  {a.note && <p className="text-sm text-gray-700 mt-1">{a.note}</p>}
+                  <p className="text-xs font-mono text-gray-500 mt-1">
                     {new Date(a.occurred_at).toLocaleString('ja-JP')}
                   </p>
                 </div>
@@ -266,7 +266,7 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
         <div className="flex items-center gap-3">
           <Link
             href={`/deals/${dealId}/edit`}
-            className="px-4 py-2 bg-card border border-border text-ink text-sm font-medium rounded-lg hover:bg-slate-50"
+            className="px-4 py-2 bg-white border border-gray-200 text-gray-900 text-sm font-medium rounded-lg hover:bg-slate-50"
           >
             編集
           </Link>

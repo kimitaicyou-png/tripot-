@@ -142,7 +142,7 @@ export default async function WeeklyCfPage({
   const totalWeighted = weeks.reduce((s, w) => s + w.weighted, 0);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="WEEKLY · CASHFLOW"
         title="6週間 入金予測"
@@ -154,7 +154,7 @@ export default async function WeeklyCfPage({
         actions={
           <Link
             href={presentation ? '/weekly/cf' : '/weekly/cf?focus=presentation'}
-            className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+            className="px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
           >
             {presentation ? '通常表示' : '大画面モード'}
           </Link>
@@ -171,7 +171,7 @@ export default async function WeeklyCfPage({
           sub={
             <>
               単純合計{' '}
-              <span className="font-mono tabular-nums text-ink font-medium">
+              <span className="font-mono tabular-nums text-gray-900 font-medium">
                 {formatYen(totalRaw)}
               </span>
               ／ ステージ別重み付け（提案30% / 受注70% / 制作80% / 検収95%）
@@ -184,16 +184,16 @@ export default async function WeeklyCfPage({
           {weeks.map((w) => {
             const widthPct = Math.round((w.raw / maxRaw) * 100);
             return (
-              <div key={w.index} className="bg-card border border-border rounded-xl p-5 shadow-sm">
+              <div key={w.index} className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
                 <div className="flex items-baseline justify-between mb-3">
                   <div>
-                    <p className="text-xs uppercase tracking-wider text-subtle">
+                    <p className="text-xs uppercase tracking-wider text-gray-500">
                       Week {w.index + 1}
                     </p>
-                    <p className="text-sm text-ink font-mono mt-0.5">{w.label}</p>
+                    <p className="text-sm text-gray-900 font-mono mt-0.5">{w.label}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-semibold text-2xl text-ink tabular-nums leading-none">
+                    <p className="font-semibold text-2xl text-gray-900 tabular-nums leading-none">
                       {formatYen(w.raw)}
                     </p>
                     <p className="text-xs text-amber-700 font-mono tabular-nums mt-1">
@@ -217,12 +217,12 @@ export default async function WeeklyCfPage({
                 {w.deals.length > 0 && (
                   <ul className="mt-3 space-y-1">
                     {w.deals.map((d) => (
-                      <li key={d.id} className="text-xs text-muted flex items-center gap-2">
+                      <li key={d.id} className="text-xs text-gray-700 flex items-center gap-2">
                         <span
                           className={`inline-block w-2 h-2 rounded-sm shrink-0 ${STAGE_COLOR[d.stage] ?? 'bg-slate-300'}`}
                         />
                         <span className="truncate flex-1">{d.title}</span>
-                        <span className="font-mono tabular-nums text-ink shrink-0">
+                        <span className="font-mono tabular-nums text-gray-900 shrink-0">
                           {formatYen(d.amount)}
                         </span>
                       </li>
@@ -244,15 +244,15 @@ export default async function WeeklyCfPage({
           />
         </section>
 
-        <section className="bg-card border border-border rounded-xl p-5">
-          <p className="text-xs uppercase tracking-widest text-subtle mb-3">LEGEND</p>
+        <section className="bg-white border border-gray-200 rounded-xl p-5">
+          <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">LEGEND</p>
           <div className="flex flex-wrap gap-3">
             {Object.entries(STAGE_LABEL).map(([k, v]) => (
-              <div key={k} className="flex items-center gap-1.5 text-xs text-muted">
+              <div key={k} className="flex items-center gap-1.5 text-xs text-gray-700">
                 <span className={`inline-block w-3 h-3 rounded-sm ${STAGE_COLOR[k]}`} />
                 <span>
                   {v}
-                  <span className="text-subtle ml-1">
+                  <span className="text-gray-500 ml-1">
                     ({Math.round((STAGE_WEIGHT[k] ?? 0) * 100)}%)
                   </span>
                 </span>

@@ -43,11 +43,11 @@ export function VendorAdminList({ vendors }: { vendors: Vendor[] }) {
         {vendors.map((v) => {
           const skills = Array.isArray(v.skills) ? (v.skills as string[]) : [];
           return (
-            <li key={v.id} className="bg-card border border-border rounded-xl p-5 space-y-3">
+            <li key={v.id} className="bg-white border border-gray-200 rounded-xl p-5 space-y-3">
               <div className="flex items-start justify-between gap-3 flex-wrap">
                 <div className="flex-1 min-w-0">
-                  <p className="text-sm text-ink font-medium">{v.name}</p>
-                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-muted">
+                  <p className="text-sm text-gray-900 font-medium">{v.name}</p>
+                  <div className="flex flex-wrap gap-x-4 gap-y-1 mt-1 text-xs text-gray-700">
                     {v.contact_email && <span className="font-mono">{v.contact_email}</span>}
                     {v.contact_phone && <span className="font-mono">{v.contact_phone}</span>}
                   </div>

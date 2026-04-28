@@ -188,7 +188,7 @@ export default async function MonthlyFinancePage({
   })();
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="MONTHLY · FINANCE"
         title={`${year}年 ${month}月 ファイナンスレポート`}
@@ -198,13 +198,13 @@ export default async function MonthlyFinancePage({
           <div className="flex items-center gap-2">
             <Link
               href={`/monthly/finance?ym=${prevYm}`}
-              className="px-3 py-1.5 text-xs border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+              className="px-3 py-1.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
             >
               ← {prevYm}
             </Link>
             <Link
               href={`/monthly/finance?ym=${nextYm}`}
-              className="px-3 py-1.5 text-xs border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+              className="px-3 py-1.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
             >
               {nextYm} →
             </Link>
@@ -251,33 +251,33 @@ export default async function MonthlyFinancePage({
               description="見積を登録した案件が当月入金確定すると精度集計されます"
             />
           ) : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-bg border-b border-border">
+                <thead className="bg-bg border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-widest text-subtle font-medium">案件</th>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-widest text-subtle font-medium">顧客</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-subtle font-medium">見積</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-subtle font-medium">入金</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-subtle font-medium">差額</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-subtle font-medium">誤差率</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-widest text-gray-500 font-medium">案件</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-widest text-gray-500 font-medium">顧客</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-gray-500 font-medium">見積</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-gray-500 font-medium">入金</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-gray-500 font-medium">差額</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-gray-500 font-medium">誤差率</th>
                   </tr>
                 </thead>
                 <tbody>
                   {accuracyData.map((r) => (
-                    <tr key={r.deal_id} className="border-b border-border last:border-b-0">
+                    <tr key={r.deal_id} className="border-b border-gray-200 last:border-b-0">
                       <td className="px-4 py-3">
-                        <Link href={`/deals/${r.deal_id}`} className="text-ink hover:underline">
+                        <Link href={`/deals/${r.deal_id}`} className="text-gray-900 hover:underline">
                           {r.deal_title}
                         </Link>
                       </td>
-                      <td className="px-4 py-3 text-muted">{r.customer_name ?? '—'}</td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-muted">{formatYen(r.estimate_total)}</td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-ink">{formatYen(r.deal_amount)}</td>
-                      <td className={`px-4 py-3 text-right font-mono tabular-nums ${r.diff > 0 ? 'text-kpi-up' : r.diff < 0 ? 'text-kpi-down' : 'text-ink'}`}>
+                      <td className="px-4 py-3 text-gray-700">{r.customer_name ?? '—'}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-gray-700">{formatYen(r.estimate_total)}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-gray-900">{formatYen(r.deal_amount)}</td>
+                      <td className={`px-4 py-3 text-right font-mono tabular-nums ${r.diff > 0 ? 'text-emerald-700' : r.diff < 0 ? 'text-red-700' : 'text-gray-900'}`}>
                         {r.diff >= 0 ? '+' : ''}{formatYen(r.diff)}
                       </td>
-                      <td className={`px-4 py-3 text-right font-mono tabular-nums ${r.ratio > 0 ? 'text-kpi-up' : r.ratio < 0 ? 'text-kpi-down' : 'text-ink'}`}>
+                      <td className={`px-4 py-3 text-right font-mono tabular-nums ${r.ratio > 0 ? 'text-emerald-700' : r.ratio < 0 ? 'text-red-700' : 'text-gray-900'}`}>
                         {pct(r.ratio)}
                       </td>
                     </tr>
@@ -325,35 +325,35 @@ export default async function MonthlyFinancePage({
               cta={{ label: 'MF連携設定へ', href: '/settings/mf' }}
             />
           ) : (
-            <div className="bg-card border border-border rounded-xl overflow-hidden">
+            <div className="bg-white border border-gray-200 rounded-xl overflow-hidden">
               <table className="w-full text-sm">
-                <thead className="bg-bg border-b border-border">
+                <thead className="bg-bg border-b border-gray-200">
                   <tr>
-                    <th className="px-4 py-3 text-left text-xs uppercase tracking-widest text-subtle font-medium">勘定科目</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-subtle font-medium">当月</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-subtle font-medium">前月</th>
-                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-subtle font-medium">前月比</th>
+                    <th className="px-4 py-3 text-left text-xs uppercase tracking-widest text-gray-500 font-medium">勘定科目</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-gray-500 font-medium">当月</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-gray-500 font-medium">前月</th>
+                    <th className="px-4 py-3 text-right text-xs uppercase tracking-widest text-gray-500 font-medium">前月比</th>
                   </tr>
                 </thead>
                 <tbody>
                   {fixedByCategory.filter((c) => c.curr > 0 || c.prev > 0).map((c) => (
-                    <tr key={c.code} className="border-b border-border last:border-b-0">
+                    <tr key={c.code} className="border-b border-gray-200 last:border-b-0">
                       <td className="px-4 py-3">
-                        <span className="text-ink">{c.label}</span>
-                        <span className="text-xs font-mono text-subtle ml-2">{c.code}</span>
+                        <span className="text-gray-900">{c.label}</span>
+                        <span className="text-xs font-mono text-gray-500 ml-2">{c.code}</span>
                       </td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-ink">{formatYen(c.curr)}</td>
-                      <td className="px-4 py-3 text-right font-mono tabular-nums text-muted">{formatYen(c.prev)}</td>
-                      <td className={`px-4 py-3 text-right font-mono tabular-nums ${c.diff > 0.05 ? 'text-kpi-down' : c.diff < -0.05 ? 'text-kpi-up' : 'text-muted'}`}>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-gray-900">{formatYen(c.curr)}</td>
+                      <td className="px-4 py-3 text-right font-mono tabular-nums text-gray-700">{formatYen(c.prev)}</td>
+                      <td className={`px-4 py-3 text-right font-mono tabular-nums ${c.diff > 0.05 ? 'text-red-700' : c.diff < -0.05 ? 'text-emerald-700' : 'text-gray-700'}`}>
                         {pct(c.diff)}
                       </td>
                     </tr>
                   ))}
-                  <tr className="border-t-2 border-border bg-bg">
-                    <td className="px-4 py-3 font-medium text-ink">合計</td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums font-semibold text-2xl text-ink">{formatYen(fixedTotal)}</td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums text-muted">{formatYen(prevFixedTotal)}</td>
-                    <td className={`px-4 py-3 text-right font-mono tabular-nums ${fixedRatio > 0.05 ? 'text-kpi-down' : fixedRatio < -0.05 ? 'text-kpi-up' : 'text-muted'}`}>
+                  <tr className="border-t-2 border-gray-200 bg-bg">
+                    <td className="px-4 py-3 font-medium text-gray-900">合計</td>
+                    <td className="px-4 py-3 text-right font-mono tabular-nums font-semibold text-2xl text-gray-900">{formatYen(fixedTotal)}</td>
+                    <td className="px-4 py-3 text-right font-mono tabular-nums text-gray-700">{formatYen(prevFixedTotal)}</td>
+                    <td className={`px-4 py-3 text-right font-mono tabular-nums ${fixedRatio > 0.05 ? 'text-red-700' : fixedRatio < -0.05 ? 'text-emerald-700' : 'text-gray-700'}`}>
                       {pct(fixedRatio)}
                     </td>
                   </tr>

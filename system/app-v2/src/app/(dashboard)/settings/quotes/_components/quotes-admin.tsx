@@ -48,11 +48,11 @@ export function QuotesAdmin({ existingCount }: { existingCount: number }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+    <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
       <div className="flex items-center justify-between gap-3">
         <div>
-          <p className="text-sm font-medium text-ink">名言の管理</p>
-          <p className="text-xs text-muted mt-1">
+          <p className="text-sm font-medium text-gray-900">名言の管理</p>
+          <p className="text-xs text-gray-700 mt-1">
             登録済 <span className="font-mono">{existingCount}</span> 件
           </p>
         </div>
@@ -67,7 +67,7 @@ export function QuotesAdmin({ existingCount }: { existingCount: number }) {
       </div>
 
       {open && (
-        <form action={handleAddSubmit} className="space-y-3 pt-3 border-t border-border">
+        <form action={handleAddSubmit} className="space-y-3 pt-3 border-t border-gray-200">
           <FormField label="名言" required>
             <TextArea name="body" rows={2} placeholder="" />
           </FormField>

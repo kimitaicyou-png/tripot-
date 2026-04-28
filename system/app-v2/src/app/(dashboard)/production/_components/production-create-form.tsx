@@ -18,7 +18,7 @@ export function ProductionCreateForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 transition-opacity"
+        className="px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
       >
         ＋ 制作カード追加
       </button>
@@ -29,25 +29,25 @@ export function ProductionCreateForm({
     <form
       action={formAction}
       onSubmit={() => setTimeout(() => setOpen(false), 100)}
-      className="bg-card border border-border rounded-lg p-5 space-y-4"
+      className="bg-white border border-gray-200 rounded-lg p-5 space-y-4"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">タイトル</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">タイトル</span>
         <input
           type="text"
           name="title"
           required
           maxLength={200}
-          className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+          className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
         />
       </label>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">紐付け案件（任意）</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">紐付け案件（任意）</span>
           <select
             name="deal_id"
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
           >
             <option value="">— なし —</option>
             {deals.map((d) => (
@@ -57,13 +57,13 @@ export function ProductionCreateForm({
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">見積コスト（円）</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">見積コスト（円）</span>
           <input
             type="number"
             name="estimated_cost"
             min={0}
             defaultValue={0}
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink font-mono tabular-nums"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 font-mono tabular-nums"
           />
         </label>
       </div>
@@ -76,14 +76,14 @@ export function ProductionCreateForm({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="px-4 py-2 text-sm text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+          className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
         >
           キャンセル
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="px-5 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="px-5 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '保存中...' : '登録'}
         </button>

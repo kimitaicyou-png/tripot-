@@ -29,7 +29,7 @@ export function AttackForm({ dealId, initial }: { dealId: string; initial: Initi
   }
 
   return (
-    <form action={formAction} className="space-y-3 border-t border-border pt-4">
+    <form action={formAction} className="space-y-3 border-t border-gray-200 pt-4">
       <input type="hidden" name="deal_id" value={dealId} />
 
       <div className="grid grid-cols-2 gap-3">
@@ -61,9 +61,9 @@ export function AttackForm({ dealId, initial }: { dealId: string; initial: Initi
       </FormField>
 
       {state.errors?._form && (
-        <p className="text-xs text-kpi-down">{state.errors._form.join(' / ')}</p>
+        <p className="text-xs text-red-700">{state.errors._form.join(' / ')}</p>
       )}
-      {state.success && <p className="text-xs text-kpi-up">保存しました</p>}
+      {state.success && <p className="text-xs text-emerald-700">保存しました</p>}
 
       <FormActions>
         <Button type="button" variant="ghost" onClick={() => setOpen(false)}>

@@ -63,14 +63,14 @@ export function PrefRow({
 
   return (
     <li
-      className={`bg-card border border-border rounded-xl p-5 transition-opacity ${
+      className={`bg-white border border-gray-200 rounded-xl p-5 transition-opacity ${
         isMuted ? 'opacity-60' : ''
       }`}
     >
       <div className="flex items-start justify-between gap-3 mb-3 flex-wrap">
         <div className="flex-1 min-w-0">
-          <p className="text-sm text-ink font-medium">{ruleLabel}</p>
-          <p className="text-xs text-muted mt-0.5">{ruleDescription}</p>
+          <p className="text-sm text-gray-900 font-medium">{ruleLabel}</p>
+          <p className="text-xs text-gray-700 mt-0.5">{ruleDescription}</p>
         </div>
         <button
           type="button"
@@ -79,7 +79,7 @@ export function PrefRow({
           className={`text-xs px-2 py-1 rounded-lg font-medium ${
             isMuted
               ? 'bg-amber-50 text-amber-700 border border-amber-200'
-              : 'text-subtle hover:text-ink'
+              : 'text-gray-500 hover:text-gray-900'
           }`}
         >
           {isMuted ? '🔕 ミュート中' : '🔕 ミュート'}
@@ -97,8 +97,8 @@ export function PrefRow({
               disabled={pending || isMuted}
               className={`text-xs px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-50 ${
                 enabled
-                  ? 'bg-ink text-card border-ink'
-                  : 'bg-card text-muted border-border hover:border-ink'
+                  ? 'bg-gray-900 text-white border-gray-900'
+                  : 'bg-white text-gray-700 border-gray-200 hover:border-gray-900'
               }`}
             >
               <span className="mr-1">{CHANNEL_ICONS[c]}</span>

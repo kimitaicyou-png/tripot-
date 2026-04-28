@@ -67,14 +67,14 @@ export function NextActionSection({ dealId }: { dealId: string }) {
 
   if (!data) {
     return (
-      <section className="bg-card border border-border rounded-xl p-6">
+      <section className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <p className="text-xs uppercase tracking-widest text-subtle">次の一手 AI</p>
-            <p className="text-sm text-ink mt-1">
+            <p className="text-xs uppercase tracking-widest text-gray-500">次の一手 AI</p>
+            <p className="text-sm text-gray-900 mt-1">
               この案件で「今やるべき行動」を AI が 1 つだけ提案します
             </p>
-            <p className="text-xs text-muted mt-1">
+            <p className="text-xs text-gray-700 mt-1">
               直近の議事録・行動・タスクを集約 → 文脈に沿った具体的な次アクション
             </p>
           </div>
@@ -87,11 +87,11 @@ export function NextActionSection({ dealId }: { dealId: string }) {
   }
 
   return (
-    <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+    <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-widest text-subtle">次の一手 AI</p>
-          <p className="text-xs font-mono text-subtle mt-1">
+          <p className="text-xs uppercase tracking-widest text-gray-500">次の一手 AI</p>
+          <p className="text-xs font-mono text-gray-500 mt-1">
             {new Date(data.generated_at).toLocaleString('ja-JP')}
           </p>
         </div>
@@ -101,17 +101,17 @@ export function NextActionSection({ dealId }: { dealId: string }) {
       </div>
 
       <div className="border-l-2 border-amber-300 pl-4 py-1 space-y-2">
-        <p className="font-semibold text-xl text-ink leading-snug">{data.action}</p>
-        <div className="flex flex-wrap gap-3 text-xs text-muted">
+        <p className="font-semibold text-xl text-gray-900 leading-snug">{data.action}</p>
+        <div className="flex flex-wrap gap-3 text-xs text-gray-700">
           <span>{TYPE_LABEL[data.action_type] ?? data.action_type}</span>
           <span>·</span>
           <span className="font-mono">{formatDue(data.due_in_days)}</span>
         </div>
       </div>
 
-      <div className="border-l-2 border-border pl-4 py-1">
-        <p className="text-xs uppercase tracking-widest text-subtle mb-1">理由</p>
-        <p className="text-sm text-muted">{data.reason}</p>
+      <div className="border-l-2 border-gray-200 pl-4 py-1">
+        <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">理由</p>
+        <p className="text-sm text-gray-700">{data.reason}</p>
       </div>
     </section>
   );

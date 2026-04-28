@@ -59,10 +59,10 @@ export function MeetingForm({ dealId }: { dealId: string }) {
       </FormField>
 
       {state.errors?._form && (
-        <p className="text-xs text-kpi-down">{state.errors._form.join(' / ')}</p>
+        <p className="text-xs text-red-700">{state.errors._form.join(' / ')}</p>
       )}
       {state.success && (
-        <p className="text-xs text-kpi-up">記録しました</p>
+        <p className="text-xs text-emerald-700">記録しました</p>
       )}
 
       <FormActions>

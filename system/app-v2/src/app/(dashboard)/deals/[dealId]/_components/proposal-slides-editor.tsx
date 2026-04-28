@@ -65,7 +65,7 @@ export function ProposalSlidesEditor({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-3 py-1.5 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+        className="px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
       >
         ✎ JSON 編集
       </button>
@@ -73,23 +73,23 @@ export function ProposalSlidesEditor({
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-4 space-y-3">
+    <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-widest text-subtle">スライド JSON エディタ</p>
+        <p className="text-xs uppercase tracking-widest text-gray-500">スライド JSON エディタ</p>
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="text-xs text-muted hover:text-ink transition-colors"
+          className="text-xs text-gray-700 hover:text-gray-900 transition-colors"
         >
           閉じる
         </button>
       </div>
 
-      <p className="text-xs text-subtle leading-relaxed">
-        スライド配列を直接編集できます。各スライドは <code className="font-mono text-ink">type</code> と{' '}
-        <code className="font-mono text-ink">title</code> 必須。<code className="font-mono text-ink">subtitle</code> /{' '}
-        <code className="font-mono text-ink">bullets</code> / <code className="font-mono text-ink">items</code> /{' '}
-        <code className="font-mono text-ink">message</code> は任意。
+      <p className="text-xs text-gray-500 leading-relaxed">
+        スライド配列を直接編集できます。各スライドは <code className="font-mono text-gray-900">type</code> と{' '}
+        <code className="font-mono text-gray-900">title</code> 必須。<code className="font-mono text-gray-900">subtitle</code> /{' '}
+        <code className="font-mono text-gray-900">bullets</code> / <code className="font-mono text-gray-900">items</code> /{' '}
+        <code className="font-mono text-gray-900">message</code> は任意。
       </p>
 
       <textarea
@@ -98,12 +98,12 @@ export function ProposalSlidesEditor({
         rows={20}
         spellCheck={false}
         className={`w-full px-3 py-2 text-xs font-mono bg-bg border rounded focus:outline-none resize-y ${
-          valid ? 'border-border focus:border-ink' : 'border-red-500 focus:border-red-700'
+          valid ? 'border-gray-200 focus:border-gray-900' : 'border-red-500 focus:border-red-700'
         }`}
       />
 
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-subtle">
+        <p className="text-xs text-gray-500">
           {valid ? '✓ JSON パース OK' : '✗ JSON パースエラー'}
           {message && <span className={`ml-3 ${message.startsWith('✓') ? 'text-emerald-700' : 'text-red-700'}`}>{message}</span>}
         </p>
@@ -111,7 +111,7 @@ export function ProposalSlidesEditor({
           <button
             type="button"
             onClick={handleReset}
-            className="px-3 py-1.5 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+            className="px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
           >
             リセット
           </button>
@@ -119,7 +119,7 @@ export function ProposalSlidesEditor({
             type="button"
             onClick={handleSave}
             disabled={pending || !valid}
-            className="px-4 py-1.5 text-xs font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+            className="px-4 py-1.5 text-xs font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
           >
             {pending ? '保存中...' : '保存'}
           </button>

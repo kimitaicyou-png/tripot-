@@ -30,7 +30,7 @@ export function ReviewForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 transition-opacity"
+        className="px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
       >
         ✅ レビュー追加
       </button>
@@ -41,14 +41,14 @@ export function ReviewForm({
     <form
       action={formAction}
       onSubmit={() => setTimeout(() => setOpen(false), 100)}
-      className="bg-card border border-border rounded-lg p-5 space-y-4"
+      className="bg-white border border-gray-200 rounded-lg p-5 space-y-4"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">対象成果物（任意）</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">対象成果物（任意）</span>
         <select
           name="deliverable_id"
           defaultValue=""
-          className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+          className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
         >
           <option value="">指定しない（カード全体へのレビュー）</option>
           {deliverables.map((d) => (
@@ -58,11 +58,11 @@ export function ReviewForm({
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">ステータス</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">ステータス</span>
         <select
           name="status"
           defaultValue="approved"
-          className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+          className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
         >
           {STATUS_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>{s.label}</option>
@@ -71,13 +71,13 @@ export function ReviewForm({
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">フィードバック（任意）</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">フィードバック（任意）</span>
         <textarea
           name="feedback"
           rows={3}
           maxLength={4000}
           placeholder="修正点 / 良かった点 / 確認事項 など"
-          className="w-full px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink resize-y"
+          className="w-full px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 resize-y"
         />
       </label>
 
@@ -89,14 +89,14 @@ export function ReviewForm({
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="px-4 py-2 text-sm text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+          className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
         >
           キャンセル
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="px-5 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="px-5 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '登録中...' : '登録'}
         </button>

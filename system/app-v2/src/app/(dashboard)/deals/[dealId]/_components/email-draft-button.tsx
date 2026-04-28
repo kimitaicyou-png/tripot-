@@ -175,17 +175,17 @@ export function EmailDraftButton({
           ) : (
             <div className="space-y-4">
               <div>
-                <p className="text-xs uppercase tracking-widest text-subtle mb-1">件名</p>
-                <p className="text-base text-ink font-medium">{draft.subject}</p>
+                <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">件名</p>
+                <p className="text-base text-gray-900 font-medium">{draft.subject}</p>
               </div>
               <div>
-                <p className="text-xs uppercase tracking-widest text-subtle mb-1">本文</p>
-                <pre className="text-sm text-ink whitespace-pre-wrap font-sans bg-surface border border-border rounded-lg p-4 max-h-96 overflow-y-auto">
+                <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">本文</p>
+                <pre className="text-sm text-gray-900 whitespace-pre-wrap font-sans bg-gray-50 border border-gray-200 rounded-lg p-4 max-h-96 overflow-y-auto">
                   {draft.body}
                 </pre>
               </div>
               {draft.to && (
-                <p className="text-xs text-muted">
+                <p className="text-xs text-gray-700">
                   宛先候補: <span className="font-mono">{draft.to}</span>
                 </p>
               )}

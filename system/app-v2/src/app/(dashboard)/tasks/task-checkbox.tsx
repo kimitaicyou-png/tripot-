@@ -14,7 +14,7 @@ export function TaskCheckbox({ taskId, done }: { taskId: string; done: boolean }
       className={`w-5 h-5 rounded border-2 flex items-center justify-center transition-all active:scale-[0.9] shrink-0 ${
         done
           ? 'bg-emerald-500 border-emerald-500 text-white'
-          : 'bg-white border-border hover:border-ink-mid'
+          : 'bg-white border-gray-200 hover:border-gray-700'
       } ${pending ? 'opacity-50' : ''}`}
       aria-label={done ? '未完了に戻す' : '完了にする'}
     >

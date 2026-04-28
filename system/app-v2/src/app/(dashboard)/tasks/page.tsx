@@ -48,20 +48,20 @@ export default async function TasksPage() {
   }).length;
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="MY TASKS"
         title="マイタスク"
         subtitle={
           <>
-            残 <span className="font-mono tabular-nums text-ink">{todoCount}</span> ／ 完了{' '}
-            <span className="font-mono tabular-nums text-ink">{doneCount}</span>
+            残 <span className="font-mono tabular-nums text-gray-900">{todoCount}</span> ／ 完了{' '}
+            <span className="font-mono tabular-nums text-gray-900">{doneCount}</span>
           </>
         }
         actions={
           <Link
             href="/tasks/new"
-            className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
+            className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors active:scale-[0.98]"
           >
             新規登録
           </Link>
@@ -99,16 +99,16 @@ export default async function TasksPage() {
                     return (
                       <li
                         key={t.id}
-                        className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm"
+                        className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 shadow-sm"
                       >
                         <TaskCheckbox taskId={t.id} done={false} />
                         <Link
                           href={`/tasks/${t.id}`}
                           className="flex-1 min-w-0 hover:opacity-80 transition-opacity"
                         >
-                          <p className="text-sm text-ink">{t.title}</p>
+                          <p className="text-sm text-gray-900">{t.title}</p>
                           {t.deal_title && (
-                            <p className="text-xs text-subtle mt-0.5 truncate">
+                            <p className="text-xs text-gray-500 mt-0.5 truncate">
                               📋 {t.deal_title}
                             </p>
                           )}
@@ -116,7 +116,7 @@ export default async function TasksPage() {
                         {t.due_date && (
                           <p
                             className={`text-xs font-mono shrink-0 ${
-                              isOverdue ? 'text-kpi-down font-medium' : 'text-muted'
+                              isOverdue ? 'text-red-700 font-medium' : 'text-gray-700'
                             }`}
                           >
                             {t.due_date}
@@ -136,22 +136,22 @@ export default async function TasksPage() {
                   {doneTasks.map((t) => (
                     <li
                       key={t.id}
-                      className="bg-card border border-border rounded-xl px-4 py-3 flex items-center gap-3 opacity-60"
+                      className="bg-white border border-gray-200 rounded-xl px-4 py-3 flex items-center gap-3 opacity-60"
                     >
                       <TaskCheckbox taskId={t.id} done={true} />
                       <Link
                         href={`/tasks/${t.id}`}
                         className="flex-1 min-w-0 hover:opacity-100 transition-opacity"
                       >
-                        <p className="text-sm text-ink line-through">{t.title}</p>
+                        <p className="text-sm text-gray-900 line-through">{t.title}</p>
                         {t.deal_title && (
-                          <p className="text-xs text-subtle mt-0.5 truncate">
+                          <p className="text-xs text-gray-500 mt-0.5 truncate">
                             📋 {t.deal_title}
                           </p>
                         )}
                       </Link>
                       {t.due_date && (
-                        <p className="text-xs font-mono text-muted shrink-0">{t.due_date}</p>
+                        <p className="text-xs font-mono text-gray-700 shrink-0">{t.due_date}</p>
                       )}
                     </li>
                   ))}

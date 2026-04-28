@@ -91,7 +91,7 @@ export default async function BudgetPage({
   const months = Array.from({ length: 12 }, (_, i) => i + 1);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="ANNUAL PLAN"
         title={`${year}年 事業計画`}
@@ -99,14 +99,14 @@ export default async function BudgetPage({
           <span className="flex items-center gap-3">
             <Link
               href={`/budget?year=${year - 1}`}
-              className="px-2 py-0.5 text-xs border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+              className="px-2 py-0.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
             >
               ← {year - 1}年
             </Link>
             <span>年間目標 ＆ 月別計画 vs 実績</span>
             <Link
               href={`/budget?year=${year + 1}`}
-              className="px-2 py-0.5 text-xs border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+              className="px-2 py-0.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
             >
               {year + 1}年 →
             </Link>
@@ -127,17 +127,17 @@ export default async function BudgetPage({
           sub={
             <>
               実績{' '}
-              <span className="font-mono tabular-nums text-ink font-medium">
+              <span className="font-mono tabular-nums text-gray-900 font-medium">
                 {formatYen(totalActual)}
               </span>{' '}
               ／{' '}
               <span
                 className={`font-mono tabular-nums font-medium ${
                   yearProgress >= 100
-                    ? 'text-kpi-up'
+                    ? 'text-emerald-700'
                     : yearProgress >= 80
-                      ? 'text-ink'
-                      : 'text-kpi-down'
+                      ? 'text-gray-900'
+                      : 'text-red-700'
                 }`}
               >
                 {yearProgress}%
@@ -146,29 +146,29 @@ export default async function BudgetPage({
           }
         />
 
-        <section className="bg-card border border-border rounded-xl p-6 shadow-sm">
+        <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">
           <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
             <div
               className={`h-full rounded-full transition-all ${
-                yearProgress >= 100 ? 'bg-kpi-up' : 'bg-blue-500'
+                yearProgress >= 100 ? 'bg-emerald-500' : 'bg-blue-500'
               }`}
               style={{ width: `${Math.min(yearProgress, 100)}%` }}
             />
           </div>
           <div className="grid grid-cols-3 gap-4 mt-4 text-sm">
             <div>
-              <p className="text-xs uppercase tracking-wider text-subtle">目標</p>
-              <p className="font-mono tabular-nums text-ink mt-1">{formatYen(totalTarget)}</p>
+              <p className="text-xs uppercase tracking-wider text-gray-500">目標</p>
+              <p className="font-mono tabular-nums text-gray-900 mt-1">{formatYen(totalTarget)}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-subtle">実績</p>
-              <p className="font-mono tabular-nums text-ink mt-1">{formatYen(totalActual)}</p>
+              <p className="text-xs uppercase tracking-wider text-gray-500">実績</p>
+              <p className="font-mono tabular-nums text-gray-900 mt-1">{formatYen(totalActual)}</p>
             </div>
             <div>
-              <p className="text-xs uppercase tracking-wider text-subtle">差</p>
+              <p className="text-xs uppercase tracking-wider text-gray-500">差</p>
               <p
                 className={`font-mono tabular-nums mt-1 ${
-                  totalTarget - totalActual <= 0 ? 'text-kpi-up' : 'text-ink'
+                  totalTarget - totalActual <= 0 ? 'text-emerald-700' : 'text-gray-900'
                 }`}
               >
                 {formatYen(totalActual - totalTarget)}
@@ -183,8 +183,8 @@ export default async function BudgetPage({
             title="月別 計画 vs 実績"
             action={
               lastYearTotal > 0 ? (
-                <span className="text-xs text-subtle">
-                  昨年合計 <span className="font-mono text-ink">{formatYen(lastYearTotal)}</span>
+                <span className="text-xs text-gray-500">
+                  昨年合計 <span className="font-mono text-gray-900">{formatYen(lastYearTotal)}</span>
                 </span>
               ) : null
             }
@@ -204,19 +204,19 @@ export default async function BudgetPage({
                 <Link
                   key={m}
                   href={link}
-                  className="bg-card border border-border rounded-xl p-4 shadow-sm hover:border-ink-mid transition-colors block"
+                  className="bg-white border border-gray-200 rounded-xl p-4 shadow-sm hover:border-gray-700 transition-colors block"
                 >
                   <div className="flex items-baseline justify-between mb-2">
-                    <p className="text-sm font-medium text-ink">{MONTH_LABEL[m - 1]}</p>
+                    <p className="text-sm font-medium text-gray-900">{MONTH_LABEL[m - 1]}</p>
                     <p
                       className={`font-mono tabular-nums text-xs ${
                         tone === 'up'
-                          ? 'text-kpi-up'
+                          ? 'text-emerald-700'
                           : tone === 'down'
-                            ? 'text-kpi-down'
+                            ? 'text-red-700'
                             : tone === 'subtle'
-                              ? 'text-subtle'
-                              : 'text-ink'
+                              ? 'text-gray-500'
+                              : 'text-gray-900'
                       }`}
                     >
                       {target > 0 ? `${rate}%` : '—'}
@@ -224,24 +224,24 @@ export default async function BudgetPage({
                   </div>
                   <div className="space-y-1">
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-subtle">目標</span>
-                      <span className="font-mono tabular-nums text-muted">{formatMan(target)}</span>
+                      <span className="text-gray-500">目標</span>
+                      <span className="font-mono tabular-nums text-gray-700">{formatMan(target)}</span>
                     </div>
                     <div className="flex items-center justify-between text-xs">
-                      <span className="text-subtle">実績</span>
-                      <span className="font-mono tabular-nums text-ink font-medium">
+                      <span className="text-gray-500">実績</span>
+                      <span className="font-mono tabular-nums text-gray-900 font-medium">
                         {formatMan(actual)}
                       </span>
                     </div>
                     {lastYearVal > 0 && (
-                      <div className="flex items-center justify-between text-xs pt-1 border-t border-border mt-1">
-                        <span className="text-subtle">昨年同月</span>
-                        <span className="font-mono tabular-nums text-subtle">
+                      <div className="flex items-center justify-between text-xs pt-1 border-t border-gray-200 mt-1">
+                        <span className="text-gray-500">昨年同月</span>
+                        <span className="font-mono tabular-nums text-gray-500">
                           {formatMan(lastYearVal)}
                           {yoyPct !== null && (
                             <span
                               className={`ml-1 ${
-                                yoyPct >= 0 ? 'text-kpi-up' : 'text-kpi-down'
+                                yoyPct >= 0 ? 'text-emerald-700' : 'text-red-700'
                               }`}
                             >
                               ({yoyPct >= 0 ? '+' : ''}
@@ -256,9 +256,9 @@ export default async function BudgetPage({
                     <div
                       className={`h-full rounded-full ${
                         tone === 'up'
-                          ? 'bg-kpi-up'
+                          ? 'bg-emerald-500'
                           : tone === 'down'
-                            ? 'bg-kpi-down'
+                            ? 'bg-red-500'
                             : 'bg-blue-500'
                       }`}
                       style={{
@@ -272,9 +272,9 @@ export default async function BudgetPage({
           </div>
         </section>
 
-        <section className="bg-card border border-border rounded-xl p-6">
+        <section className="bg-white border border-gray-200 rounded-xl p-6">
           <SectionHeading eyebrow="EDIT" title="月別目標を設定" />
-          <p className="text-xs text-muted mb-4">
+          <p className="text-xs text-gray-700 mb-4">
             ボタンをクリックすると、その月の売上・粗利・営業利益の目標を編集できます。
           </p>
           <BudgetEditor

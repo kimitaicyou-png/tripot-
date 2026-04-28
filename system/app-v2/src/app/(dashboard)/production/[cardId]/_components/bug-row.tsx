@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { updateBugStatus } from '@/lib/actions/bugs';
 
 const SEVERITY_TONE: Record<string, string> = {
-  low: 'text-muted',
+  low: 'text-gray-700',
   medium: 'text-amber-700',
   high: 'text-orange-700',
   critical: 'text-red-700',
@@ -56,20 +56,20 @@ export function BugRow(props: Props) {
   const isResolvedish = props.status === 'resolved' || props.status === 'closed';
 
   return (
-    <li className={`bg-card border border-border rounded-lg p-4 space-y-2 ${isResolvedish ? 'opacity-60' : ''}`}>
+    <li className={`bg-white border border-gray-200 rounded-lg p-4 space-y-2 ${isResolvedish ? 'opacity-60' : ''}`}>
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
-            <p className="text-base font-medium text-ink">{props.title}</p>
+            <p className="text-base font-medium text-gray-900">{props.title}</p>
             <span className={`text-xs uppercase tracking-widest font-medium ${SEVERITY_TONE[props.severity]}`}>
               {props.severity}
             </span>
-            <span className="text-xs text-subtle">{STATUS_LABEL[props.status] ?? props.status}</span>
+            <span className="text-xs text-gray-500">{STATUS_LABEL[props.status] ?? props.status}</span>
           </div>
           {props.description && (
-            <p className="text-sm text-muted whitespace-pre-wrap mt-1">{props.description}</p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap mt-1">{props.description}</p>
           )}
-          <p className="text-xs text-subtle font-mono tabular-nums mt-1">
+          <p className="text-xs text-gray-500 font-mono tabular-nums mt-1">
             報告者 {props.reporter_name ?? '不明'} · {new Date(props.created_at).toLocaleString('ja-JP')}
             {props.resolved_at && ` · 解決 ${new Date(props.resolved_at).toLocaleString('ja-JP')}`}
           </p>
@@ -83,7 +83,7 @@ export function BugRow(props: Props) {
               type="button"
               onClick={() => handleStatus(s)}
               disabled={pending}
-              className="px-2 py-0.5 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors disabled:opacity-40"
+              className="px-2 py-0.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors disabled:opacity-40"
             >
               → {STATUS_LABEL[s] ?? s}
             </button>

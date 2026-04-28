@@ -98,34 +98,34 @@ export function WeeklyInputGrid({
   }
 
   const cellInputClass = presentation
-    ? 'w-20 text-2xl font-mono tabular-nums text-center bg-transparent border border-border rounded focus:outline-none focus:border-ink'
-    : 'w-14 text-base font-mono tabular-nums text-center bg-transparent border border-border rounded focus:outline-none focus:border-ink';
+    ? 'w-20 text-2xl font-mono tabular-nums text-center bg-transparent border border-gray-200 rounded focus:outline-none focus:border-gray-900'
+    : 'w-14 text-base font-mono tabular-nums text-center bg-transparent border border-gray-200 rounded focus:outline-none focus:border-gray-900';
 
   const headerCellClass = presentation
-    ? 'px-3 py-3 text-base font-medium text-muted text-center'
-    : 'px-2 py-2 text-xs uppercase tracking-widest font-medium text-subtle text-center';
+    ? 'px-3 py-3 text-base font-medium text-gray-700 text-center'
+    : 'px-2 py-2 text-xs uppercase tracking-widest font-medium text-gray-500 text-center';
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-end gap-4 px-6 py-4 bg-card border border-border rounded-lg">
+      <div className="flex flex-wrap items-end gap-4 px-6 py-4 bg-white border border-gray-200 rounded-lg">
         <div className="flex flex-col gap-1">
-          <label className="text-xs uppercase tracking-widest font-medium text-subtle">記録日</label>
+          <label className="text-xs uppercase tracking-widest font-medium text-gray-500">記録日</label>
           <input
             type="date"
             value={occurredOn}
             onChange={(e) => setOccurredOn(e.target.value)}
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
           />
         </div>
         <div className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">合計</span>
-          <span className="font-semibold text-3xl text-ink tabular-nums">{totals.grand}</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">合計</span>
+          <span className="font-semibold text-3xl text-gray-900 tabular-nums">{totals.grand}</span>
         </div>
         <div className="ml-auto flex gap-2">
           <button
             type="button"
             onClick={clearAll}
-            className="px-4 py-2 text-sm text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+            className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
           >
             クリア
           </button>
@@ -133,7 +133,7 @@ export function WeeklyInputGrid({
             type="button"
             onClick={handleSubmit}
             disabled={pending || totals.grand === 0}
-            className="px-5 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+            className="px-5 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
           >
             {pending ? '保存中...' : `${totals.grand} 件まとめて保存`}
           </button>
@@ -141,12 +141,12 @@ export function WeeklyInputGrid({
       </div>
 
       {message && (
-        <div className="px-6 py-3 bg-card border border-border rounded text-sm text-ink">{message}</div>
+        <div className="px-6 py-3 bg-white border border-gray-200 rounded text-sm text-gray-900">{message}</div>
       )}
 
-      <div className="overflow-x-auto bg-card border border-border rounded-lg">
+      <div className="overflow-x-auto bg-white border border-gray-200 rounded-lg">
         <table className="w-full">
-          <thead className="border-b border-border">
+          <thead className="border-b border-gray-200">
             <tr>
               <th className={`${headerCellClass} text-left pl-6`}>メンバー</th>
               {ACTION_TYPES.map((t) => (
@@ -160,8 +160,8 @@ export function WeeklyInputGrid({
               const row = grid[m.id] ?? emptyRow();
               const memberSum = totals.perPerson[m.id] ?? 0;
               return (
-                <tr key={m.id} className="border-b border-border last:border-b-0">
-                  <td className={`pl-6 py-3 ${presentation ? 'text-lg' : 'text-sm'} font-medium text-ink`}>
+                <tr key={m.id} className="border-b border-gray-200 last:border-b-0">
+                  <td className={`pl-6 py-3 ${presentation ? 'text-lg' : 'text-sm'} font-medium text-gray-900`}>
                     {m.name}
                   </td>
                   {ACTION_TYPES.map((t) => (
@@ -171,7 +171,7 @@ export function WeeklyInputGrid({
                           type="button"
                           aria-label={`${m.name} ${t.label} -1`}
                           onClick={() => bump(m.id, t.key, -1)}
-                          className="w-6 h-6 text-muted hover:text-ink rounded border border-transparent hover:border-border transition-colors"
+                          className="w-6 h-6 text-gray-700 hover:text-gray-900 rounded border border-transparent hover:border-gray-200 transition-colors"
                         >
                           −
                         </button>
@@ -187,31 +187,31 @@ export function WeeklyInputGrid({
                           type="button"
                           aria-label={`${m.name} ${t.label} +1`}
                           onClick={() => bump(m.id, t.key, 1)}
-                          className="w-6 h-6 text-muted hover:text-ink rounded border border-transparent hover:border-border transition-colors"
+                          className="w-6 h-6 text-gray-700 hover:text-gray-900 rounded border border-transparent hover:border-gray-200 transition-colors"
                         >
                           +
                         </button>
                       </div>
                     </td>
                   ))}
-                  <td className={`pr-6 py-3 text-center font-mono tabular-nums ${presentation ? 'text-2xl font-semibold' : 'text-base'} text-ink`}>
+                  <td className={`pr-6 py-3 text-center font-mono tabular-nums ${presentation ? 'text-2xl font-semibold' : 'text-base'} text-gray-900`}>
                     {memberSum}
                   </td>
                 </tr>
               );
             })}
           </tbody>
-          <tfoot className="border-t border-border bg-bg">
+          <tfoot className="border-t border-gray-200 bg-bg">
             <tr>
-              <td className={`pl-6 py-3 ${presentation ? 'text-base' : 'text-xs'} uppercase tracking-widest font-medium text-subtle`}>
+              <td className={`pl-6 py-3 ${presentation ? 'text-base' : 'text-xs'} uppercase tracking-widest font-medium text-gray-500`}>
                 種類別合計
               </td>
               {ACTION_TYPES.map((t) => (
-                <td key={t.key} className={`py-3 text-center font-mono tabular-nums ${presentation ? 'text-2xl font-semibold' : 'text-base'} text-ink`}>
+                <td key={t.key} className={`py-3 text-center font-mono tabular-nums ${presentation ? 'text-2xl font-semibold' : 'text-base'} text-gray-900`}>
                   {totals.perType[t.key]}
                 </td>
               ))}
-              <td className={`pr-6 py-3 text-center font-mono tabular-nums ${presentation ? 'text-3xl font-semibold' : 'text-lg'} text-ink`}>
+              <td className={`pr-6 py-3 text-center font-mono tabular-nums ${presentation ? 'text-3xl font-semibold' : 'text-lg'} text-gray-900`}>
                 {totals.grand}
               </td>
             </tr>

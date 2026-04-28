@@ -34,12 +34,12 @@ export function SendToHqButton({ yearMonth }: { yearMonth: string }) {
         className={`px-4 py-2 text-sm border rounded transition-colors disabled:opacity-40 ${
           confirming
             ? 'text-amber-700 border-amber-700 hover:bg-amber-50'
-            : 'text-muted border-border hover:text-ink hover:border-ink'
+            : 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-900'
         }`}
       >
         {pending ? '送信中...' : confirming ? '本当に送信' : '📤 本部に送信'}
       </button>
-      {message && <span className="text-xs text-subtle max-w-md truncate">{message}</span>}
+      {message && <span className="text-xs text-gray-500 max-w-md truncate">{message}</span>}
     </div>
   );
 }

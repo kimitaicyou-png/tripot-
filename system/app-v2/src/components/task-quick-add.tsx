@@ -25,17 +25,17 @@ export function TaskQuickAdd({ dealId }: { dealId?: string }) {
         name="title"
         required
         placeholder="タスクを追加…"
-        className="flex-1 px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <input
         type="date"
         name="due_date"
-        className="px-3 py-2 border border-border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
       <button
         type="submit"
         disabled={isPending}
-        className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid active:scale-[0.98] transition-all disabled:opacity-50"
+        className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 active:scale-[0.98] transition-all disabled:opacity-50"
       >
         {isPending ? '追加中…' : '追加'}
       </button>

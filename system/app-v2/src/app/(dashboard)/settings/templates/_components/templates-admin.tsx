@@ -50,7 +50,7 @@ function TemplateForm({
         <TextArea name="description" rows={3} defaultValue={initial?.description ?? ''} />
       </FormField>
       {state.errors?._form && (
-        <p className="text-xs text-kpi-down">{state.errors._form.join(' / ')}</p>
+        <p className="text-xs text-red-700">{state.errors._form.join(' / ')}</p>
       )}
       <FormActions>
         <Button type="submit" variant="primary" disabled={pending}>
@@ -108,11 +108,11 @@ export function TemplatesAdmin({
 
   return (
     <>
-      <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+      <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
         <div className="flex items-center justify-between gap-3">
           <div>
-            <p className="text-sm font-medium text-ink">テンプレート管理</p>
-            <p className="text-xs text-muted mt-1">
+            <p className="text-sm font-medium text-gray-900">テンプレート管理</p>
+            <p className="text-xs text-gray-700 mt-1">
               登録済 <span className="font-mono">{existingCount}</span> 件
             </p>
           </div>
@@ -130,12 +130,12 @@ export function TemplatesAdmin({
       {templates.length > 0 && (
         <ul className="space-y-3">
           {templates.map((t) => (
-            <li key={t.id} className="bg-card border border-border rounded-xl p-5">
+            <li key={t.id} className="bg-white border border-gray-200 rounded-xl p-5">
               <div className="flex items-start justify-between gap-3">
                 <div className="flex-1">
-                  <p className="text-sm text-ink font-medium">{t.name}</p>
+                  <p className="text-sm text-gray-900 font-medium">{t.name}</p>
                   {t.description && (
-                    <p className="text-xs text-muted mt-1">{t.description}</p>
+                    <p className="text-xs text-gray-700 mt-1">{t.description}</p>
                   )}
                 </div>
                 <div className="flex items-center gap-2 shrink-0">

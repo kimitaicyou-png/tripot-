@@ -46,7 +46,7 @@ export function TabsList({ children, className }: { children: ReactNode; classNa
   return (
     <div
       role="tablist"
-      className={`inline-flex items-center gap-1 border-b border-border ${className ?? ''}`}
+      className={`inline-flex items-center gap-1 border-b border-gray-200 ${className ?? ''}`}
     >
       {children}
     </div>
@@ -72,17 +72,17 @@ export function TabsTrigger({
       aria-selected={isActive}
       onClick={() => setValue(value)}
       className={`relative px-4 py-2 text-sm font-medium transition-colors ${
-        isActive ? 'text-ink' : 'text-muted hover:text-ink'
+        isActive ? 'text-gray-900' : 'text-gray-700 hover:text-gray-900'
       }`}
     >
       <span className="flex items-center gap-2">
         {children}
         {typeof count === 'number' && (
-          <span className="text-xs font-normal text-subtle tabular-nums">{count}</span>
+          <span className="text-xs font-normal text-gray-500 tabular-nums">{count}</span>
         )}
       </span>
       {isActive && (
-        <span className="absolute inset-x-0 -bottom-px h-0.5 bg-ink" aria-hidden="true" />
+        <span className="absolute inset-x-0 -bottom-px h-0.5 bg-gray-900" aria-hidden="true" />
       )}
     </button>
   );

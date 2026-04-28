@@ -13,11 +13,11 @@ export function Toaster() {
       toastOptions={{
         classNames: {
           toast:
-            'bg-card border border-border text-ink rounded-xl shadow-sm font-sans text-sm',
-          title: 'text-ink font-medium',
-          description: 'text-muted text-sm',
-          actionButton: 'bg-ink text-card text-xs px-2 py-1 rounded-lg',
-          cancelButton: 'text-subtle text-xs',
+            'bg-white border border-gray-200 text-gray-900 rounded-xl shadow-sm font-sans text-sm',
+          title: 'text-gray-900 font-medium',
+          description: 'text-gray-700 text-sm',
+          actionButton: 'bg-gray-900 text-white text-xs px-2 py-1 rounded-lg',
+          cancelButton: 'text-gray-500 text-xs',
         },
       }}
     />

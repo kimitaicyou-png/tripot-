@@ -31,17 +31,17 @@ export function RevenueAchievementCard({
   const gradId = `bar-${accent.replace('#', '')}`;
 
   const tone =
-    pct >= 100 ? 'text-kpi-up' : pct >= 80 ? 'text-amber-700' : pct >= 50 ? 'text-ink' : 'text-kpi-down';
+    pct >= 100 ? 'text-emerald-700' : pct >= 80 ? 'text-amber-700' : pct >= 50 ? 'text-gray-900' : 'text-red-700';
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 w-full flex flex-col">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 w-full flex flex-col">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-widest text-subtle">売上達成率</p>
-        <span className="text-xs text-muted">残り営業日 {remainingDays}日</span>
+        <p className="text-xs uppercase tracking-widest text-gray-500">売上達成率</p>
+        <span className="text-xs text-gray-700">残り営業日 {remainingDays}日</span>
       </div>
       <div className="flex items-baseline gap-2 mt-3">
         <p className={`font-semibold text-5xl ${tone} tabular-nums leading-none`}>{pct}</p>
-        <p className="text-base text-muted">%</p>
+        <p className="text-base text-gray-700">%</p>
       </div>
       <div className="mt-3">
         <svg viewBox={`0 0 ${w} ${h}`} className="w-full" style={{ height: 8 }}>
@@ -57,17 +57,17 @@ export function RevenueAchievementCard({
       </div>
       <div className="grid grid-cols-2 gap-3 mt-4">
         <div>
-          <p className="text-xs uppercase tracking-widest text-subtle">実績</p>
-          <p className="font-mono tabular-nums text-base text-ink mt-0.5">
+          <p className="text-xs uppercase tracking-widest text-gray-500">実績</p>
+          <p className="font-mono tabular-nums text-base text-gray-900 mt-0.5">
             ¥{Math.round(current / 10000).toLocaleString('ja-JP')}
-            <span className="text-xs text-subtle ml-0.5">万</span>
+            <span className="text-xs text-gray-500 ml-0.5">万</span>
           </p>
         </div>
         <div>
-          <p className="text-xs uppercase tracking-widest text-subtle">残り</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">残り</p>
           <p className="font-mono tabular-nums text-base mt-0.5" style={{ color: accent }}>
             ¥{Math.round(remain / 10000).toLocaleString('ja-JP')}
-            <span className="text-xs text-subtle ml-0.5">万</span>
+            <span className="text-xs text-gray-500 ml-0.5">万</span>
           </p>
         </div>
       </div>

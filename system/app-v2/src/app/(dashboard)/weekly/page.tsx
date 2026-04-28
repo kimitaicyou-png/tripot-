@@ -68,7 +68,7 @@ export default async function WeeklyPage({
   const maxActions = Math.max(...memberStats.map((m) => m.total), 1);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="WEEKLY"
         title="週次レポート"
@@ -80,7 +80,7 @@ export default async function WeeklyPage({
         actions={
           <Link
             href={presentation ? '/weekly' : '/weekly?focus=presentation'}
-            className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+            className="px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
           >
             {presentation ? '通常表示' : '大画面モード'}
           </Link>
@@ -96,11 +96,11 @@ export default async function WeeklyPage({
           sub={
             <>
               進行中{' '}
-              <span className="font-mono tabular-nums text-ink font-medium">
+              <span className="font-mono tabular-nums text-gray-900 font-medium">
                 {companyKpi?.activeCount ?? 0}
               </span>{' '}
               件 ／ 直近7日 行動量{' '}
-              <span className="font-mono tabular-nums text-ink font-medium">{totalActions}</span>
+              <span className="font-mono tabular-nums text-gray-900 font-medium">{totalActions}</span>
             </>
           }
         />

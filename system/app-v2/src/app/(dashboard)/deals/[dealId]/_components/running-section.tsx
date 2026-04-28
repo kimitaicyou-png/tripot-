@@ -35,22 +35,22 @@ export function RunningSection(props: Props) {
   const days = daysUntil(props.nextRenewalDate);
   const renewalTone =
     days === null
-      ? 'text-muted'
+      ? 'text-gray-700'
       : days < 0
         ? 'text-red-700'
         : days < 30
           ? 'text-amber-700'
-          : 'text-ink';
+          : 'text-gray-900';
 
   if (!editing) {
     return (
-      <section className="bg-card border border-border rounded-xl p-5 space-y-4">
+      <section className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-xs uppercase tracking-widest text-subtle">継続案件 管理</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">継続案件 管理</p>
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-xs text-muted hover:text-ink transition-colors"
+            className="text-xs text-gray-700 hover:text-gray-900 transition-colors"
           >
             編集
           </button>
@@ -58,13 +58,13 @@ export function RunningSection(props: Props) {
 
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
-            <p className="text-xs text-subtle">月額</p>
-            <p className="font-semibold text-2xl text-ink tabular-nums mt-1">
+            <p className="text-xs text-gray-500">月額</p>
+            <p className="font-semibold text-2xl text-gray-900 tabular-nums mt-1">
               {formatYen(props.monthlyAmount)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-subtle">次回更新日</p>
+            <p className="text-xs text-gray-500">次回更新日</p>
             <p className={`font-mono tabular-nums text-base mt-1 ${renewalTone}`}>
               {props.nextRenewalDate ?? '—'}
             </p>
@@ -75,19 +75,19 @@ export function RunningSection(props: Props) {
             )}
           </div>
           <div>
-            <p className="text-xs text-subtle">自動更新</p>
-            <p className="text-base text-ink mt-1">{props.autoRenew ? '◯ 有効' : '— 手動'}</p>
+            <p className="text-xs text-gray-500">自動更新</p>
+            <p className="text-base text-gray-900 mt-1">{props.autoRenew ? '◯ 有効' : '— 手動'}</p>
           </div>
           <div>
-            <p className="text-xs text-subtle">継続回数</p>
-            <p className="font-semibold text-2xl text-ink tabular-nums mt-1">{props.renewalCount}</p>
+            <p className="text-xs text-gray-500">継続回数</p>
+            <p className="font-semibold text-2xl text-gray-900 tabular-nums mt-1">{props.renewalCount}</p>
           </div>
         </div>
 
         {props.renewalNote && (
-          <div className="pt-3 border-t border-border">
-            <p className="text-xs text-subtle mb-1">更新メモ</p>
-            <p className="text-sm text-ink whitespace-pre-wrap">{props.renewalNote}</p>
+          <div className="pt-3 border-t border-gray-200">
+            <p className="text-xs text-gray-500 mb-1">更新メモ</p>
+            <p className="text-sm text-gray-900 whitespace-pre-wrap">{props.renewalNote}</p>
           </div>
         )}
       </section>
@@ -95,13 +95,13 @@ export function RunningSection(props: Props) {
   }
 
   return (
-    <form action={formAction} className="bg-card border border-border rounded-xl p-5 space-y-4">
+    <form action={formAction} className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-widest text-subtle">継続案件 管理（編集中）</p>
+        <p className="text-xs uppercase tracking-widest text-gray-500">継続案件 管理（編集中）</p>
         <button
           type="button"
           onClick={() => setEditing(false)}
-          className="text-xs text-muted hover:text-ink transition-colors"
+          className="text-xs text-gray-700 hover:text-gray-900 transition-colors"
         >
           キャンセル
         </button>
@@ -109,24 +109,24 @@ export function RunningSection(props: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">次回更新日</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">次回更新日</span>
           <input
             type="date"
             name="next_renewal_date"
             defaultValue={props.nextRenewalDate ?? ''}
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
           />
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">継続回数（過去）</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">継続回数（過去）</span>
           <input
             type="number"
             name="renewal_count"
             min={0}
             max={999}
             defaultValue={props.renewalCount}
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
           />
         </label>
       </div>
@@ -138,18 +138,18 @@ export function RunningSection(props: Props) {
           defaultChecked={props.autoRenew}
           className="w-4 h-4"
         />
-        <span className="text-sm text-ink">自動更新を有効にする</span>
+        <span className="text-sm text-gray-900">自動更新を有効にする</span>
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">更新メモ（任意）</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">更新メモ（任意）</span>
         <textarea
           name="renewal_note"
           rows={3}
           maxLength={500}
           defaultValue={props.renewalNote}
           placeholder="更新時の特記事項・条件変更等"
-          className="w-full px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink resize-y"
+          className="w-full px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 resize-y"
         />
       </label>
 
@@ -162,7 +162,7 @@ export function RunningSection(props: Props) {
           type="submit"
           disabled={pending}
           onClick={() => setTimeout(() => setEditing(false), 200)}
-          className="ml-auto px-4 py-1.5 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '保存中...' : '保存'}
         </button>

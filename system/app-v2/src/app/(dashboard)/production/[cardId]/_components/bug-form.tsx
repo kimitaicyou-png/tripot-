@@ -22,7 +22,7 @@ export function BugForm({ cardId }: { cardId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 transition-opacity"
+        className="px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
       >
         🐛 バグ報告
       </button>
@@ -33,25 +33,25 @@ export function BugForm({ cardId }: { cardId: string }) {
     <form
       action={formAction}
       onSubmit={() => setTimeout(() => setOpen(false), 100)}
-      className="bg-card border border-border rounded-lg p-5 space-y-4"
+      className="bg-white border border-gray-200 rounded-lg p-5 space-y-4"
     >
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">タイトル</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">タイトル</span>
         <input
           type="text"
           name="title"
           required
           maxLength={200}
-          className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+          className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
         />
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">重要度</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">重要度</span>
         <select
           name="severity"
           defaultValue="medium"
-          className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+          className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
         >
           {SEVERITY_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>{s.label}</option>
@@ -60,13 +60,13 @@ export function BugForm({ cardId }: { cardId: string }) {
       </label>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">詳細（任意）</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">詳細（任意）</span>
         <textarea
           name="description"
           rows={3}
           maxLength={4000}
           placeholder="再現手順 / 期待動作 / 実動作 など"
-          className="w-full px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink resize-y"
+          className="w-full px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 resize-y"
         />
       </label>
 
@@ -78,14 +78,14 @@ export function BugForm({ cardId }: { cardId: string }) {
         <button
           type="button"
           onClick={() => setOpen(false)}
-          className="px-4 py-2 text-sm text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+          className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
         >
           キャンセル
         </button>
         <button
           type="submit"
           disabled={pending}
-          className="px-5 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="px-5 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '報告中...' : '報告'}
         </button>

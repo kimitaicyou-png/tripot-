@@ -16,19 +16,19 @@ export function FormField({
 }) {
   return (
     <label className="block">
-      <span className="text-xs font-medium text-muted">
+      <span className="text-xs font-medium text-gray-700">
         {label}
-        {required && <span className="text-kpi-down ml-1">*</span>}
+        {required && <span className="text-red-700 ml-1">*</span>}
       </span>
       <div className="mt-1.5">{children}</div>
-      {hint && !error && <p className="mt-1 text-xs text-subtle">{hint}</p>}
-      {error && <p className="mt-1 text-xs text-kpi-down">{error}</p>}
+      {hint && !error && <p className="mt-1 text-xs text-gray-500">{hint}</p>}
+      {error && <p className="mt-1 text-xs text-red-700">{error}</p>}
     </label>
   );
 }
 
 const baseInputClass =
-  'w-full px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/20 focus:border-ink placeholder:text-subtle disabled:bg-surface disabled:text-muted';
+  'w-full px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20 focus:border-gray-900 placeholder:text-gray-500 disabled:bg-gray-50 disabled:text-gray-700';
 
 export function TextInput(props: InputHTMLAttributes<HTMLInputElement>) {
   return <input {...props} className={`${baseInputClass} ${props.className ?? ''}`} />;
@@ -70,9 +70,9 @@ const BUTTON_SIZE: Record<ButtonSize, string> = {
 };
 
 const BUTTON_VARIANT: Record<ButtonVariant, string> = {
-  primary: 'bg-ink text-card hover:bg-ink-mid',
-  secondary: 'bg-card border border-border text-ink hover:bg-surface',
-  ghost: 'text-muted hover:text-ink hover:bg-surface',
+  primary: 'bg-gray-900 text-white hover:bg-gray-700',
+  secondary: 'bg-white border border-gray-200 text-gray-900 hover:bg-gray-50',
+  ghost: 'text-gray-700 hover:text-gray-900 hover:bg-gray-50',
   danger: 'bg-red-50 border border-red-200 text-red-700 hover:bg-red-100',
 };
 

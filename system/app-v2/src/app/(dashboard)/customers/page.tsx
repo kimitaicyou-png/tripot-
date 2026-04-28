@@ -36,20 +36,20 @@ export default async function CustomersPage() {
   const totalDeals = rows.reduce((s, c) => s + (c.deal_count ?? 0), 0);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="CUSTOMERS"
         title="顧客"
         subtitle={
           <>
-            <span className="font-mono tabular-nums text-ink">{rows.length}</span> 社 ／ 案件{' '}
-            <span className="font-mono tabular-nums text-ink">{totalDeals}</span>
+            <span className="font-mono tabular-nums text-gray-900">{rows.length}</span> 社 ／ 案件{' '}
+            <span className="font-mono tabular-nums text-gray-900">{totalDeals}</span>
           </>
         }
         actions={
           <Link
             href="/customers/new"
-            className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
+            className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors active:scale-[0.98]"
           >
             新規登録
           </Link>
@@ -77,26 +77,26 @@ export default async function CustomersPage() {
                 <Link
                   key={c.id}
                   href={`/customers/${c.id}`}
-                  className="bg-card border border-border rounded-xl p-5 shadow-sm hover:border-ink-mid transition-colors block"
+                  className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-gray-700 transition-colors block"
                 >
                   <div className="flex items-baseline justify-between mb-3">
-                    <p className="text-base text-ink font-medium truncate">{c.name}</p>
-                    <p className="font-mono tabular-nums text-xs text-subtle shrink-0 ml-2">
+                    <p className="text-base text-gray-900 font-medium truncate">{c.name}</p>
+                    <p className="font-mono tabular-nums text-xs text-gray-500 shrink-0 ml-2">
                       {c.deal_count}件
                     </p>
                   </div>
-                  <p className="font-semibold text-2xl text-ink tabular-nums leading-none">
+                  <p className="font-semibold text-2xl text-gray-900 tabular-nums leading-none">
                     {formatYen(c.total_amount)}
                   </p>
                   <div className="mt-3 space-y-0.5">
                     {c.contact_email && (
-                      <p className="text-xs text-muted truncate">{c.contact_email}</p>
+                      <p className="text-xs text-gray-700 truncate">{c.contact_email}</p>
                     )}
                     {c.contact_phone && (
-                      <p className="text-xs font-mono text-muted">{c.contact_phone}</p>
+                      <p className="text-xs font-mono text-gray-700">{c.contact_phone}</p>
                     )}
                     {!c.contact_email && !c.contact_phone && (
-                      <p className="text-xs text-subtle">連絡先未登録</p>
+                      <p className="text-xs text-gray-500">連絡先未登録</p>
                     )}
                   </div>
                 </Link>

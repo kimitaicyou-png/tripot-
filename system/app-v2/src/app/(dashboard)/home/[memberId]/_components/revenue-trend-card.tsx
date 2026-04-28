@@ -9,9 +9,9 @@ export function RevenueTrendCard({
 }) {
   if (data.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-xl p-5 w-full">
-        <p className="text-xs uppercase tracking-widest text-subtle">週次売上推移</p>
-        <p className="text-sm text-muted mt-3">まだデータがありません</p>
+      <div className="bg-white border border-gray-200 rounded-xl p-5 w-full">
+        <p className="text-xs uppercase tracking-widest text-gray-500">週次売上推移</p>
+        <p className="text-sm text-gray-700 mt-3">まだデータがありません</p>
       </div>
     );
   }
@@ -45,26 +45,26 @@ export function RevenueTrendCard({
   const gradId = `trend-${accent.replace('#', '')}`;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 w-full flex flex-col">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 w-full flex flex-col">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs uppercase tracking-widest text-subtle">週次売上推移</p>
-          <p className="font-semibold text-3xl text-ink tabular-nums mt-1">
+          <p className="text-xs uppercase tracking-widest text-gray-500">週次売上推移</p>
+          <p className="font-semibold text-3xl text-gray-900 tabular-nums mt-1">
             ¥{Math.round(last.value).toLocaleString('ja-JP')}
-            <span className="text-sm text-muted ml-1 font-sans not-italic">万</span>
+            <span className="text-sm text-gray-700 ml-1 font-sans not-italic">万</span>
           </p>
         </div>
         <div className="text-right">
           <span
             className={`inline-flex items-center gap-1 text-xs font-medium px-2 py-1 rounded-lg ${
               change >= 0
-                ? 'text-kpi-up bg-green-50 border border-green-200'
-                : 'text-kpi-down bg-red-50 border border-red-200'
+                ? 'text-emerald-700 bg-green-50 border border-green-200'
+                : 'text-red-700 bg-red-50 border border-red-200'
             }`}
           >
             {change >= 0 ? '↑' : '↓'} {Math.abs(change)}%
           </span>
-          <p className="text-[11px] text-muted mt-1 tabular-nums font-mono">
+          <p className="text-[11px] text-gray-700 mt-1 tabular-nums font-mono">
             平均 ¥{avg.toLocaleString('ja-JP')}万
           </p>
         </div>

@@ -10,10 +10,10 @@ export async function AttackSection({ dealId }: { dealId: string }) {
   const plan = await getAttackPlanForDeal(dealId);
 
   return (
-    <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+    <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
       <div>
-        <p className="text-xs uppercase tracking-widest text-subtle">攻略カード</p>
-        <p className="text-sm text-muted mt-1">
+        <p className="text-xs uppercase tracking-widest text-gray-500">攻略カード</p>
+        <p className="text-sm text-gray-700 mt-1">
           キーパーソン・競合・予算想定・打ち手を整理して、案件を勝つための骨子をまとめる
         </p>
       </div>
@@ -21,38 +21,38 @@ export async function AttackSection({ dealId }: { dealId: string }) {
       {plan ? (
         <div className="grid grid-cols-2 gap-x-6 gap-y-4 text-sm border-l-2 border-amber-300 pl-4 py-1">
           <div>
-            <p className="text-xs text-subtle mb-1">キーパーソン</p>
-            <p className="text-ink font-medium">{plan.key_person ?? '—'}</p>
+            <p className="text-xs text-gray-500 mb-1">キーパーソン</p>
+            <p className="text-gray-900 font-medium">{plan.key_person ?? '—'}</p>
           </div>
           <div>
-            <p className="text-xs text-subtle mb-1">競合</p>
-            <p className="text-ink font-medium">{plan.competitor ?? '—'}</p>
+            <p className="text-xs text-gray-500 mb-1">競合</p>
+            <p className="text-gray-900 font-medium">{plan.competitor ?? '—'}</p>
           </div>
           <div>
-            <p className="text-xs text-subtle mb-1">予算想定</p>
-            <p className="font-mono tabular-nums text-ink">{formatYen(plan.budget_estimate)}</p>
+            <p className="text-xs text-gray-500 mb-1">予算想定</p>
+            <p className="font-mono tabular-nums text-gray-900">{formatYen(plan.budget_estimate)}</p>
           </div>
           <div>
-            <p className="text-xs text-subtle mb-1">最終更新</p>
-            <p className="font-mono text-ink text-xs">
+            <p className="text-xs text-gray-500 mb-1">最終更新</p>
+            <p className="font-mono text-gray-900 text-xs">
               {new Date(plan.updated_at).toLocaleString('ja-JP')}
             </p>
           </div>
           {plan.plan && (
             <div className="col-span-2">
-              <p className="text-xs text-subtle mb-1">攻略プラン</p>
-              <p className="text-ink whitespace-pre-wrap">{plan.plan}</p>
+              <p className="text-xs text-gray-500 mb-1">攻略プラン</p>
+              <p className="text-gray-900 whitespace-pre-wrap">{plan.plan}</p>
             </div>
           )}
           {plan.next_action && (
             <div className="col-span-2">
-              <p className="text-xs text-subtle mb-1">次のアクション</p>
-              <p className="text-ink whitespace-pre-wrap">{plan.next_action}</p>
+              <p className="text-xs text-gray-500 mb-1">次のアクション</p>
+              <p className="text-gray-900 whitespace-pre-wrap">{plan.next_action}</p>
             </div>
           )}
         </div>
       ) : (
-        <p className="text-sm text-muted">攻略カード未作成</p>
+        <p className="text-sm text-gray-700">攻略カード未作成</p>
       )}
 
       <AttackForm

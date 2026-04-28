@@ -41,13 +41,13 @@ export default async function NotificationsPage() {
   const unreadCount = items.filter((n) => !n.read_at).length;
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="text-muted hover:text-ink text-sm">← ホーム</Link>
-        <h1 className="text-lg font-semibold text-ink flex-1">
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/" className="text-gray-700 hover:text-gray-900 text-sm">← ホーム</Link>
+        <h1 className="text-lg font-semibold text-gray-900 flex-1">
           通知
           {unreadCount > 0 && (
-            <span className="ml-2 text-xs font-normal font-mono text-kpi-down tabular-nums">
+            <span className="ml-2 text-xs font-normal font-mono text-red-700 tabular-nums">
               未読 {unreadCount}
             </span>
           )}

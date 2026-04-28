@@ -34,7 +34,7 @@ export function DealTabs({
 
   return (
     <Tabs value={tab} onValueChange={setTab} defaultValue={initialTab} className="w-full">
-      <div className="px-6 sticky top-0 z-10 bg-surface/90 backdrop-blur-sm">
+      <div className="px-6 sticky top-0 z-10 bg-gray-50/90 backdrop-blur-sm">
         <TabsList className="overflow-x-auto -mx-6 px-6 flex-nowrap whitespace-nowrap w-[calc(100%+3rem)]">
           <TabsTrigger value="overview">概要</TabsTrigger>
           <TabsTrigger value="meetings" count={counts.meetings}>議事録</TabsTrigger>

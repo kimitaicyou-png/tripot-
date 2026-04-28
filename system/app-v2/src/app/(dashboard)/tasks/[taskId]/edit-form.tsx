@@ -16,7 +16,7 @@ export function TaskEditForm({
   return (
     <form action={formAction} className="space-y-4">
       <div>
-        <label htmlFor="title" className="block text-sm font-medium text-ink mb-1.5">
+        <label htmlFor="title" className="block text-sm font-medium text-gray-900 mb-1.5">
           タスク名
         </label>
         <input
@@ -25,13 +25,13 @@ export function TaskEditForm({
           type="text"
           required
           defaultValue={initial.title}
-          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label htmlFor="due_date" className="block text-sm font-medium text-ink mb-1.5">
+          <label htmlFor="due_date" className="block text-sm font-medium text-gray-900 mb-1.5">
             期限
           </label>
           <input
@@ -39,11 +39,11 @@ export function TaskEditForm({
             name="due_date"
             type="date"
             defaultValue={initial.due_date ?? ''}
-            className="w-full px-3 py-2 border border-border rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
         <div>
-          <label htmlFor="estimated_cost" className="block text-sm font-medium text-ink mb-1.5">
+          <label htmlFor="estimated_cost" className="block text-sm font-medium text-gray-900 mb-1.5">
             予定コスト（円）
           </label>
           <input
@@ -53,7 +53,7 @@ export function TaskEditForm({
             min={0}
             step={1000}
             defaultValue={initial.estimated_cost}
-            className="w-full px-3 py-2 border border-border rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
           />
         </div>
       </div>
@@ -65,7 +65,7 @@ export function TaskEditForm({
         <button
           type="submit"
           disabled={isPending}
-          className="px-5 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98] disabled:opacity-50"
+          className="px-5 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors active:scale-[0.98] disabled:opacity-50"
         >
           {isPending ? '保存中…' : '保存する'}
         </button>

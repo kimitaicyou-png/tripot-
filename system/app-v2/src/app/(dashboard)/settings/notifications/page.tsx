@@ -18,14 +18,14 @@ export default async function SettingsNotificationsPage() {
   const prefMap = new Map(prefs.map((p) => [p.rule_key, p]));
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/settings" className="text-muted hover:text-ink text-sm">← 設定</Link>
-        <h1 className="text-lg font-semibold text-ink">通知設定</h1>
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/settings" className="text-gray-700 hover:text-gray-900 text-sm">← 設定</Link>
+        <h1 className="text-lg font-semibold text-gray-900">通知設定</h1>
       </header>
 
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
-        <p className="text-sm text-muted">
+        <p className="text-sm text-gray-700">
           {session.user.name ?? '自分'} の通知ルール。各ルールごとに配信チャネル（アプリ / Slack / LINE / メール）と
           ミュート設定を選べます。
         </p>

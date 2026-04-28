@@ -41,8 +41,8 @@ export function PermissionToggle({
       aria-pressed={allowed}
       className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs transition-colors disabled:opacity-50 ${
         allowed
-          ? 'bg-kpi-up text-card hover:bg-green-700'
-          : 'bg-surface border border-border text-subtle hover:bg-slate-100'
+          ? 'bg-emerald-500 text-white hover:bg-green-700'
+          : 'bg-gray-50 border border-gray-200 text-gray-500 hover:bg-slate-100'
       }`}
     >
       {allowed ? '✓' : '—'}

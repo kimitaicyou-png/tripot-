@@ -33,15 +33,15 @@ export default async function SettingsRolesPage() {
   }
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/settings" className="text-muted hover:text-ink text-sm">← 設定</Link>
-        <h1 className="text-lg font-semibold text-ink flex-1">役職権限マトリクス</h1>
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/settings" className="text-gray-700 hover:text-gray-900 text-sm">← 設定</Link>
+        <h1 className="text-lg font-semibold text-gray-900 flex-1">役職権限マトリクス</h1>
         <RolesAdminControls existingCount={rows.length} />
       </header>
 
       <div className="px-6 py-8 max-w-6xl mx-auto space-y-6">
-        <p className="text-sm text-muted">
+        <p className="text-sm text-gray-700">
           ロール × リソース × アクション の権限マトリクス。
           初回は「初期マトリクス投入」でデフォルト設定を入れてから、必要に応じて個別に切替。
         </p>
@@ -59,27 +59,27 @@ export default async function SettingsRolesPage() {
               return (
                 <section
                   key={resource}
-                  className="bg-card border border-border rounded-xl p-5 space-y-3"
+                  className="bg-white border border-gray-200 rounded-xl p-5 space-y-3"
                 >
                   <div>
-                    <p className="text-xs uppercase tracking-widest text-subtle">
+                    <p className="text-xs uppercase tracking-widest text-gray-500">
                       {resource}
                     </p>
-                    <h3 className="text-base font-medium text-ink mt-0.5">
+                    <h3 className="text-base font-medium text-gray-900 mt-0.5">
                       {RESOURCE_LABELS[resource] ?? resource}
                     </h3>
                   </div>
                   <div className="overflow-x-auto -mx-2">
                     <table className="w-full text-sm min-w-[560px]">
                       <thead>
-                        <tr className="border-b border-border">
-                          <th className="px-2 py-2 text-left text-xs uppercase tracking-wider text-subtle font-medium">
+                        <tr className="border-b border-gray-200">
+                          <th className="px-2 py-2 text-left text-xs uppercase tracking-wider text-gray-500 font-medium">
                             アクション
                           </th>
                           {ROLES.map((role) => (
                             <th
                               key={role}
-                              className="px-2 py-2 text-center text-xs uppercase tracking-wider text-subtle font-medium"
+                              className="px-2 py-2 text-center text-xs uppercase tracking-wider text-gray-500 font-medium"
                             >
                               {ROLE_LABELS[role]}
                             </th>
@@ -88,9 +88,9 @@ export default async function SettingsRolesPage() {
                       </thead>
                       <tbody>
                         {actions.map((action) => (
-                          <tr key={action} className="border-b border-border last:border-0">
-                            <td className="px-2 py-2 text-ink">
-                              <span className="font-mono text-xs text-muted mr-2">{action}</span>
+                          <tr key={action} className="border-b border-gray-200 last:border-0">
+                            <td className="px-2 py-2 text-gray-900">
+                              <span className="font-mono text-xs text-gray-700 mr-2">{action}</span>
                               <span>{ACTION_LABELS[action] ?? action}</span>
                             </td>
                             {ROLES.map((role) => {

@@ -16,16 +16,16 @@ type Commitment = {
 };
 
 function formatDue(due: string | null, status: string): { label: string; tone: string } {
-  if (status === 'done') return { label: '完了', tone: 'text-kpi-up' };
-  if (!due) return { label: '期限なし', tone: 'text-subtle' };
+  if (status === 'done') return { label: '完了', tone: 'text-emerald-700' };
+  if (!due) return { label: '期限なし', tone: 'text-gray-500' };
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   const dueDate = new Date(due);
   const diffDays = Math.round((dueDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
-  if (diffDays < 0) return { label: `期限超過 ${Math.abs(diffDays)}日`, tone: 'text-kpi-down' };
+  if (diffDays < 0) return { label: `期限超過 ${Math.abs(diffDays)}日`, tone: 'text-red-700' };
   if (diffDays === 0) return { label: '今日まで', tone: 'text-amber-700' };
   if (diffDays <= 3) return { label: `あと${diffDays}日`, tone: 'text-amber-700' };
-  return { label: `${due}`, tone: 'text-muted' };
+  return { label: `${due}`, tone: 'text-gray-700' };
 }
 
 export function CommitmentItem({
@@ -67,7 +67,7 @@ export function CommitmentItem({
   return (
     <li
       className={`flex items-start gap-3 border-l-2 pl-3 py-1 ${
-        isDone ? 'border-border opacity-60' : 'border-amber-300'
+        isDone ? 'border-gray-200 opacity-60' : 'border-amber-300'
       }`}
     >
       {!isDone && (
@@ -75,15 +75,15 @@ export function CommitmentItem({
           type="button"
           onClick={handleComplete}
           disabled={pending}
-          className="mt-0.5 w-5 h-5 rounded-full border-2 border-border hover:border-ink transition-colors disabled:opacity-50"
+          className="mt-0.5 w-5 h-5 rounded-full border-2 border-gray-200 hover:border-gray-900 transition-colors disabled:opacity-50"
           aria-label="完了にする"
         />
       )}
       {isDone && (
-        <span className="mt-0.5 w-5 h-5 rounded-full bg-kpi-up text-card flex items-center justify-center text-xs">✓</span>
+        <span className="mt-0.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">✓</span>
       )}
       <div className="flex-1 min-w-0">
-        <p className={`text-sm ${isDone ? 'line-through text-muted' : 'text-ink'}`}>
+        <p className={`text-sm ${isDone ? 'line-through text-gray-700' : 'text-gray-900'}`}>
           {commitment.text}
         </p>
         <div className="flex items-center gap-3 mt-0.5">
@@ -91,7 +91,7 @@ export function CommitmentItem({
           {commitment.deal_id && (
             <Link
               href={`/deals/${commitment.deal_id}`}
-              className="text-xs text-muted hover:text-ink underline"
+              className="text-xs text-gray-700 hover:text-gray-900 underline"
             >
               関連案件
             </Link>
@@ -102,7 +102,7 @@ export function CommitmentItem({
         type="button"
         onClick={handleDelete}
         disabled={pending}
-        className="text-xs text-muted hover:text-kpi-down disabled:opacity-50"
+        className="text-xs text-gray-700 hover:text-red-700 disabled:opacity-50"
         aria-label="削除"
       >
         ✕

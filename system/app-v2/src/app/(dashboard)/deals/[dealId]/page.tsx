@@ -139,12 +139,12 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
   };
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/deals" className="text-muted hover:text-ink text-sm">
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/deals" className="text-gray-700 hover:text-gray-900 text-sm">
           ← 案件一覧
         </Link>
-        <h1 className="text-lg font-semibold text-ink truncate flex-1">{deal.title}</h1>
+        <h1 className="text-lg font-semibold text-gray-900 truncate flex-1">{deal.title}</h1>
         <span
           className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-lg ${stageBadge}`}
         >

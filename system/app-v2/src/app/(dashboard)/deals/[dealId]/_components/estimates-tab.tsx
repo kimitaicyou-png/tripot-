@@ -30,9 +30,9 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
 
   return (
     <div className="space-y-6">
-      <section className="bg-card border border-border rounded-xl p-6">
-        <h3 className="text-sm font-medium text-ink mb-1">見積を作成</h3>
-        <p className="text-xs text-subtle mb-4">
+      <section className="bg-white border border-gray-200 rounded-xl p-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-1">見積を作成</h3>
+        <p className="text-xs text-gray-500 mb-4">
           明細・数量・単価を入力 → 自動で小計・消費税(10%)・合計を計算 → ステータスで送付/受諾を管理
         </p>
         <EstimateEditorButton dealId={dealId} />
@@ -40,8 +40,8 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
 
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm uppercase tracking-widest text-subtle">
-            見積 <span className="font-mono text-ink">{items.length}件</span>
+          <h3 className="text-sm uppercase tracking-widest text-gray-500">
+            見積 <span className="font-mono text-gray-900">{items.length}件</span>
           </h3>
         </div>
 
@@ -57,11 +57,11 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
               const lines = (e.line_items ?? []) as LineItem[];
               const status = e.status as 'draft' | 'sent' | 'accepted' | 'declined';
               return (
-                <li key={e.id} className="bg-card border border-border rounded-xl p-5 space-y-4">
+                <li key={e.id} className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <p className="text-sm text-ink font-medium">{e.title}</p>
-                      <p className="text-xs font-mono text-subtle mt-0.5">
+                      <p className="text-sm text-gray-900 font-medium">{e.title}</p>
+                      <p className="text-xs font-mono text-gray-500 mt-0.5">
                         v{e.version} · {new Date(e.created_at).toLocaleString('ja-JP')}
                       </p>
                     </div>
@@ -72,7 +72,7 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
 
                   {lines.length > 0 && (
                     <details className="group">
-                      <summary className="text-xs text-muted cursor-pointer hover:text-ink list-none">
+                      <summary className="text-xs text-gray-700 cursor-pointer hover:text-gray-900 list-none">
                         <span className="inline-block group-open:hidden">
                           ▶ 明細 {lines.length} 行を表示
                         </span>
@@ -80,7 +80,7 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
                       </summary>
                       <table className="mt-3 w-full text-sm">
                         <thead>
-                          <tr className="text-left text-xs uppercase tracking-wider text-subtle">
+                          <tr className="text-left text-xs uppercase tracking-wider text-gray-500">
                             <th className="py-2">品目</th>
                             <th className="py-2 text-right">数量</th>
                             <th className="py-2 text-right">単価</th>
@@ -89,15 +89,15 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
                         </thead>
                         <tbody>
                           {lines.map((l, i) => (
-                            <tr key={i} className="border-t border-border">
-                              <td className="py-2 text-ink">{l.description}</td>
-                              <td className="py-2 text-right font-mono tabular-nums text-muted">
+                            <tr key={i} className="border-t border-gray-200">
+                              <td className="py-2 text-gray-900">{l.description}</td>
+                              <td className="py-2 text-right font-mono tabular-nums text-gray-700">
                                 {l.quantity}
                               </td>
-                              <td className="py-2 text-right font-mono tabular-nums text-muted">
+                              <td className="py-2 text-right font-mono tabular-nums text-gray-700">
                                 {formatYen(l.unit_price)}
                               </td>
-                              <td className="py-2 text-right font-mono tabular-nums text-ink">
+                              <td className="py-2 text-right font-mono tabular-nums text-gray-900">
                                 {formatYen(l.amount)}
                               </td>
                             </tr>
@@ -109,26 +109,26 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
 
                   <div className="grid grid-cols-3 gap-3 text-sm">
                     <div>
-                      <p className="text-xs text-subtle">小計</p>
-                      <p className="font-mono tabular-nums text-ink">{formatYen(e.subtotal)}</p>
+                      <p className="text-xs text-gray-500">小計</p>
+                      <p className="font-mono tabular-nums text-gray-900">{formatYen(e.subtotal)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-subtle">税</p>
-                      <p className="font-mono tabular-nums text-ink">{formatYen(e.tax)}</p>
+                      <p className="text-xs text-gray-500">税</p>
+                      <p className="font-mono tabular-nums text-gray-900">{formatYen(e.tax)}</p>
                     </div>
                     <div>
-                      <p className="text-xs text-subtle">合計</p>
-                      <p className="font-mono tabular-nums text-ink font-medium">
+                      <p className="text-xs text-gray-500">合計</p>
+                      <p className="font-mono tabular-nums text-gray-900 font-medium">
                         {formatYen(e.total)}
                       </p>
                     </div>
                   </div>
 
                   {e.valid_until && (
-                    <p className="text-xs text-subtle">有効期限 · {e.valid_until}</p>
+                    <p className="text-xs text-gray-500">有効期限 · {e.valid_until}</p>
                   )}
 
-                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-border">
+                  <div className="flex flex-wrap items-center justify-between gap-3 pt-2 border-t border-gray-200">
                     <EstimateStatusActions
                       estimateId={e.id}
                       dealId={dealId}

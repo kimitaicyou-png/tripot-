@@ -34,11 +34,11 @@ export function BudgetAlertButton() {
         type="button"
         onClick={handleClick}
         disabled={pending}
-        className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink disabled:opacity-40 transition-colors"
+        className="px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 disabled:opacity-40 transition-colors"
       >
         {pending ? '評価中...' : '🔔 アラート再評価'}
       </button>
-      {message && <span className="text-xs text-subtle">{message}</span>}
+      {message && <span className="text-xs text-gray-500">{message}</span>}
     </div>
   );
 }

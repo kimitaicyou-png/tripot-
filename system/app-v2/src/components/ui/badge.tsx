@@ -1,8 +1,8 @@
 type BadgeTone = 'default' | 'up' | 'down' | 'accent' | 'info' | 'neutral';
 
 const toneClass: Record<BadgeTone, string> = {
-  default: 'bg-slate-100 text-ink',
-  neutral: 'bg-slate-100 text-muted',
+  default: 'bg-slate-100 text-gray-900',
+  neutral: 'bg-slate-100 text-gray-700',
   up: 'bg-green-50 text-green-700 border border-green-200',
   down: 'bg-red-50 text-red-700 border border-red-200',
   accent: 'bg-amber-50 text-amber-700 border border-amber-200',

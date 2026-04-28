@@ -48,28 +48,28 @@ export default async function SettingsAuditPage({
   ]);
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="text-muted hover:text-ink text-sm">← ホーム</Link>
-        <h1 className="text-lg font-semibold text-ink">監査ログ</h1>
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
+        <Link href="/" className="text-gray-700 hover:text-gray-900 text-sm">← ホーム</Link>
+        <h1 className="text-lg font-semibold text-gray-900">監査ログ</h1>
       </header>
 
       <div className="px-6 py-8 max-w-5xl mx-auto space-y-6">
-        <p className="text-sm text-muted">
+        <p className="text-sm text-gray-700">
           全 Server Action / sign_in / sign_out / 設定変更の履歴。
           会社単位で記録、改ざん不可（INSERT only）。
         </p>
 
         <form
           action="/settings/audit"
-          className="bg-card border border-border rounded-xl p-5 grid grid-cols-1 md:grid-cols-5 gap-3 text-sm"
+          className="bg-white border border-gray-200 rounded-xl p-5 grid grid-cols-1 md:grid-cols-5 gap-3 text-sm"
         >
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted">担当</span>
+            <span className="text-xs text-gray-700">担当</span>
             <select
               name="member_id"
               defaultValue={sp.member_id ?? ''}
-              className="px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg"
+              className="px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg"
             >
               <option value="">すべて</option>
               {memberOptions.map((m) => (
@@ -78,60 +78,60 @@ export default async function SettingsAuditPage({
             </select>
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted">アクション接頭辞</span>
+            <span className="text-xs text-gray-700">アクション接頭辞</span>
             <input
               name="action_prefix"
               defaultValue={sp.action_prefix ?? ''}
               placeholder="例: deal.create / approval"
-              className="px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg font-mono"
+              className="px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg font-mono"
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted">リソース種別</span>
+            <span className="text-xs text-gray-700">リソース種別</span>
             <input
               name="resource_type"
               defaultValue={sp.resource_type ?? ''}
               placeholder="deal / customer / etc"
-              className="px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg font-mono"
+              className="px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg font-mono"
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted">From</span>
+            <span className="text-xs text-gray-700">From</span>
             <input
               type="date"
               name="from"
               defaultValue={sp.from ?? ''}
-              className="px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg"
+              className="px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg"
             />
           </label>
           <label className="flex flex-col gap-1">
-            <span className="text-xs text-muted">To</span>
+            <span className="text-xs text-gray-700">To</span>
             <input
               type="date"
               name="to"
               defaultValue={sp.to ?? ''}
-              className="px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg"
+              className="px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg"
             />
           </label>
           <div className="md:col-span-5 flex justify-end gap-2">
             <Link
               href="/settings/audit"
-              className="px-3 py-1.5 text-xs text-muted hover:text-ink"
+              className="px-3 py-1.5 text-xs text-gray-700 hover:text-gray-900"
             >
               リセット
             </Link>
             <button
               type="submit"
-              className="px-4 py-2 text-sm bg-ink text-card font-medium rounded-lg hover:bg-ink-mid"
+              className="px-4 py-2 text-sm bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-700"
             >
               絞り込む
             </button>
           </div>
         </form>
 
-        <div className="flex items-center justify-between text-sm text-muted">
+        <div className="flex items-center justify-between text-sm text-gray-700">
           <span>
-            該当 <span className="font-mono text-ink">{total.toLocaleString('ja-JP')}</span> 件 / 表示 <span className="font-mono text-ink">{rows.length}</span> 件
+            該当 <span className="font-mono text-gray-900">{total.toLocaleString('ja-JP')}</span> 件 / 表示 <span className="font-mono text-gray-900">{rows.length}</span> 件
           </span>
         </div>
 
@@ -146,19 +146,19 @@ export default async function SettingsAuditPage({
             {rows.map((r) => (
               <li
                 key={r.id}
-                className="bg-card border border-border rounded-lg px-4 py-3 grid grid-cols-12 gap-3 items-center text-sm"
+                className="bg-white border border-gray-200 rounded-lg px-4 py-3 grid grid-cols-12 gap-3 items-center text-sm"
               >
-                <span className="col-span-3 font-mono text-xs text-subtle">
+                <span className="col-span-3 font-mono text-xs text-gray-500">
                   {new Date(r.occurred_at).toLocaleString('ja-JP')}
                 </span>
-                <span className="col-span-2 text-ink truncate">{r.member_name ?? '—'}</span>
+                <span className="col-span-2 text-gray-900 truncate">{r.member_name ?? '—'}</span>
                 <span className="col-span-3">
                   <Badge tone={actionTone(r.action)}>{r.action}</Badge>
                 </span>
-                <span className="col-span-2 font-mono text-xs text-muted truncate">
+                <span className="col-span-2 font-mono text-xs text-gray-700 truncate">
                   {r.resource_type ?? '—'}
                 </span>
-                <span className="col-span-2 font-mono text-xs text-subtle truncate">
+                <span className="col-span-2 font-mono text-xs text-gray-500 truncate">
                   {r.resource_id ? r.resource_id.slice(0, 8) : '—'}
                 </span>
               </li>

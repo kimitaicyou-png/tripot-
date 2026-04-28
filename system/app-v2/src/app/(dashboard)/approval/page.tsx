@@ -68,14 +68,14 @@ export default async function ApprovalPage() {
   const decided = rows.filter((a) => a.status !== 'pending');
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="APPROVALS"
         title="承認"
         subtitle={
           <>
             承認待ち <span className="font-mono tabular-nums text-amber-700">{pendingCount}</span> ／ 全
-            <span className="font-mono tabular-nums text-ink"> {rows.length}</span> 件
+            <span className="font-mono tabular-nums text-gray-900"> {rows.length}</span> 件
           </>
         }
       />
@@ -110,7 +110,7 @@ export default async function ApprovalPage() {
                   title="あなたの承認が必要"
                   count={pendingForMe.length}
                 />
-                <div className="bg-card border border-border rounded-xl divide-y divide-border">
+                <div className="bg-white border border-gray-200 rounded-xl divide-y divide-border">
                   {pendingForMe.map((a) => (
                     <div
                       key={a.id}
@@ -121,13 +121,13 @@ export default async function ApprovalPage() {
                       >
                         {STATUS_LABEL[a.status]}
                       </span>
-                      <span className="text-xs text-muted shrink-0 w-16">
+                      <span className="text-xs text-gray-700 shrink-0 w-16">
                         {TYPE_LABEL[a.type] ?? a.type}
                       </span>
-                      <span className="flex-1 text-sm text-ink truncate">
+                      <span className="flex-1 text-sm text-gray-900 truncate">
                         {a.deal_title ?? '—'}
                       </span>
-                      <span className="text-xs text-muted shrink-0 hidden md:inline">
+                      <span className="text-xs text-gray-700 shrink-0 hidden md:inline">
                         申請: {a.requester_name ?? '—'}
                       </span>
                       <DecideButtons approvalId={a.id} />
@@ -144,7 +144,7 @@ export default async function ApprovalPage() {
                   title="自分の申請（承認待ち）"
                   count={myPending.length}
                 />
-                <div className="bg-card border border-border rounded-xl divide-y divide-border">
+                <div className="bg-white border border-gray-200 rounded-xl divide-y divide-border">
                   {myPending.map((a) => (
                     <div key={a.id} className="px-5 py-4 flex items-center gap-4">
                       <span
@@ -152,10 +152,10 @@ export default async function ApprovalPage() {
                       >
                         {STATUS_LABEL[a.status]}
                       </span>
-                      <span className="text-xs text-muted shrink-0 w-16">
+                      <span className="text-xs text-gray-700 shrink-0 w-16">
                         {TYPE_LABEL[a.type] ?? a.type}
                       </span>
-                      <span className="flex-1 text-sm text-ink truncate">
+                      <span className="flex-1 text-sm text-gray-900 truncate">
                         {a.deal_title ?? '—'}
                       </span>
                     </div>
@@ -167,7 +167,7 @@ export default async function ApprovalPage() {
             {decided.length > 0 && (
               <section>
                 <SectionHeading eyebrow="HISTORY" title="決定済み" count={decided.length} />
-                <div className="bg-card border border-border rounded-xl divide-y divide-border">
+                <div className="bg-white border border-gray-200 rounded-xl divide-y divide-border">
                   {decided.map((a) => (
                     <div key={a.id} className="px-5 py-4 flex items-center gap-4 opacity-80">
                       <span
@@ -175,13 +175,13 @@ export default async function ApprovalPage() {
                       >
                         {STATUS_LABEL[a.status]}
                       </span>
-                      <span className="text-xs text-muted shrink-0 w-16">
+                      <span className="text-xs text-gray-700 shrink-0 w-16">
                         {TYPE_LABEL[a.type] ?? a.type}
                       </span>
-                      <span className="flex-1 text-sm text-ink truncate">
+                      <span className="flex-1 text-sm text-gray-900 truncate">
                         {a.deal_title ?? '—'}
                       </span>
-                      <span className="text-xs text-muted shrink-0 hidden md:inline">
+                      <span className="text-xs text-gray-700 shrink-0 hidden md:inline">
                         承認: {a.approver_name ?? '—'}
                       </span>
                     </div>

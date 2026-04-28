@@ -98,15 +98,15 @@ export default async function ProductionCardDetailPage({
       : 0;
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="PRODUCTION CARD"
         title={card.title}
         subtitle={
           <span className="flex items-center gap-3 flex-wrap">
-            <span className="text-xs uppercase tracking-widest text-subtle">{STATUS_LABEL[card.status] ?? card.status}</span>
+            <span className="text-xs uppercase tracking-widest text-gray-500">{STATUS_LABEL[card.status] ?? card.status}</span>
             {card.deal_id && card.deal_title && (
-              <Link href={`/deals/${card.deal_id}`} className="text-xs text-muted hover:text-ink">
+              <Link href={`/deals/${card.deal_id}`} className="text-xs text-gray-700 hover:text-gray-900">
                 ↗ {card.deal_title}
               </Link>
             )}
@@ -239,17 +239,17 @@ export default async function ProductionCardDetailPage({
               {deliverableList.map((d) => (
                 <li
                   key={d.id}
-                  className="bg-card border border-border rounded-lg p-4 flex items-start justify-between gap-3"
+                  className="bg-white border border-gray-200 rounded-lg p-4 flex items-start justify-between gap-3"
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-baseline gap-2 flex-wrap">
-                      <p className="text-base font-medium text-ink">{d.name}</p>
-                      <span className="text-xs uppercase tracking-widest text-subtle">v{d.version}</span>
+                      <p className="text-base font-medium text-gray-900">{d.name}</p>
+                      <span className="text-xs uppercase tracking-widest text-gray-500">v{d.version}</span>
                     </div>
                     {d.note && (
-                      <p className="text-sm text-muted whitespace-pre-wrap mt-1">{d.note}</p>
+                      <p className="text-sm text-gray-700 whitespace-pre-wrap mt-1">{d.note}</p>
                     )}
-                    <p className="text-xs text-subtle font-mono tabular-nums mt-1">
+                    <p className="text-xs text-gray-500 font-mono tabular-nums mt-1">
                       {new Date(d.created_at).toLocaleString('ja-JP')}
                       {d.delivered_at && ` · 納品 ${new Date(d.delivered_at).toLocaleString('ja-JP')}`}
                     </p>
@@ -259,7 +259,7 @@ export default async function ProductionCardDetailPage({
                       href={d.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors shrink-0"
+                      className="px-3 py-1 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors shrink-0"
                     >
                       ↗ ファイル
                     </a>
@@ -356,10 +356,10 @@ export default async function ProductionCardDetailPage({
               {changeLogs.map((l) => (
                 <li
                   key={l.id}
-                  className="px-4 py-2 bg-card border border-border rounded text-sm flex items-baseline justify-between gap-3"
+                  className="px-4 py-2 bg-white border border-gray-200 rounded text-sm flex items-baseline justify-between gap-3"
                 >
-                  <span className="text-ink">{l.summary}</span>
-                  <span className="font-mono tabular-nums text-xs text-subtle shrink-0">
+                  <span className="text-gray-900">{l.summary}</span>
+                  <span className="font-mono tabular-nums text-xs text-gray-500 shrink-0">
                     {new Date(l.occurred_at).toLocaleString('ja-JP')}
                   </span>
                 </li>
@@ -374,7 +374,7 @@ export default async function ProductionCardDetailPage({
           return (
             <section>
               <SectionHeading eyebrow="REQUIREMENTS" title="要件メタ" />
-              <pre className="bg-card border border-border rounded-lg p-4 text-xs font-mono text-ink overflow-x-auto">
+              <pre className="bg-white border border-gray-200 rounded-lg p-4 text-xs font-mono text-gray-900 overflow-x-auto">
                 {JSON.stringify(req, null, 2)}
               </pre>
             </section>

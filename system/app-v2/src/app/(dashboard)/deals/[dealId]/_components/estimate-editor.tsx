@@ -143,7 +143,7 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-widest text-subtle mb-2">明細</p>
+            <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">明細</p>
             <div className="space-y-2">
               {lines.map((line, idx) => (
                 <div
@@ -155,7 +155,7 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
                     value={line.description}
                     onChange={(e) => updateLine(idx, { description: e.target.value })}
                     placeholder="品目・サービス内容"
-                    className="col-span-6 px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/20"
+                    className="col-span-6 px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
                   />
                   <input
                     type="number"
@@ -164,7 +164,7 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
                     value={line.quantity}
                     onChange={(e) => updateLine(idx, { quantity: Number(e.target.value) || 0 })}
                     placeholder="数量"
-                    className="col-span-2 px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/20 tabular-nums"
+                    className="col-span-2 px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20 tabular-nums"
                   />
                   <input
                     type="number"
@@ -173,16 +173,16 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
                     value={line.unit_price}
                     onChange={(e) => updateLine(idx, { unit_price: Number(e.target.value) || 0 })}
                     placeholder="単価"
-                    className="col-span-2 px-3 py-2 text-sm text-ink bg-card border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-ink/20 tabular-nums"
+                    className="col-span-2 px-3 py-2 text-sm text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20 tabular-nums"
                   />
-                  <p className="col-span-1 px-2 py-2 text-sm text-ink font-mono tabular-nums text-right">
+                  <p className="col-span-1 px-2 py-2 text-sm text-gray-900 font-mono tabular-nums text-right">
                     {line.amount.toLocaleString('ja-JP')}
                   </p>
                   <button
                     type="button"
                     onClick={() => removeLine(idx)}
                     disabled={lines.length === 1}
-                    className="col-span-1 px-2 py-2 text-muted hover:text-kpi-down disabled:opacity-30 text-sm"
+                    className="col-span-1 px-2 py-2 text-gray-700 hover:text-red-700 disabled:opacity-30 text-sm"
                     aria-label={`${idx + 1}行目を削除`}
                   >
                     ✕
@@ -193,24 +193,24 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
             <button
               type="button"
               onClick={addLine}
-              className="mt-3 text-sm text-muted hover:text-ink"
+              className="mt-3 text-sm text-gray-700 hover:text-gray-900"
             >
               + 行を追加
             </button>
           </div>
 
-          <div className="border-t border-border pt-4 space-y-1.5 text-sm">
+          <div className="border-t border-gray-200 pt-4 space-y-1.5 text-sm">
             <div className="flex justify-between">
-              <span className="text-muted">小計</span>
-              <span className="font-mono tabular-nums text-ink">¥{subtotal.toLocaleString('ja-JP')}</span>
+              <span className="text-gray-700">小計</span>
+              <span className="font-mono tabular-nums text-gray-900">¥{subtotal.toLocaleString('ja-JP')}</span>
             </div>
             <div className="flex justify-between">
-              <span className="text-muted">消費税 (10%)</span>
-              <span className="font-mono tabular-nums text-ink">¥{tax.toLocaleString('ja-JP')}</span>
+              <span className="text-gray-700">消費税 (10%)</span>
+              <span className="font-mono tabular-nums text-gray-900">¥{tax.toLocaleString('ja-JP')}</span>
             </div>
             <div className="flex justify-between text-base font-medium">
-              <span className="text-ink">合計</span>
-              <span className="font-mono tabular-nums text-ink">¥{total.toLocaleString('ja-JP')}</span>
+              <span className="text-gray-900">合計</span>
+              <span className="font-mono tabular-nums text-gray-900">¥{total.toLocaleString('ja-JP')}</span>
             </div>
           </div>
         </DialogBody>

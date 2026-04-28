@@ -72,7 +72,7 @@ export function LostDealForm({
       </FormField>
 
       {state.errors?._form && (
-        <p className="text-xs text-kpi-down">{state.errors._form.join(' / ')}</p>
+        <p className="text-xs text-red-700">{state.errors._form.join(' / ')}</p>
       )}
 
       <FormActions>

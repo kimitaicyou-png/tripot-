@@ -8,10 +8,10 @@ export async function CommitmentsSection({ memberId }: { memberId: string }) {
   const done = items.filter((c) => c.status === 'done').slice(0, 5);
 
   return (
-    <section className="bg-card border border-border rounded-xl p-6 space-y-4">
+    <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-4">
       <div>
-        <p className="text-xs uppercase tracking-widest text-subtle">コミットメント</p>
-        <p className="text-sm text-muted mt-1">
+        <p className="text-xs uppercase tracking-widest text-gray-500">コミットメント</p>
+        <p className="text-sm text-gray-700 mt-1">
           「来週までに○○する」を自分で記録 → 達成したらチェック
         </p>
       </div>
@@ -20,8 +20,8 @@ export async function CommitmentsSection({ memberId }: { memberId: string }) {
 
       {open.length > 0 && (
         <div>
-          <p className="text-xs uppercase tracking-widest text-subtle mb-2">
-            進行中 <span className="font-mono text-ink">{open.length}</span>
+          <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
+            進行中 <span className="font-mono text-gray-900">{open.length}</span>
           </p>
           <ul className="space-y-2">
             {open.map((c) => (
@@ -33,7 +33,7 @@ export async function CommitmentsSection({ memberId }: { memberId: string }) {
 
       {done.length > 0 && (
         <details className="group">
-          <summary className="text-xs text-muted cursor-pointer hover:text-ink list-none">
+          <summary className="text-xs text-gray-700 cursor-pointer hover:text-gray-900 list-none">
             <span className="inline-block group-open:hidden">▶ 完了済 {done.length} 件を表示</span>
             <span className="hidden group-open:inline-block">▼ 完了済を折りたたむ</span>
           </summary>

@@ -89,20 +89,20 @@ export default async function DealsListPage() {
   })).filter((g) => g.items.length > 0);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="DEALS"
         title="案件"
         subtitle={
           <>
-            <span className="font-mono tabular-nums text-ink">{rows.length}</span> 件 ／ 進行中{' '}
-            <span className="font-mono tabular-nums text-ink">{totalActive}</span>
+            <span className="font-mono tabular-nums text-gray-900">{rows.length}</span> 件 ／ 進行中{' '}
+            <span className="font-mono tabular-nums text-gray-900">{totalActive}</span>
           </>
         }
         actions={
           <Link
             href="/deals/new"
-            className="px-4 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98]"
+            className="px-4 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors active:scale-[0.98]"
           >
             新規登録
           </Link>
@@ -132,7 +132,7 @@ export default async function DealsListPage() {
                   title={STAGE_LABEL[g.stage] ?? g.stage}
                   count={g.items.length}
                 />
-                <div className="bg-card border border-border rounded-xl divide-y divide-border">
+                <div className="bg-white border border-gray-200 rounded-xl divide-y divide-border">
                   {g.items.map((d) => (
                     <Link
                       key={d.id}
@@ -144,17 +144,17 @@ export default async function DealsListPage() {
                       >
                         {STAGE_LABEL[d.stage] ?? d.stage}
                       </span>
-                      <span className="flex-1 text-sm text-ink truncate font-medium">
+                      <span className="flex-1 text-sm text-gray-900 truncate font-medium">
                         {d.title}
                       </span>
-                      <span className="text-xs text-muted shrink-0 hidden md:inline w-32 truncate">
+                      <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-32 truncate">
                         {d.customer_name ?? '—'}
                       </span>
-                      <span className="text-xs text-muted shrink-0 hidden md:inline w-20 truncate">
+                      <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-20 truncate">
                         {d.assignee_name ?? '—'}
                       </span>
                       <span className="text-right shrink-0">
-                        <span className="font-mono tabular-nums text-sm text-ink font-semibold block">
+                        <span className="font-mono tabular-nums text-sm text-gray-900 font-semibold block">
                           {formatYen(d.amount)}
                         </span>
                         {d.revenue_type !== 'spot' && d.monthly_amount ? (

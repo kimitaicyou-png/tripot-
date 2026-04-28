@@ -13,12 +13,12 @@ import { ProductionStatusButton } from './_components/production-status-button';
 import { ProductionCreateForm } from './_components/production-create-form';
 
 const STATUS_GROUPS = [
-  { key: 'requirements', label: '要件定義', tone: 'text-muted' },
+  { key: 'requirements', label: '要件定義', tone: 'text-gray-700' },
   { key: 'designing', label: '設計', tone: 'text-blue-700' },
   { key: 'building', label: '実装', tone: 'text-indigo-700' },
   { key: 'reviewing', label: 'レビュー', tone: 'text-amber-700' },
   { key: 'delivered', label: '納品済', tone: 'text-emerald-700' },
-  { key: 'cancelled', label: 'キャンセル', tone: 'text-subtle' },
+  { key: 'cancelled', label: 'キャンセル', tone: 'text-gray-500' },
 ] as const;
 
 function formatYen(value: number | null): string {
@@ -56,16 +56,16 @@ export default async function ProductionPage() {
   const totalDelivered = cards.filter((c) => c.status === 'delivered').length;
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="PRODUCTION"
         title="制作管理"
         subtitle={
           <>
             進行中{' '}
-            <span className="font-mono tabular-nums text-ink">{totalActive}</span> /
+            <span className="font-mono tabular-nums text-gray-900">{totalActive}</span> /
             納品済{' '}
-            <span className="font-mono tabular-nums text-ink">{totalDelivered}</span>
+            <span className="font-mono tabular-nums text-gray-900">{totalDelivered}</span>
           </>
         }
         actions={<ProductionCreateForm deals={dealsForSelect} />}
@@ -114,20 +114,20 @@ export default async function ProductionPage() {
                   {list.map((c) => (
                     <li
                       key={c.id}
-                      className="bg-card border border-border rounded-lg p-4 space-y-3"
+                      className="bg-white border border-gray-200 rounded-lg p-4 space-y-3"
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <Link
                             href={`/production/${c.id}`}
-                            className="text-base font-medium text-ink truncate block hover:underline"
+                            className="text-base font-medium text-gray-900 truncate block hover:underline"
                           >
                             {c.title}
                           </Link>
                           {c.deal_id && c.deal_title && (
                             <Link
                               href={`/deals/${c.deal_id}`}
-                              className="text-xs text-muted hover:text-ink truncate block"
+                              className="text-xs text-gray-700 hover:text-gray-900 truncate block"
                             >
                               ↗ {c.deal_title}
                             </Link>
@@ -140,17 +140,17 @@ export default async function ProductionPage() {
 
                       <div className="flex items-baseline gap-3 text-xs">
                         {c.estimated_cost && c.estimated_cost > 0 ? (
-                          <span className="text-subtle">
-                            見積 <span className="font-mono tabular-nums text-ink">{formatYen(c.estimated_cost)}</span>
+                          <span className="text-gray-500">
+                            見積 <span className="font-mono tabular-nums text-gray-900">{formatYen(c.estimated_cost)}</span>
                           </span>
                         ) : null}
                         {c.actual_cost && c.actual_cost > 0 ? (
-                          <span className="text-subtle">
-                            実績 <span className="font-mono tabular-nums text-ink">{formatYen(c.actual_cost)}</span>
+                          <span className="text-gray-500">
+                            実績 <span className="font-mono tabular-nums text-gray-900">{formatYen(c.actual_cost)}</span>
                           </span>
                         ) : null}
                         {c.delivered_at && (
-                          <span className="text-subtle font-mono tabular-nums">納品 {c.delivered_at}</span>
+                          <span className="text-gray-500 font-mono tabular-nums">納品 {c.delivered_at}</span>
                         )}
                       </div>
 

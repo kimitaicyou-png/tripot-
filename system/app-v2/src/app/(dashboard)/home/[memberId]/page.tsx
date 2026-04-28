@@ -165,11 +165,11 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
   void monthEnd;
 
   return (
-    <main className="min-h-screen bg-surface">
-      <header className="bg-card border-b border-border px-6 py-4">
+    <main className="min-h-screen bg-gray-50">
+      <header className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="flex items-center justify-between">
-          <p className="text-sm text-muted">{member.name} のホーム</p>
-          <p className="text-xs font-mono text-subtle">
+          <p className="text-sm text-gray-700">{member.name} のホーム</p>
+          <p className="text-xs font-mono text-gray-500">
             {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
           </p>
         </div>
@@ -177,24 +177,24 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
 
       <div className="px-6 py-8 max-w-5xl mx-auto pb-32 md:pb-12">
         <section>
-          <p className="text-sm text-muted">あなたの売上（入金確定）</p>
-          <h1 className="font-semibold text-6xl md:text-8xl text-ink tracking-tight tabular-nums mt-2">
+          <p className="text-sm text-gray-700">あなたの売上（入金確定）</p>
+          <h1 className="font-semibold text-6xl md:text-8xl text-gray-900 tracking-tight tabular-nums mt-2">
             {formatYen(dealStats?.revenue ?? 0)}
           </h1>
         </section>
 
         {quote ? (
-          <section className="mt-12 border-l-2 border-ink pl-6 py-2">
-            <p className="font-semibold text-2xl text-ink-mid leading-relaxed">{quote.body}</p>
+          <section className="mt-12 border-l-2 border-gray-900 pl-6 py-2">
+            <p className="font-semibold text-2xl text-gray-700 leading-relaxed">{quote.body}</p>
             {quote.author && (
-              <p className="text-xs text-subtle mt-2">— {quote.author}</p>
+              <p className="text-xs text-gray-500 mt-2">— {quote.author}</p>
             )}
           </section>
         ) : (
-          <section className="mt-12 border-l-2 border-border pl-6 py-2">
-            <p className="text-sm text-muted">
+          <section className="mt-12 border-l-2 border-gray-200 pl-6 py-2">
+            <p className="text-sm text-gray-700">
               名言が未登録です。
-              <a href="/settings/quotes" className="text-ink underline ml-1">
+              <a href="/settings/quotes" className="text-gray-900 underline ml-1">
                 設定 → 名言
               </a>{' '}
               から「初期データ投入」を実行してください
@@ -207,21 +207,21 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
         </div>
 
         <section className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
-          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
-            <p className="text-xs text-subtle">進行中の案件</p>
-            <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{dealStats?.activeCount ?? 0}</p>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <p className="text-xs text-gray-500">進行中の案件</p>
+            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{dealStats?.activeCount ?? 0}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
-            <p className="text-xs text-subtle">残タスク</p>
-            <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{taskCount}</p>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <p className="text-xs text-gray-500">残タスク</p>
+            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{taskCount}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
-            <p className="text-xs text-subtle">今週の電話</p>
-            <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{actionStats?.calls ?? 0}</p>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <p className="text-xs text-gray-500">今週の電話</p>
+            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{actionStats?.calls ?? 0}</p>
           </div>
-          <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
-            <p className="text-xs text-subtle">今週の商談</p>
-            <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{actionStats?.meetings ?? 0}</p>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+            <p className="text-xs text-gray-500">今週の商談</p>
+            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{actionStats?.meetings ?? 0}</p>
           </div>
         </section>
 
@@ -239,24 +239,24 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
           <CommitmentsSection memberId={memberId} />
         </div>
 
-        <section className="mt-8 bg-card border border-border rounded-xl p-5 shadow-sm">
-          <p className="text-sm font-medium text-ink mb-3">今週の行動量（直近7日）</p>
+        <section className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
+          <p className="text-sm font-medium text-gray-900 mb-3">今週の行動量（直近7日）</p>
           <div className="flex items-end gap-3">
             <div className="flex-1">
-              <p className="text-xs text-subtle">合計</p>
-              <p className="font-semibold text-3xl text-ink tabular-nums">{actionStats?.total ?? 0}</p>
+              <p className="text-xs text-gray-500">合計</p>
+              <p className="font-semibold text-3xl text-gray-900 tabular-nums">{actionStats?.total ?? 0}</p>
             </div>
             <div className="flex-1">
-              <p className="text-xs text-subtle">電話</p>
-              <p className="font-mono tabular-nums text-xl text-ink">{actionStats?.calls ?? 0}</p>
+              <p className="text-xs text-gray-500">電話</p>
+              <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.calls ?? 0}</p>
             </div>
             <div className="flex-1">
-              <p className="text-xs text-subtle">商談</p>
-              <p className="font-mono tabular-nums text-xl text-ink">{actionStats?.meetings ?? 0}</p>
+              <p className="text-xs text-gray-500">商談</p>
+              <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.meetings ?? 0}</p>
             </div>
             <div className="flex-1">
-              <p className="text-xs text-subtle">提案</p>
-              <p className="font-mono tabular-nums text-xl text-ink">{actionStats?.proposals ?? 0}</p>
+              <p className="text-xs text-gray-500">提案</p>
+              <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.proposals ?? 0}</p>
             </div>
           </div>
         </section>

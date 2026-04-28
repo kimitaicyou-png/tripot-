@@ -201,20 +201,20 @@ export default async function WeeklyPlPage({
   const hasJournalData = thisCogs > 0 || thisSga > 0 || lastCogs > 0 || lastSga > 0;
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="WEEKLY · PL"
         title="週次PL（損益）"
         subtitle={
           <>
-            <span className="font-mono tabular-nums text-ink">{isoDate(thisWeekStart)}</span> 〜{' '}
-            <span className="font-mono tabular-nums text-ink">{isoDate(thisWeekEnd)}</span>
+            <span className="font-mono tabular-nums text-gray-900">{isoDate(thisWeekStart)}</span> 〜{' '}
+            <span className="font-mono tabular-nums text-gray-900">{isoDate(thisWeekEnd)}</span>
           </>
         }
         actions={
           <Link
             href={presentation ? '/weekly/pl' : '/weekly/pl?focus=presentation'}
-            className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+            className="px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
           >
             {presentation ? '通常表示' : '大画面モード'}
           </Link>
@@ -278,27 +278,27 @@ export default async function WeeklyPlPage({
             title="6週間トレンド"
             count={trendData.length}
           />
-          <div className="bg-card border border-border rounded-xl p-6">
+          <div className="bg-white border border-gray-200 rounded-xl p-6">
             <div className="grid grid-cols-6 gap-3">
               {trendData.map((r, i) => {
                 const op = r.op;
                 const opLabel = op >= 0 ? `+${(op / 10000).toFixed(0)}` : `${(op / 10000).toFixed(0)}`;
                 return (
                   <div key={i} className="text-center">
-                    <p className="text-xs font-mono tabular-nums text-subtle">{r.week}</p>
+                    <p className="text-xs font-mono tabular-nums text-gray-500">{r.week}</p>
                     <p
                       className={`font-semibold text-2xl tabular-nums mt-1 ${
-                        op > 0 ? 'text-kpi-up' : op < 0 ? 'text-kpi-down' : 'text-ink'
+                        op > 0 ? 'text-emerald-700' : op < 0 ? 'text-red-700' : 'text-gray-900'
                       }`}
                     >
                       {opLabel}
                     </p>
-                    <p className="text-xs text-subtle">万円</p>
+                    <p className="text-xs text-gray-500">万円</p>
                   </div>
                 );
               })}
             </div>
-            <p className="text-xs text-subtle mt-4 text-center">数値は営業利益（万円）</p>
+            <p className="text-xs text-gray-500 mt-4 text-center">数値は営業利益（万円）</p>
           </div>
         </section>
 
@@ -315,18 +315,18 @@ export default async function WeeklyPlPage({
               description="time_logs に登録があれば集計されます"
             />
           ) : (
-            <div className="bg-card border border-border rounded-xl p-6 space-y-3">
-              <div className="flex items-baseline gap-3 pb-3 border-b border-border">
-                <p className="text-xs uppercase tracking-widest text-subtle">合計</p>
-                <p className="font-semibold text-3xl text-ink tabular-nums">
+            <div className="bg-white border border-gray-200 rounded-xl p-6 space-y-3">
+              <div className="flex items-baseline gap-3 pb-3 border-b border-gray-200">
+                <p className="text-xs uppercase tracking-widest text-gray-500">合計</p>
+                <p className="font-semibold text-3xl text-gray-900 tabular-nums">
                   {(totalMinutes / 60).toFixed(1)}h
                 </p>
-                <p className="text-xs text-subtle">/ {timeLogRows.length}名</p>
+                <p className="text-xs text-gray-500">/ {timeLogRows.length}名</p>
               </div>
               {timeLogRows.map((r, i) => (
                 <div key={i} className="flex items-baseline gap-3">
-                  <p className="text-sm font-medium text-ink min-w-[6rem]">{r.member_name ?? '（不明）'}</p>
-                  <p className="font-mono tabular-nums text-base text-ink">
+                  <p className="text-sm font-medium text-gray-900 min-w-[6rem]">{r.member_name ?? '（不明）'}</p>
+                  <p className="font-mono tabular-nums text-base text-gray-900">
                     {(r.minutes / 60).toFixed(1)}h
                   </p>
                 </div>

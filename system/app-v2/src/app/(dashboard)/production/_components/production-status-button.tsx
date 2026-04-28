@@ -23,12 +23,12 @@ const STATUS_LABEL: Record<string, string> = {
 };
 
 const TONE: Record<string, string> = {
-  requirements: 'text-muted border-border hover:text-ink hover:border-ink',
+  requirements: 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-900',
   designing: 'text-blue-700 border-blue-200 hover:bg-blue-50',
   building: 'text-indigo-700 border-indigo-200 hover:bg-indigo-50',
   reviewing: 'text-amber-700 border-amber-200 hover:bg-amber-50',
   delivered: 'text-emerald-700 border-emerald-200 hover:bg-emerald-50',
-  cancelled: 'text-muted border-border hover:text-red-700 hover:border-red-700',
+  cancelled: 'text-gray-700 border-gray-200 hover:text-red-700 hover:border-red-700',
 };
 
 export function ProductionStatusButton({
@@ -63,7 +63,7 @@ export function ProductionStatusButton({
           type="button"
           onClick={() => handleClick(s)}
           disabled={pending}
-          className={`px-2 py-0.5 text-xs border rounded transition-colors disabled:opacity-40 ${TONE[s] ?? 'text-muted border-border'}`}
+          className={`px-2 py-0.5 text-xs border rounded transition-colors disabled:opacity-40 ${TONE[s] ?? 'text-gray-700 border-gray-200'}`}
         >
           → {STATUS_LABEL[s] ?? s}
         </button>

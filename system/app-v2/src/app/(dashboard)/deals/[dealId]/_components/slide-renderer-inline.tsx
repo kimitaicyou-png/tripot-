@@ -19,7 +19,7 @@ const TYPE_LABEL: Record<string, string> = {
 export function SlideRendererInline({ slides }: { slides: Slide[] }) {
   return (
     <details className="group">
-      <summary className="text-xs text-muted cursor-pointer hover:text-ink list-none">
+      <summary className="text-xs text-gray-700 cursor-pointer hover:text-gray-900 list-none">
         <span className="inline-block group-open:hidden">▶ スライド {slides.length} 枚を展開</span>
         <span className="hidden group-open:inline-block">▼ スライドを折りたたむ</span>
       </summary>
@@ -27,22 +27,22 @@ export function SlideRendererInline({ slides }: { slides: Slide[] }) {
         {slides.map((s, idx) => (
           <li
             key={s.id ?? idx}
-            className="bg-surface border border-border rounded-lg p-4 space-y-2"
+            className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-2"
           >
             <div className="flex items-baseline justify-between gap-2">
-              <p className="text-sm text-ink font-medium">
-                <span className="text-subtle font-mono mr-2">{String(idx + 1).padStart(2, '0')}</span>
+              <p className="text-sm text-gray-900 font-medium">
+                <span className="text-gray-500 font-mono mr-2">{String(idx + 1).padStart(2, '0')}</span>
                 {s.title}
               </p>
-              <span className="text-xs text-subtle uppercase tracking-widest">
+              <span className="text-xs text-gray-500 uppercase tracking-widest">
                 {TYPE_LABEL[s.type] ?? s.type}
               </span>
             </div>
-            {s.subtitle && <p className="text-sm text-muted">{s.subtitle}</p>}
+            {s.subtitle && <p className="text-sm text-gray-700">{s.subtitle}</p>}
             {s.items && s.items.length > 0 && (
               <ul className="space-y-1">
                 {s.items.map((it, i) => (
-                  <li key={i} className="text-sm text-ink before:content-['・'] before:text-subtle">
+                  <li key={i} className="text-sm text-gray-900 before:content-['・'] before:text-gray-500">
                     {it}
                   </li>
                 ))}
@@ -51,14 +51,14 @@ export function SlideRendererInline({ slides }: { slides: Slide[] }) {
             {s.bullets && s.bullets.length > 0 && (
               <ul className="space-y-1">
                 {s.bullets.map((b, i) => (
-                  <li key={i} className="text-sm text-ink before:content-['・'] before:text-subtle">
+                  <li key={i} className="text-sm text-gray-900 before:content-['・'] before:text-gray-500">
                     {b}
                   </li>
                 ))}
               </ul>
             )}
             {s.message && (
-              <p className="text-sm text-ink border-l-2 border-amber-300 pl-3">
+              <p className="text-sm text-gray-900 border-l-2 border-amber-300 pl-3">
                 {s.message}
               </p>
             )}

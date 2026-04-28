@@ -72,17 +72,17 @@ export function SlidePresentation({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 transition-opacity"
+        className="px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
       >
         ▶ {triggerLabel}（{total}枚）
       </button>
 
       {open && (
         <div className="fixed inset-0 z-50 bg-bg flex flex-col print:bg-white">
-          <header className="flex items-center justify-between px-6 py-3 border-b border-border bg-card print:hidden">
+          <header className="flex items-center justify-between px-6 py-3 border-b border-gray-200 bg-white print:hidden">
             <div className="flex items-baseline gap-3 min-w-0">
-              <p className="text-xs uppercase tracking-widest text-subtle">{proposalTitle}</p>
-              <p className="text-xs font-mono text-muted">
+              <p className="text-xs uppercase tracking-widest text-gray-500">{proposalTitle}</p>
+              <p className="text-xs font-mono text-gray-700">
                 {String(index + 1).padStart(2, '0')} / {String(total).padStart(2, '0')}
               </p>
             </div>
@@ -90,7 +90,7 @@ export function SlidePresentation({
               <button
                 type="button"
                 onClick={() => window.print()}
-                className="px-3 py-1.5 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+                className="px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
                 aria-label="印刷"
               >
                 印刷
@@ -98,7 +98,7 @@ export function SlidePresentation({
               <button
                 type="button"
                 onClick={close}
-                className="px-3 py-1.5 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+                className="px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
                 aria-label="閉じる"
               >
                 閉じる (ESC)
@@ -112,12 +112,12 @@ export function SlidePresentation({
             </article>
           </main>
 
-          <footer className="flex items-center justify-between px-6 py-3 border-t border-border bg-card print:hidden">
+          <footer className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-white print:hidden">
             <button
               type="button"
               onClick={prev}
               disabled={index === 0}
-              className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               ← 前
             </button>
@@ -126,7 +126,7 @@ export function SlidePresentation({
               type="button"
               onClick={next}
               disabled={index === total - 1}
-              className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              className="px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
             >
               次 →
             </button>
@@ -142,7 +142,7 @@ function ProgressBar({ current, total }: { current: number; total: number }) {
     <div className="flex-1 mx-6 max-w-md">
       <div className="h-1 bg-border rounded-full overflow-hidden">
         <div
-          className="h-full bg-ink transition-all duration-200"
+          className="h-full bg-gray-900 transition-all duration-200"
           style={{ width: `${(current / total) * 100}%` }}
         />
       </div>
@@ -156,12 +156,12 @@ function SlideContent({ slide }: { slide: Slide }) {
   if (slide.type === 'title') {
     return (
       <div className="text-center space-y-6">
-        <p className="text-xs uppercase tracking-widest text-subtle">{typeLabel}</p>
-        <h1 className="font-semibold text-5xl md:text-7xl text-ink tracking-tight leading-tight">
+        <p className="text-xs uppercase tracking-widest text-gray-500">{typeLabel}</p>
+        <h1 className="font-semibold text-5xl md:text-7xl text-gray-900 tracking-tight leading-tight">
           {slide.title}
         </h1>
         {slide.subtitle && (
-          <p className="text-lg md:text-2xl text-muted">{slide.subtitle}</p>
+          <p className="text-lg md:text-2xl text-gray-700">{slide.subtitle}</p>
         )}
       </div>
     );
@@ -170,12 +170,12 @@ function SlideContent({ slide }: { slide: Slide }) {
   if (slide.type === 'closing') {
     return (
       <div className="text-center space-y-6">
-        <p className="text-xs uppercase tracking-widest text-subtle">{typeLabel}</p>
-        <h2 className="font-semibold text-4xl md:text-6xl text-ink tracking-tight leading-tight">
+        <p className="text-xs uppercase tracking-widest text-gray-500">{typeLabel}</p>
+        <h2 className="font-semibold text-4xl md:text-6xl text-gray-900 tracking-tight leading-tight">
           {slide.title}
         </h2>
         {slide.message && (
-          <p className="font-semibold text-2xl md:text-3xl text-ink-mid leading-relaxed">
+          <p className="font-semibold text-2xl md:text-3xl text-gray-700 leading-relaxed">
             {slide.message}
           </p>
         )}
@@ -186,20 +186,20 @@ function SlideContent({ slide }: { slide: Slide }) {
   return (
     <div className="space-y-8">
       <div className="space-y-2">
-        <p className="text-xs uppercase tracking-widest text-subtle">{typeLabel}</p>
-        <h2 className="font-semibold text-4xl md:text-5xl text-ink tracking-tight">
+        <p className="text-xs uppercase tracking-widest text-gray-500">{typeLabel}</p>
+        <h2 className="font-semibold text-4xl md:text-5xl text-gray-900 tracking-tight">
           {slide.title}
         </h2>
         {slide.subtitle && (
-          <p className="text-lg text-muted">{slide.subtitle}</p>
+          <p className="text-lg text-gray-700">{slide.subtitle}</p>
         )}
       </div>
 
       {slide.bullets && slide.bullets.length > 0 && (
         <ul className="space-y-3">
           {slide.bullets.map((b, i) => (
-            <li key={i} className="flex gap-4 text-xl md:text-2xl text-ink leading-relaxed">
-              <span className="text-subtle font-mono text-base mt-1">{String(i + 1).padStart(2, '0')}</span>
+            <li key={i} className="flex gap-4 text-xl md:text-2xl text-gray-900 leading-relaxed">
+              <span className="text-gray-500 font-mono text-base mt-1">{String(i + 1).padStart(2, '0')}</span>
               <span>{b}</span>
             </li>
           ))}
@@ -211,7 +211,7 @@ function SlideContent({ slide }: { slide: Slide }) {
           {slide.items.map((it, i) => (
             <li
               key={i}
-              className="bg-card border border-border rounded-lg p-5 text-lg text-ink"
+              className="bg-white border border-gray-200 rounded-lg p-5 text-lg text-gray-900"
             >
               {it}
             </li>
@@ -220,7 +220,7 @@ function SlideContent({ slide }: { slide: Slide }) {
       )}
 
       {slide.message && (
-        <p className="font-semibold text-2xl text-ink-mid leading-relaxed border-l-2 border-ink pl-6">
+        <p className="font-semibold text-2xl text-gray-700 leading-relaxed border-l-2 border-gray-900 pl-6">
           {slide.message}
         </p>
       )}

@@ -43,9 +43,9 @@ export function ActualsImportDialog() {
         <DialogHeader title="昨年実績を CSV で取込" onClose={() => setOpen(false)} />
         <form action={formAction}>
           <DialogBody className="space-y-4">
-            <p className="text-sm text-muted">
+            <p className="text-sm text-gray-700">
               CSV 形式：
-              <code className="font-mono text-xs bg-surface px-1 py-0.5 rounded">
+              <code className="font-mono text-xs bg-gray-50 px-1 py-0.5 rounded">
                 year, month, revenue, cogs, sga
               </code>
               （金額は税抜・整数）。 同年同月のデータがあれば上書き更新されます。
@@ -68,7 +68,7 @@ export function ActualsImportDialog() {
             {state.errors?._form && state.errors._form.length > 0 && (
               <div className="bg-red-50 border border-red-200 rounded-lg p-3 space-y-1">
                 {state.errors._form.map((e, i) => (
-                  <p key={i} className="text-xs text-kpi-down">
+                  <p key={i} className="text-xs text-red-700">
                     {e}
                   </p>
                 ))}

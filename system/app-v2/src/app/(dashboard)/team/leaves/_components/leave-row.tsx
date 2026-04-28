@@ -41,19 +41,19 @@ export function LeaveRow(props: LeaveRowProps) {
   }
 
   return (
-    <li className="flex items-center gap-4 px-5 py-4 bg-card border border-border rounded-lg">
+    <li className="flex items-center gap-4 px-5 py-4 bg-white border border-gray-200 rounded-lg">
       <div className="flex-1 min-w-0">
         <div className="flex items-baseline gap-3 flex-wrap">
-          <p className="text-base font-medium text-ink">{props.member_name ?? '（不明）'}</p>
-          <span className="text-xs uppercase tracking-widest text-subtle">{props.leave_type}</span>
-          <span className="text-xs font-mono tabular-nums text-muted">
+          <p className="text-base font-medium text-gray-900">{props.member_name ?? '（不明）'}</p>
+          <span className="text-xs uppercase tracking-widest text-gray-500">{props.leave_type}</span>
+          <span className="text-xs font-mono tabular-nums text-gray-700">
             {dayCount(props.start_date, props.end_date)}日
           </span>
         </div>
-        <p className="text-sm font-mono tabular-nums text-muted mt-0.5">
+        <p className="text-sm font-mono tabular-nums text-gray-700 mt-0.5">
           {formatRange(props.start_date, props.end_date)}
         </p>
-        {props.note && <p className="text-xs text-subtle mt-1">{props.note}</p>}
+        {props.note && <p className="text-xs text-gray-500 mt-1">{props.note}</p>}
       </div>
       <button
         type="button"
@@ -62,7 +62,7 @@ export function LeaveRow(props: LeaveRowProps) {
         className={`shrink-0 px-3 py-1.5 text-xs border rounded transition-colors ${
           confirming
             ? 'text-red-700 border-red-700 hover:bg-red-50'
-            : 'text-muted border-border hover:text-ink hover:border-ink'
+            : 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-900'
         } disabled:opacity-40`}
       >
         {pending ? '...' : confirming ? '本当に削除' : '削除'}

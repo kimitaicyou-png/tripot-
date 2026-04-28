@@ -75,14 +75,14 @@ export function MorningBrief({ memberId }: { memberId: string }) {
 
   if (!brief) {
     return (
-      <section className="bg-card border border-border rounded-xl p-6">
+      <section className="bg-white border border-gray-200 rounded-xl p-6">
         <div className="flex items-start justify-between gap-4">
           <div className="flex-1">
-            <p className="text-xs uppercase tracking-widest text-subtle">朝ブリーフィング</p>
-            <p className="text-sm text-ink mt-1">
+            <p className="text-xs uppercase tracking-widest text-gray-500">朝ブリーフィング</p>
+            <p className="text-sm text-gray-900 mt-1">
               AI が今日の重点案件 3 件と警告を提示します
             </p>
-            <p className="text-xs text-muted mt-1">
+            <p className="text-xs text-gray-700 mt-1">
               残タスク・進行中案件・直近行動量・詰まり案件を集約して 30秒前後で作成
             </p>
           </div>
@@ -95,12 +95,12 @@ export function MorningBrief({ memberId }: { memberId: string }) {
   }
 
   return (
-    <section className="bg-card border border-border rounded-xl p-6 space-y-5">
+    <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
       <div className="flex items-start justify-between gap-4">
         <div>
-          <p className="text-xs uppercase tracking-widest text-subtle">朝ブリーフィング</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">朝ブリーフィング</p>
           {generatedAt && (
-            <p className="text-xs font-mono text-subtle mt-1">
+            <p className="text-xs font-mono text-gray-500 mt-1">
               {new Date(generatedAt).toLocaleString('ja-JP')}
             </p>
           )}
@@ -117,38 +117,38 @@ export function MorningBrief({ memberId }: { memberId: string }) {
       </div>
 
       {brief.message && (
-        <p className="font-semibold text-lg text-ink-mid border-l-2 border-amber-300 pl-4 py-1">
+        <p className="font-semibold text-lg text-gray-700 border-l-2 border-amber-300 pl-4 py-1">
           {brief.message}
         </p>
       )}
 
       {brief.focus.length > 0 && (
         <div>
-          <p className="text-xs uppercase tracking-widest text-subtle mb-3">
-            今日の重点 <span className="font-mono text-ink">{brief.focus.length}</span>
+          <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">
+            今日の重点 <span className="font-mono text-gray-900">{brief.focus.length}</span>
           </p>
           <ol className="space-y-3">
             {brief.focus.map((f, i) => (
               <li
                 key={i}
-                className="border-l-2 border-ink pl-4 py-1"
+                className="border-l-2 border-gray-900 pl-4 py-1"
               >
                 <div className="flex items-baseline gap-2">
-                  <span className="font-mono text-xs text-subtle">{String(i + 1).padStart(2, '0')}</span>
+                  <span className="font-mono text-xs text-gray-500">{String(i + 1).padStart(2, '0')}</span>
                   {f.deal_id ? (
                     <Link
                       href={`/deals/${f.deal_id}`}
-                      className="text-sm text-ink font-medium hover:underline"
+                      className="text-sm text-gray-900 font-medium hover:underline"
                     >
                       {f.title}
                     </Link>
                   ) : (
-                    <p className="text-sm text-ink font-medium">{f.title}</p>
+                    <p className="text-sm text-gray-900 font-medium">{f.title}</p>
                   )}
                 </div>
-                <p className="text-xs text-muted mt-0.5">{f.why}</p>
-                <p className="text-sm text-ink mt-1.5">
-                  <span className="text-xs text-subtle uppercase tracking-wider mr-2">行動</span>
+                <p className="text-xs text-gray-700 mt-0.5">{f.why}</p>
+                <p className="text-sm text-gray-900 mt-1.5">
+                  <span className="text-xs text-gray-500 uppercase tracking-wider mr-2">行動</span>
                   {f.suggested_action}
                 </p>
               </li>
@@ -159,7 +159,7 @@ export function MorningBrief({ memberId }: { memberId: string }) {
 
       {brief.alerts.length > 0 && (
         <div className="space-y-2">
-          <p className="text-xs uppercase tracking-widest text-subtle">警告</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">警告</p>
           {brief.alerts.map((a, i) => (
             <div
               key={i}

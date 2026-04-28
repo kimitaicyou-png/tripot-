@@ -27,9 +27,9 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
 
   return (
     <div className="space-y-6">
-      <section className="bg-card border border-border rounded-xl p-6">
-        <h3 className="text-sm font-medium text-ink mb-1">議事録を追加</h3>
-        <p className="text-xs text-subtle mb-4">
+      <section className="bg-white border border-gray-200 rounded-xl p-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-1">議事録を追加</h3>
+        <p className="text-xs text-gray-500 mb-4">
           電話・商談・メールの記録を残す。AIで提案書に転換できる元素材になる
         </p>
         <MeetingForm dealId={dealId} />
@@ -37,8 +37,8 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
 
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm uppercase tracking-widest text-subtle">
-            これまでの議事録 <span className="font-mono text-ink">{items.length}件</span>
+          <h3 className="text-sm uppercase tracking-widest text-gray-500">
+            これまでの議事録 <span className="font-mono text-gray-900">{items.length}件</span>
           </h3>
         </div>
 
@@ -53,15 +53,15 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
             {items.map((m) => (
               <li
                 key={m.id}
-                className="bg-card border border-border rounded-xl p-5 space-y-3"
+                className="bg-white border border-gray-200 rounded-xl p-5 space-y-3"
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm text-ink font-medium">
+                    <p className="text-sm text-gray-900 font-medium">
                       {TYPE_LABEL[m.type] ?? m.type}
-                      {m.title ? <span className="ml-2 text-muted">— {m.title}</span> : null}
+                      {m.title ? <span className="ml-2 text-gray-700">— {m.title}</span> : null}
                     </p>
-                    <p className="text-xs font-mono text-subtle mt-0.5">
+                    <p className="text-xs font-mono text-gray-500 mt-0.5">
                       {new Date(m.occurred_at).toLocaleString('ja-JP')}
                     </p>
                   </div>
@@ -74,22 +74,22 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                 </div>
 
                 {m.summary && (
-                  <div className="border-l-2 border-border pl-3">
-                    <p className="text-xs uppercase tracking-widest text-subtle mb-1">要約</p>
-                    <p className="text-sm text-ink whitespace-pre-wrap">{m.summary}</p>
+                  <div className="border-l-2 border-gray-200 pl-3">
+                    <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">要約</p>
+                    <p className="text-sm text-gray-900 whitespace-pre-wrap">{m.summary}</p>
                   </div>
                 )}
 
                 {Array.isArray(m.needs) && m.needs.length > 0 && (
                   <div>
-                    <p className="text-xs uppercase tracking-widest text-subtle mb-2">
+                    <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
                       抽出された needs
                     </p>
                     <ul className="space-y-1.5">
                       {(m.needs as Need[]).map((n, i) => (
                         <li key={i} className="flex items-baseline gap-2">
                           <Badge tone={PRIORITY_TONE[n.priority] ?? 'neutral'}>{n.tag}</Badge>
-                          <span className="text-xs text-muted flex-1">{n.context}</span>
+                          <span className="text-xs text-gray-700 flex-1">{n.context}</span>
                         </li>
                       ))}
                     </ul>
@@ -98,11 +98,11 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
 
                 {m.raw_text && (
                   <details className="group">
-                    <summary className="text-xs text-muted cursor-pointer hover:text-ink list-none">
+                    <summary className="text-xs text-gray-700 cursor-pointer hover:text-gray-900 list-none">
                       <span className="inline-block group-open:hidden">▶ 議事録本文を表示</span>
                       <span className="hidden group-open:inline-block">▼ 議事録本文を隠す</span>
                     </summary>
-                    <p className="mt-2 text-sm text-muted whitespace-pre-wrap">{m.raw_text}</p>
+                    <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{m.raw_text}</p>
                   </details>
                 )}
               </li>

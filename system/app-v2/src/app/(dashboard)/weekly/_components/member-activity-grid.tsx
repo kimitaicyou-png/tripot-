@@ -36,7 +36,7 @@ export function MemberActivityGrid({
             return (
               <div
                 key={m.id}
-                className="bg-card border border-border rounded-xl p-5 shadow-sm"
+                className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div
@@ -44,29 +44,29 @@ export function MemberActivityGrid({
                   >
                     {initial}
                   </div>
-                  <p className="flex-1 text-sm text-ink font-medium truncate">{m.name}</p>
-                  <p className="font-semibold text-2xl text-ink tabular-nums leading-none">
+                  <p className="flex-1 text-sm text-gray-900 font-medium truncate">{m.name}</p>
+                  <p className="font-semibold text-2xl text-gray-900 tabular-nums leading-none">
                     {m.total}
                   </p>
                 </div>
                 <div className="h-1.5 bg-slate-100 rounded-full overflow-hidden mb-3">
                   <div
-                    className="h-full bg-ink rounded-full transition-all"
+                    className="h-full bg-gray-900 rounded-full transition-all"
                     style={{ width: `${widthPct}%` }}
                   />
                 </div>
                 <div className="grid grid-cols-3 gap-2 text-center">
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-subtle">電話</p>
-                    <p className="font-mono tabular-nums text-sm text-ink mt-0.5">{m.calls}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-gray-500">電話</p>
+                    <p className="font-mono tabular-nums text-sm text-gray-900 mt-0.5">{m.calls}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-subtle">商談</p>
-                    <p className="font-mono tabular-nums text-sm text-ink mt-0.5">{m.meetings}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-gray-500">商談</p>
+                    <p className="font-mono tabular-nums text-sm text-gray-900 mt-0.5">{m.meetings}</p>
                   </div>
                   <div>
-                    <p className="text-[10px] uppercase tracking-wider text-subtle">提案</p>
-                    <p className="font-mono tabular-nums text-sm text-ink mt-0.5">{m.proposals}</p>
+                    <p className="text-[10px] uppercase tracking-wider text-gray-500">提案</p>
+                    <p className="font-mono tabular-nums text-sm text-gray-900 mt-0.5">{m.proposals}</p>
                   </div>
                 </div>
               </div>

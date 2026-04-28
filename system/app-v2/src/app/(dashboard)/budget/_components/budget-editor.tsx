@@ -28,7 +28,7 @@ export function BudgetEditor({
             key={m}
             type="button"
             onClick={() => setOpenMonth(m)}
-            className="px-3 py-1.5 bg-card border border-border text-xs font-medium text-ink rounded-lg hover:bg-slate-50 transition-colors"
+            className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50 transition-colors"
           >
             {m}月を編集
           </button>
@@ -79,15 +79,15 @@ function BudgetMonthDialog({
     <>
       <div className="fixed inset-0 bg-black/40 z-50" onClick={onClose} />
       <div className="fixed left-0 right-0 bottom-0 md:left-1/2 md:bottom-auto md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2 md:max-w-md z-50">
-        <div className="bg-card rounded-t-xl md:rounded-xl border border-border p-6 max-h-[90vh] overflow-y-auto">
+        <div className="bg-white rounded-t-xl md:rounded-xl border border-gray-200 p-6 max-h-[90vh] overflow-y-auto">
           <div className="flex items-center justify-between mb-5">
-            <h2 className="text-lg font-semibold text-ink">
+            <h2 className="text-lg font-semibold text-gray-900">
               {year}年 {month}月の目標
             </h2>
             <button
               type="button"
               onClick={onClose}
-              className="text-muted hover:text-ink text-2xl leading-none"
+              className="text-gray-700 hover:text-gray-900 text-2xl leading-none"
               aria-label="閉じる"
             >
               ×
@@ -121,7 +121,7 @@ function BudgetMonthDialog({
             <button
               type="submit"
               disabled={pending}
-              className="w-full py-3 bg-ink text-white font-medium rounded-lg hover:bg-ink-mid active:scale-[0.98] transition-all disabled:opacity-50"
+              className="w-full py-3 bg-gray-900 text-white font-medium rounded-lg hover:bg-gray-700 active:scale-[0.98] transition-all disabled:opacity-50"
             >
               {pending ? '保存中…' : '保存する'}
             </button>
@@ -143,7 +143,7 @@ function NumberField({
 }) {
   return (
     <div>
-      <label htmlFor={name} className="block text-sm font-medium text-ink mb-1.5">
+      <label htmlFor={name} className="block text-sm font-medium text-gray-900 mb-1.5">
         {label}
       </label>
       <input
@@ -153,7 +153,7 @@ function NumberField({
         min={0}
         step={10000}
         defaultValue={defaultValue}
-        className="w-full px-3 py-2 border border-border rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
       />
     </div>
   );

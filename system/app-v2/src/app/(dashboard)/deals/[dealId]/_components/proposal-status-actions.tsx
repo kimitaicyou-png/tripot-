@@ -21,11 +21,11 @@ const LABEL: Record<ProposalStatus, string> = {
 };
 
 const TONE: Record<ProposalStatus, string> = {
-  draft: 'text-muted border-border hover:text-ink hover:border-ink',
+  draft: 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-900',
   shared: 'text-blue-700 border-blue-200 hover:bg-blue-50',
   won: 'text-emerald-700 border-emerald-200 hover:bg-emerald-50',
   lost: 'text-red-700 border-red-200 hover:bg-red-50',
-  archived: 'text-muted border-border hover:text-ink hover:border-ink',
+  archived: 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-900',
 };
 
 export function ProposalStatusActions({

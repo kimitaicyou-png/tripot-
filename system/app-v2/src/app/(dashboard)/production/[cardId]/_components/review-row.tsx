@@ -5,7 +5,7 @@ import { useRouter } from 'next/navigation';
 import { updateReviewStatus } from '@/lib/actions/reviews';
 
 const STATUS_TONE: Record<string, string> = {
-  pending: 'text-subtle',
+  pending: 'text-gray-500',
   approved: 'text-emerald-700',
   rejected: 'text-red-700',
   revision: 'text-amber-700',
@@ -59,23 +59,23 @@ export function ReviewRow(props: Props) {
   const next = NEXT_OPTIONS[props.status] ?? [];
 
   return (
-    <li className="bg-card border border-border rounded-lg p-4 space-y-2">
+    <li className="bg-white border border-gray-200 rounded-lg p-4 space-y-2">
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-baseline gap-2 flex-wrap">
-            <span className={`text-xs uppercase tracking-widest font-medium ${STATUS_TONE[props.status] ?? 'text-subtle'}`}>
+            <span className={`text-xs uppercase tracking-widest font-medium ${STATUS_TONE[props.status] ?? 'text-gray-500'}`}>
               {STATUS_LABEL[props.status] ?? props.status}
             </span>
             {props.deliverable_name && (
-              <span className="text-xs text-muted">
+              <span className="text-xs text-gray-700">
                 対象：{props.deliverable_name} v{props.deliverable_version}
               </span>
             )}
           </div>
           {props.feedback && (
-            <p className="text-sm text-muted whitespace-pre-wrap mt-1">{props.feedback}</p>
+            <p className="text-sm text-gray-700 whitespace-pre-wrap mt-1">{props.feedback}</p>
           )}
-          <p className="text-xs text-subtle font-mono tabular-nums mt-1">
+          <p className="text-xs text-gray-500 font-mono tabular-nums mt-1">
             レビュアー {props.reviewer_name ?? '不明'} · {new Date(props.created_at).toLocaleString('ja-JP')}
             {props.reviewed_at && ` · 確定 ${new Date(props.reviewed_at).toLocaleString('ja-JP')}`}
           </p>
@@ -89,7 +89,7 @@ export function ReviewRow(props: Props) {
               type="button"
               onClick={() => handleStatus(s)}
               disabled={pending}
-              className="px-2 py-0.5 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors disabled:opacity-40"
+              className="px-2 py-0.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors disabled:opacity-40"
             >
               → {STATUS_LABEL[s] ?? s}
             </button>

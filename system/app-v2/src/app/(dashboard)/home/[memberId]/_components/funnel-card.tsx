@@ -9,9 +9,9 @@ export function FunnelCard({
 }) {
   if (data.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-xl p-5 w-full">
-        <p className="text-xs uppercase tracking-widest text-subtle">案件ファネル</p>
-        <p className="text-sm text-muted mt-3">まだ案件がありません</p>
+      <div className="bg-white border border-gray-200 rounded-xl p-5 w-full">
+        <p className="text-xs uppercase tracking-widest text-gray-500">案件ファネル</p>
+        <p className="text-sm text-gray-700 mt-3">まだ案件がありません</p>
       </div>
     );
   }
@@ -21,13 +21,13 @@ export function FunnelCard({
   const overall = max > 0 ? Math.round((last.count / max) * 100) : 0;
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 w-full flex flex-col">
+    <div className="bg-white border border-gray-200 rounded-xl p-5 w-full flex flex-col">
       <div className="flex items-start justify-between">
         <div>
-          <p className="text-xs uppercase tracking-widest text-subtle">案件ファネル</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">案件ファネル</p>
           <div className="flex items-baseline gap-2 mt-1">
-            <p className="font-semibold text-3xl text-ink tabular-nums">{overall}</p>
-            <p className="text-sm text-muted">% 総合転換率</p>
+            <p className="font-semibold text-3xl text-gray-900 tabular-nums">{overall}</p>
+            <p className="text-sm text-gray-700">% 総合転換率</p>
           </div>
         </div>
       </div>
@@ -42,25 +42,25 @@ export function FunnelCard({
           return (
             <div key={d.label}>
               <div className="flex items-baseline justify-between mb-1">
-                <span className="text-xs font-medium text-ink-mid">{d.label}</span>
+                <span className="text-xs font-medium text-gray-700">{d.label}</span>
                 <div className="flex items-baseline gap-2">
                   {conv !== null && (
                     <span
                       className={`text-xs font-medium tabular-nums ${
                         conv >= 60
-                          ? 'text-kpi-up'
+                          ? 'text-emerald-700'
                           : conv >= 40
-                            ? 'text-muted'
+                            ? 'text-gray-700'
                             : 'text-amber-700'
                       }`}
                     >
                       {conv}%
                     </span>
                   )}
-                  <span className="text-sm font-medium text-ink tabular-nums">{d.count}</span>
+                  <span className="text-sm font-medium text-gray-900 tabular-nums">{d.count}</span>
                 </div>
               </div>
-              <div className="h-2 bg-surface rounded-full overflow-hidden border border-border">
+              <div className="h-2 bg-gray-50 rounded-full overflow-hidden border border-gray-200">
                 <div
                   className="h-full rounded-full"
                   style={{ width: `${pct}%`, backgroundColor: accent, opacity }}

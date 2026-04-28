@@ -51,7 +51,7 @@ export function Dialog({
       />
       <div
         ref={dialogRef}
-        className={`relative w-full ${sizeClass} bg-card border border-border rounded-xl shadow-sm max-h-[90vh] overflow-y-auto`}
+        className={`relative w-full ${sizeClass} bg-white border border-gray-200 rounded-xl shadow-sm max-h-[90vh] overflow-y-auto`}
       >
         {children}
       </div>
@@ -61,12 +61,12 @@ export function Dialog({
 
 export function DialogHeader({ title, onClose }: { title: string; onClose: () => void }) {
   return (
-    <div className="flex items-center justify-between px-6 py-4 border-b border-border">
-      <h2 className="text-lg font-semibold text-ink">{title}</h2>
+    <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
+      <h2 className="text-lg font-semibold text-gray-900">{title}</h2>
       <button
         type="button"
         onClick={onClose}
-        className="p-1.5 text-muted hover:text-ink rounded-lg hover:bg-surface"
+        className="p-1.5 text-gray-700 hover:text-gray-900 rounded-lg hover:bg-gray-50"
         aria-label="閉じる"
       >
         <svg
@@ -89,7 +89,7 @@ export function DialogBody({ children, className }: { children: ReactNode; class
 
 export function DialogFooter({ children }: { children: ReactNode }) {
   return (
-    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-border bg-surface">
+    <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-200 bg-gray-50">
       {children}
     </div>
   );

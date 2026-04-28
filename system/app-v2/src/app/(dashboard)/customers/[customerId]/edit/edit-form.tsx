@@ -15,9 +15,9 @@ export function CustomerEditForm({
   const [state, formAction, isPending] = useActionState<CustomerFormState, FormData>(action, {});
 
   return (
-    <form action={formAction} className="bg-card border border-border rounded-xl p-6 space-y-5">
+    <form action={formAction} className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
       <div>
-        <label htmlFor="name" className="block text-sm font-medium text-ink mb-1.5">
+        <label htmlFor="name" className="block text-sm font-medium text-gray-900 mb-1.5">
           顧客名 <span className="text-red-600">*</span>
         </label>
         <input
@@ -26,13 +26,13 @@ export function CustomerEditForm({
           type="text"
           required
           defaultValue={initial.name}
-          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {state.errors?.name && <p className="mt-1 text-xs text-red-600">{state.errors.name.join(', ')}</p>}
       </div>
 
       <div>
-        <label htmlFor="contact_email" className="block text-sm font-medium text-ink mb-1.5">
+        <label htmlFor="contact_email" className="block text-sm font-medium text-gray-900 mb-1.5">
           連絡先メール
         </label>
         <input
@@ -40,7 +40,7 @@ export function CustomerEditForm({
           name="contact_email"
           type="email"
           defaultValue={initial.contact_email ?? ''}
-          className="w-full px-3 py-2 border border-border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         {state.errors?.contact_email && (
           <p className="mt-1 text-xs text-red-600">{state.errors.contact_email.join(', ')}</p>
@@ -48,7 +48,7 @@ export function CustomerEditForm({
       </div>
 
       <div>
-        <label htmlFor="contact_phone" className="block text-sm font-medium text-ink mb-1.5">
+        <label htmlFor="contact_phone" className="block text-sm font-medium text-gray-900 mb-1.5">
           電話番号
         </label>
         <input
@@ -56,7 +56,7 @@ export function CustomerEditForm({
           name="contact_phone"
           type="tel"
           defaultValue={initial.contact_phone ?? ''}
-          className="w-full px-3 py-2 border border-border rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
       </div>
 
@@ -66,14 +66,14 @@ export function CustomerEditForm({
       <div className="flex items-center justify-end gap-3 pt-2">
         <Link
           href={`/customers/${customerId}`}
-          className="px-4 py-2 text-muted hover:text-ink text-sm font-medium"
+          className="px-4 py-2 text-gray-700 hover:text-gray-900 text-sm font-medium"
         >
           キャンセル
         </Link>
         <button
           type="submit"
           disabled={isPending}
-          className="px-5 py-2 bg-ink text-white text-sm font-medium rounded-lg hover:bg-ink-mid transition-colors active:scale-[0.98] disabled:opacity-50"
+          className="px-5 py-2 bg-gray-900 text-white text-sm font-medium rounded-lg hover:bg-gray-700 transition-colors active:scale-[0.98] disabled:opacity-50"
         >
           {isPending ? '保存中…' : '保存する'}
         </button>

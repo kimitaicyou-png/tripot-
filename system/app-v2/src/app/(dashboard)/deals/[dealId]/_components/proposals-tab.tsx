@@ -31,9 +31,9 @@ export async function ProposalsTab({ dealId }: { dealId: string }) {
 
   return (
     <div className="space-y-6">
-      <section className="bg-card border border-border rounded-xl p-6">
-        <h3 className="text-sm font-medium text-ink mb-1">AIで提案書を生成</h3>
-        <p className="text-xs text-subtle mb-4">
+      <section className="bg-white border border-gray-200 rounded-xl p-6">
+        <h3 className="text-sm font-medium text-gray-900 mb-1">AIで提案書を生成</h3>
+        <p className="text-xs text-gray-500 mb-4">
           このタブで集めた議事録と案件情報をもとに、12-15枚の提案書スライドを 1 クリック生成します
         </p>
         <ProposalGenerateButton dealId={dealId} />
@@ -41,8 +41,8 @@ export async function ProposalsTab({ dealId }: { dealId: string }) {
 
       <section>
         <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm uppercase tracking-widest text-subtle">
-            提案書 <span className="font-mono text-ink">{items.length}件</span>
+          <h3 className="text-sm uppercase tracking-widest text-gray-500">
+            提案書 <span className="font-mono text-gray-900">{items.length}件</span>
           </h3>
         </div>
 
@@ -59,12 +59,12 @@ export async function ProposalsTab({ dealId }: { dealId: string }) {
               return (
                 <li
                   key={p.id}
-                  className="bg-card border border-border rounded-xl p-5 space-y-4"
+                  className="bg-white border border-gray-200 rounded-xl p-5 space-y-4"
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1">
-                      <p className="text-sm text-ink font-medium">{p.title}</p>
-                      <p className="text-xs font-mono text-subtle mt-0.5">
+                      <p className="text-sm text-gray-900 font-medium">{p.title}</p>
+                      <p className="text-xs font-mono text-gray-500 mt-0.5">
                         v{p.version} · {new Date(p.created_at).toLocaleString('ja-JP')}
                       </p>
                     </div>

@@ -35,18 +35,18 @@ export function TargetSection(props: Props) {
 
   if (!editing && !hasTarget) {
     return (
-      <section className="bg-card border border-border rounded-xl p-5">
+      <section className="bg-white border border-gray-200 rounded-xl p-5">
         <div className="flex items-center justify-between">
-          <p className="text-xs uppercase tracking-widest text-subtle">目標 KPI</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">目標 KPI</p>
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-xs text-muted hover:text-ink transition-colors"
+            className="text-xs text-gray-700 hover:text-gray-900 transition-colors"
           >
             設定する
           </button>
         </div>
-        <p className="text-sm text-subtle mt-3">
+        <p className="text-sm text-gray-500 mt-3">
           この案件の売上目標 / 粗利目標 / 受注目標日を設定すると、進捗率が表示されます
         </p>
       </section>
@@ -55,13 +55,13 @@ export function TargetSection(props: Props) {
 
   if (!editing) {
     return (
-      <section className="bg-card border border-border rounded-xl p-5 space-y-4">
+      <section className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
         <div className="flex items-center justify-between">
-          <p className="text-xs uppercase tracking-widest text-subtle">目標 KPI</p>
+          <p className="text-xs uppercase tracking-widest text-gray-500">目標 KPI</p>
           <button
             type="button"
             onClick={() => setEditing(true)}
-            className="text-xs text-muted hover:text-ink transition-colors"
+            className="text-xs text-gray-700 hover:text-gray-900 transition-colors"
           >
             編集
           </button>
@@ -69,37 +69,37 @@ export function TargetSection(props: Props) {
 
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <p className="text-xs text-subtle">売上目標</p>
-            <p className="font-semibold text-2xl text-ink tabular-nums mt-1">
+            <p className="text-xs text-gray-500">売上目標</p>
+            <p className="font-semibold text-2xl text-gray-900 tabular-nums mt-1">
               {formatYen(props.targetRevenue)}
             </p>
             {props.targetRevenue > 0 && (
               <>
                 <div className="h-1 bg-bg rounded-full overflow-hidden mt-2">
                   <div
-                    className={`h-full ${revenueProgress.pct >= 100 ? 'bg-kpi-up' : 'bg-ink'}`}
+                    className={`h-full ${revenueProgress.pct >= 100 ? 'bg-emerald-500' : 'bg-gray-900'}`}
                     style={{ width: `${Math.min(100, revenueProgress.pct)}%` }}
                   />
                 </div>
-                <p className={`text-xs font-mono mt-1 ${revenueProgress.pct >= 100 ? 'text-kpi-up' : 'text-muted'}`}>
+                <p className={`text-xs font-mono mt-1 ${revenueProgress.pct >= 100 ? 'text-emerald-700' : 'text-gray-700'}`}>
                   進捗 {revenueProgress.label}
                 </p>
               </>
             )}
           </div>
           <div>
-            <p className="text-xs text-subtle">粗利目標</p>
-            <p className="font-semibold text-2xl text-ink tabular-nums mt-1">
+            <p className="text-xs text-gray-500">粗利目標</p>
+            <p className="font-semibold text-2xl text-gray-900 tabular-nums mt-1">
               {formatYen(props.targetGp)}
             </p>
           </div>
           <div>
-            <p className="text-xs text-subtle">受注目標日</p>
-            <p className="font-mono tabular-nums text-base text-ink mt-1">
+            <p className="text-xs text-gray-500">受注目標日</p>
+            <p className="font-mono tabular-nums text-base text-gray-900 mt-1">
               {props.targetCloseDate ?? '—'}
             </p>
             {props.currentExpectedClose && props.targetCloseDate && (
-              <p className="text-xs text-subtle mt-0.5">
+              <p className="text-xs text-gray-500 mt-0.5">
                 予定 {props.currentExpectedClose}
               </p>
             )}
@@ -107,9 +107,9 @@ export function TargetSection(props: Props) {
         </div>
 
         {props.winReason && (
-          <div className="pt-3 border-t border-border">
-            <p className="text-xs text-subtle mb-1">勝ち筋（What we will win on）</p>
-            <p className="text-sm text-ink whitespace-pre-wrap leading-relaxed">{props.winReason}</p>
+          <div className="pt-3 border-t border-gray-200">
+            <p className="text-xs text-gray-500 mb-1">勝ち筋（What we will win on）</p>
+            <p className="text-sm text-gray-900 whitespace-pre-wrap leading-relaxed">{props.winReason}</p>
           </div>
         )}
       </section>
@@ -117,13 +117,13 @@ export function TargetSection(props: Props) {
   }
 
   return (
-    <form action={formAction} className="bg-card border border-border rounded-xl p-5 space-y-4">
+    <form action={formAction} className="bg-white border border-gray-200 rounded-xl p-5 space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-xs uppercase tracking-widest text-subtle">目標 KPI（編集中）</p>
+        <p className="text-xs uppercase tracking-widest text-gray-500">目標 KPI（編集中）</p>
         <button
           type="button"
           onClick={() => setEditing(false)}
-          className="text-xs text-muted hover:text-ink transition-colors"
+          className="text-xs text-gray-700 hover:text-gray-900 transition-colors"
         >
           キャンセル
         </button>
@@ -131,49 +131,49 @@ export function TargetSection(props: Props) {
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">売上目標（円）</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">売上目標（円）</span>
           <input
             type="number"
             name="target_revenue"
             min={0}
             defaultValue={props.targetRevenue}
             placeholder="0"
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink font-mono tabular-nums"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 font-mono tabular-nums"
           />
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">粗利目標（円）</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">粗利目標（円）</span>
           <input
             type="number"
             name="target_gp"
             min={0}
             defaultValue={props.targetGp}
             placeholder="0"
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink font-mono tabular-nums"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 font-mono tabular-nums"
           />
         </label>
 
         <label className="flex flex-col gap-1">
-          <span className="text-xs uppercase tracking-widest font-medium text-subtle">受注目標日</span>
+          <span className="text-xs uppercase tracking-widest font-medium text-gray-500">受注目標日</span>
           <input
             type="date"
             name="target_close_date"
             defaultValue={props.targetCloseDate ?? ''}
-            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+            className="px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900"
           />
         </label>
       </div>
 
       <label className="flex flex-col gap-1">
-        <span className="text-xs uppercase tracking-widest font-medium text-subtle">勝ち筋（任意）</span>
+        <span className="text-xs uppercase tracking-widest font-medium text-gray-500">勝ち筋（任意）</span>
         <textarea
           name="win_reason"
           rows={3}
           maxLength={500}
           defaultValue={props.winReason}
           placeholder="この案件で勝つために何が決め手か"
-          className="w-full px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink resize-y"
+          className="w-full px-3 py-2 text-sm bg-bg border border-gray-200 rounded focus:outline-none focus:border-gray-900 resize-y"
         />
       </label>
 
@@ -186,7 +186,7 @@ export function TargetSection(props: Props) {
           type="submit"
           disabled={pending}
           onClick={() => setTimeout(() => setEditing(false), 200)}
-          className="ml-auto px-4 py-1.5 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '保存中...' : '保存'}
         </button>

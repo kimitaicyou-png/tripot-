@@ -50,20 +50,20 @@ export default async function TeamPage() {
   const maxRevenue = Math.max(...rows.map((m) => m.revenue ?? 0), 1);
 
   return (
-    <main className="min-h-screen bg-surface">
+    <main className="min-h-screen bg-gray-50">
       <PageHeader
         eyebrow="TEAM"
         title="チーム"
         subtitle={
           <>
-            <span className="font-mono tabular-nums text-ink">{rows.length}</span> 名 ／ 進行中{' '}
-            <span className="font-mono tabular-nums text-ink">{totalActive}</span>
+            <span className="font-mono tabular-nums text-gray-900">{rows.length}</span> 名 ／ 進行中{' '}
+            <span className="font-mono tabular-nums text-gray-900">{totalActive}</span>
           </>
         }
         actions={
           <Link
             href="/team/leaves"
-            className="px-4 py-2 text-sm border border-border rounded text-muted hover:text-ink hover:border-ink transition-colors"
+            className="px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
           >
             休暇カレンダー →
           </Link>
@@ -90,7 +90,7 @@ export default async function TeamPage() {
                   <Link
                     key={m.id}
                     href={`/team/${m.id}`}
-                    className="bg-card border border-border rounded-xl p-5 shadow-sm hover:border-ink-mid transition-colors block"
+                    className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-gray-700 transition-colors block"
                   >
                     <div className="flex items-center gap-4 mb-4">
                       <div
@@ -99,21 +99,21 @@ export default async function TeamPage() {
                         {initial}
                       </div>
                       <div className="flex-1 min-w-0">
-                        <p className="text-base font-medium text-ink">{m.name}</p>
-                        <p className="text-xs text-subtle">
+                        <p className="text-base font-medium text-gray-900">{m.name}</p>
+                        <p className="text-xs text-gray-500">
                           {ROLE_LABEL[m.role]}
                           {m.department ? ` ・ ${m.department}` : ''}
                         </p>
                       </div>
-                      <p className="font-mono tabular-nums text-xs text-subtle shrink-0">
+                      <p className="font-mono tabular-nums text-xs text-gray-500 shrink-0">
                         {m.active_deals} 件
                       </p>
                     </div>
-                    <p className="font-semibold text-3xl text-ink tabular-nums leading-none">
+                    <p className="font-semibold text-3xl text-gray-900 tabular-nums leading-none">
                       {formatYen(m.revenue)}
                     </p>
                     <div className="h-1 bg-slate-100 rounded-full overflow-hidden mt-3">
-                      <div className="h-full bg-ink rounded-full" style={{ width: `${w}%` }} />
+                      <div className="h-full bg-gray-900 rounded-full" style={{ width: `${w}%` }} />
                     </div>
                   </Link>
                 );
