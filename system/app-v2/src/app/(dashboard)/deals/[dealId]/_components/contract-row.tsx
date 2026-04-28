@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { ExternalLink } from 'lucide-react';
 import { deleteDealContract } from '@/lib/actions/deal-contracts';
 
 type Props = {
@@ -41,9 +42,10 @@ export function ContractRow(props: Props) {
               href={props.file_url}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-base font-medium text-gray-900 hover:underline"
+              className="inline-flex items-center gap-1 text-base font-medium text-gray-900 hover:underline"
             >
-              {props.title} ↗
+              {props.title}
+              <ExternalLink className="w-3.5 h-3.5" />
             </a>
           ) : (
             <p className="text-base font-medium text-gray-900">{props.title}</p>

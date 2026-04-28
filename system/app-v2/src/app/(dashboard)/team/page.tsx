@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { members, deals } from '@/db/schema';
@@ -63,9 +64,10 @@ export default async function TeamPage() {
         actions={
           <Link
             href="/team/leaves"
-            className="px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
+            className="inline-flex items-center gap-1 px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
           >
-            休暇カレンダー →
+            休暇カレンダー
+            <ArrowRight className="w-3.5 h-3.5" />
           </Link>
         }
       />

@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronRight } from 'lucide-react';
 import { updateProductionCardStatus } from '@/lib/actions/production';
 
 const STATUS_FLOW: Record<string, string[]> = {
@@ -63,9 +64,10 @@ export function ProductionStatusButton({
           type="button"
           onClick={() => handleClick(s)}
           disabled={pending}
-          className={`px-2 py-0.5 text-xs border rounded transition-colors disabled:opacity-40 ${TONE[s] ?? 'text-gray-700 border-gray-200'}`}
+          className={`inline-flex items-center gap-0.5 px-2 py-0.5 text-xs border rounded transition-colors disabled:opacity-40 ${TONE[s] ?? 'text-gray-700 border-gray-200'}`}
         >
-          → {STATUS_LABEL[s] ?? s}
+          <ChevronRight className="w-3 h-3" />
+          {STATUS_LABEL[s] ?? s}
         </button>
       ))}
     </div>

@@ -1,3 +1,5 @@
+import { ArrowUp, ArrowDown } from 'lucide-react';
+
 type Point = { week: string; value: number };
 
 export function RevenueTrendCard({
@@ -62,7 +64,8 @@ export function RevenueTrendCard({
                 : 'text-red-700 bg-red-50 border border-red-200'
             }`}
           >
-            {change >= 0 ? '↑' : '↓'} {Math.abs(change)}%
+            {change >= 0 ? <ArrowUp className="w-3 h-3" /> : <ArrowDown className="w-3 h-3" />}
+            {Math.abs(change)}%
           </span>
           <p className="text-[11px] text-gray-700 mt-1 tabular-nums font-mono">
             平均 ¥{avg.toLocaleString('ja-JP')}万

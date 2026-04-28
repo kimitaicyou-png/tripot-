@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
+import { ExternalLink } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { production_cards, deals } from '@/db/schema';
@@ -106,8 +107,9 @@ export default async function ProductionCardDetailPage({
           <span className="flex items-center gap-3 flex-wrap">
             <span className="text-xs uppercase tracking-widest text-gray-500">{STATUS_LABEL[card.status] ?? card.status}</span>
             {card.deal_id && card.deal_title && (
-              <Link href={`/deals/${card.deal_id}`} className="text-xs text-gray-700 hover:text-gray-900">
-                ↗ {card.deal_title}
+              <Link href={`/deals/${card.deal_id}`} className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-gray-900">
+                <ExternalLink className="w-3 h-3" />
+                {card.deal_title}
               </Link>
             )}
           </span>
@@ -259,9 +261,10 @@ export default async function ProductionCardDetailPage({
                       href={d.file_url}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="px-3 py-1 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors shrink-0"
+                      className="inline-flex items-center gap-1 px-3 py-1 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors shrink-0"
                     >
-                      ↗ ファイル
+                      <ExternalLink className="w-3 h-3" />
+                      ファイル
                     </a>
                   )}
                 </li>

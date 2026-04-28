@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, estimates, budget_actuals, mf_journals, customers } from '@/db/schema';
@@ -198,15 +199,17 @@ export default async function MonthlyFinancePage({
           <div className="flex items-center gap-2">
             <Link
               href={`/monthly/finance?ym=${prevYm}`}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
             >
-              ← {prevYm}
+              <ArrowLeft className="w-3.5 h-3.5" />
+              {prevYm}
             </Link>
             <Link
               href={`/monthly/finance?ym=${nextYm}`}
-              className="px-3 py-1.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
+              className="inline-flex items-center gap-1 px-3 py-1.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
             >
-              {nextYm} →
+              {nextYm}
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         }

@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronRight } from 'lucide-react';
 import { markPurchaseOrderDelivered, markPurchaseOrderPaid } from '@/lib/actions/purchase-orders';
 
 type Props = {
@@ -75,9 +76,10 @@ export function PurchaseOrderRow(props: Props) {
             type="button"
             onClick={handleMarkDelivered}
             disabled={pending}
-            className="px-2 py-0.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors disabled:opacity-40"
+            className="inline-flex items-center gap-0.5 px-2 py-0.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors disabled:opacity-40"
           >
-            → 納品済
+            <ChevronRight className="w-3 h-3" />
+            納品済
           </button>
         )}
         {!props.paid_on && (
@@ -85,9 +87,10 @@ export function PurchaseOrderRow(props: Props) {
             type="button"
             onClick={handleMarkPaid}
             disabled={pending}
-            className="px-2 py-0.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors disabled:opacity-40"
+            className="inline-flex items-center gap-0.5 px-2 py-0.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors disabled:opacity-40"
           >
-            → 支払済
+            <ChevronRight className="w-3 h-3" />
+            支払済
           </button>
         )}
       </div>

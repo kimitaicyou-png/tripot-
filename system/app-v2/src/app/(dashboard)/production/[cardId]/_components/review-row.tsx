@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { ChevronRight } from 'lucide-react';
 import { updateReviewStatus } from '@/lib/actions/reviews';
 
 const STATUS_TONE: Record<string, string> = {
@@ -89,9 +90,10 @@ export function ReviewRow(props: Props) {
               type="button"
               onClick={() => handleStatus(s)}
               disabled={pending}
-              className="px-2 py-0.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors disabled:opacity-40"
+              className="inline-flex items-center gap-0.5 px-2 py-0.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors disabled:opacity-40"
             >
-              → {STATUS_LABEL[s] ?? s}
+              <ChevronRight className="w-3 h-3" />
+              {STATUS_LABEL[s] ?? s}
             </button>
           ))}
         </div>

@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ExternalLink } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals } from '@/db/schema';
@@ -127,9 +128,10 @@ export default async function ProductionPage() {
                           {c.deal_id && c.deal_title && (
                             <Link
                               href={`/deals/${c.deal_id}`}
-                              className="text-xs text-gray-700 hover:text-gray-900 truncate block"
+                              className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-gray-900 truncate"
                             >
-                              ↗ {c.deal_title}
+                              <ExternalLink className="w-3 h-3 shrink-0" />
+                              <span className="truncate">{c.deal_title}</span>
                             </Link>
                           )}
                         </div>

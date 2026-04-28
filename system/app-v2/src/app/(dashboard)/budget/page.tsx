@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { budgets, deals, budget_actuals } from '@/db/schema';
@@ -99,16 +100,18 @@ export default async function BudgetPage({
           <span className="flex items-center gap-3">
             <Link
               href={`/budget?year=${year - 1}`}
-              className="px-2 py-0.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
             >
-              ← {year - 1}年
+              <ArrowLeft className="w-3.5 h-3.5" />
+              {year - 1}年
             </Link>
             <span>年間目標 ＆ 月別計画 vs 実績</span>
             <Link
               href={`/budget?year=${year + 1}`}
-              className="px-2 py-0.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
+              className="inline-flex items-center gap-1 px-2 py-0.5 text-xs border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
             >
-              {year + 1}年 →
+              {year + 1}年
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </span>
         }

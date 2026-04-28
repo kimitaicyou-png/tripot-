@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ArrowRight } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, budgets } from '@/db/schema';
@@ -67,15 +68,17 @@ export default async function MonthlyPage() {
             <SendToHqButton yearMonth={yearMonth} />
             <Link
               href={`/monthly/finance?ym=${yearMonth}`}
-              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
             >
-              ファイナンス →
+              ファイナンス
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
             <Link
               href={`/monthly/detail/${yearMonth}`}
-              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
             >
-              ドリルダウン →
+              ドリルダウン
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </div>
         }

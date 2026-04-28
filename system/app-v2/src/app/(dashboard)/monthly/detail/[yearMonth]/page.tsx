@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
+import { ArrowLeft, ArrowRight } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, members, customers, actions, budgets } from '@/db/schema';
@@ -211,15 +212,17 @@ export default async function MonthlyDetailPage({
           <>
             <Link
               href={`/monthly/detail/${prev}`}
-              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
             >
-              ← 前月
+              <ArrowLeft className="w-3.5 h-3.5" />
+              前月
             </Link>
             <Link
               href={`/monthly/detail/${next}`}
-              className="px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
+              className="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-200 text-xs font-medium text-gray-900 rounded-lg hover:bg-slate-50"
             >
-              翌月 →
+              翌月
+              <ArrowRight className="w-3.5 h-3.5" />
             </Link>
           </>
         }
