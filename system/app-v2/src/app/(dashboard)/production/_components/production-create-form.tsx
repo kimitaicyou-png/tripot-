@@ -20,7 +20,7 @@ export function ProductionCreateForm({
         onClick={() => setOpen(true)}
         className="px-4 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 transition-opacity"
       >
-        ＋ 製造カード追加
+        ＋ 制作カード追加
       </button>
     );
   }

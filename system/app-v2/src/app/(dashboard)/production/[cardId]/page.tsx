@@ -100,7 +100,7 @@ export default async function ProductionCardDetailPage({
             )}
           </span>
         }
-        back={{ href: '/production', label: '製造管理' }}
+        back={{ href: '/production', label: '制作管理' }}
         actions={
           <div className="flex items-center gap-3 flex-wrap">
             <ProductionStatusButton cardId={cardId} currentStatus={card.status} />
@@ -150,7 +150,7 @@ export default async function ProductionCardDetailPage({
             <EmptyState
               icon="◌"
               title="バグ報告なし"
-              description="製造中の不具合は ここで追跡してクローズまで管理"
+              description="制作中の不具合は ここで追跡してクローズまで管理"
             />
           ) : (
             <ul className="space-y-2">

@@ -19,7 +19,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/monthly', label: '月次', icon: '📊' },
   { href: '/budget', label: '事業計画', icon: '🎯' },
   { href: '/team', label: 'チーム', icon: '👥' },
-  { href: '/production', label: '製造', icon: '🛠️' },
+  { href: '/production', label: '制作', icon: '🛠️' },
   { href: '/approval', label: '承認', icon: '✋' },
 ];
 

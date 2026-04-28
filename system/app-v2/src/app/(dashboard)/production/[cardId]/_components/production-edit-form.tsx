@@ -65,7 +65,7 @@ export function ProductionEditForm(props: Props) {
       onSubmit={() => setTimeout(() => setEditing(false), 200)}
       className="bg-card border border-border rounded-lg p-5 space-y-4"
     >
-      <p className="text-xs uppercase tracking-widest text-subtle">製造カード 編集</p>
+      <p className="text-xs uppercase tracking-widest text-subtle">制作カード 編集</p>
 
       <label className="flex flex-col gap-1">
         <span className="text-xs uppercase tracking-widest font-medium text-subtle">タイトル</span>

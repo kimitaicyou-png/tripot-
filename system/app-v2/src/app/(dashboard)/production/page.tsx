@@ -59,7 +59,7 @@ export default async function ProductionPage() {
     <main className="min-h-screen bg-surface">
       <PageHeader
         eyebrow="PRODUCTION"
-        title="製造管理"
+        title="制作管理"
         subtitle={
           <>
             進行中{' '}
@@ -95,8 +95,8 @@ export default async function ProductionPage() {
         {cards.length === 0 ? (
           <EmptyState
             icon="◌"
-            title="製造カードがありません"
-            description="案件が「受注」になったら、ここで製造工程を管理します"
+            title="制作カードがありません"
+            description="案件が「受注」になったら、ここで制作工程を管理します"
             cta={{ label: '案件一覧へ', href: '/deals' }}
           />
         ) : (
