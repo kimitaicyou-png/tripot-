@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Pencil, Check, X } from 'lucide-react';
 import { updateProposalSlides } from '@/lib/actions/proposals';
 
 type Slide = {
@@ -46,10 +47,10 @@ export function ProposalSlidesEditor({
     startTransition(async () => {
       const result = await updateProposalSlides(proposalId, dealId, draft);
       if (!result.success) {
-        setMessage(`✗ ${result.error}`);
+        setMessage(`__ERR__${result.error}`);
         return;
       }
-      setMessage(`✓ ${result.slideCount ?? 0} 枚のスライドを保存`);
+      setMessage(`__OK__${result.slideCount ?? 0} 枚のスライドを保存`);
       router.refresh();
     });
   }
@@ -65,9 +66,10 @@ export function ProposalSlidesEditor({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
+        className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
       >
-        ✎ JSON 編集
+        <Pencil className="w-3 h-3" />
+        JSON 編集
       </button>
     );
   }
@@ -103,9 +105,14 @@ export function ProposalSlidesEditor({
       />
 
       <div className="flex items-center justify-between gap-3">
-        <p className="text-xs text-gray-500">
-          {valid ? '✓ JSON パース OK' : '✗ JSON パースエラー'}
-          {message && <span className={`ml-3 ${message.startsWith('✓') ? 'text-emerald-700' : 'text-red-700'}`}>{message}</span>}
+        <p className="inline-flex items-center gap-1 text-xs text-gray-500">
+          {valid ? <><Check className="w-3 h-3 text-emerald-700" />JSON パース OK</> : <><X className="w-3 h-3 text-red-700" />JSON パースエラー</>}
+          {message && (
+            <span className={`ml-3 inline-flex items-center gap-1 ${message.startsWith('__OK__') ? 'text-emerald-700' : 'text-red-700'}`}>
+              {message.startsWith('__OK__') ? <Check className="w-3 h-3" /> : <X className="w-3 h-3" />}
+              {message.replace('__OK__', '').replace('__ERR__', '')}
+            </span>
+          )}
         </p>
         <div className="flex gap-2">
           <button

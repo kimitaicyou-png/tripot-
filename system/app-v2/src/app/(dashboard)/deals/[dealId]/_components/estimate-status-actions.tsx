@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
+import { Send, Check, X, Undo2 } from 'lucide-react';
 import { updateEstimateStatus, deleteEstimate } from '@/lib/actions/estimates';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -47,22 +48,22 @@ export function EstimateStatusActions({
     <div className="flex flex-wrap gap-2">
       {currentStatus === 'draft' && (
         <Button type="button" variant="primary" size="sm" onClick={() => transition('sent')} disabled={pending}>
-          ▶ 送付した
+          <span className="inline-flex items-center gap-1"><Send className="w-3.5 h-3.5" />送付した</span>
         </Button>
       )}
       {currentStatus === 'sent' && (
         <>
           <Button type="button" variant="primary" size="sm" onClick={() => transition('accepted')} disabled={pending}>
-            ✓ 受諾された
+            <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" />受諾された</span>
           </Button>
           <Button type="button" variant="secondary" size="sm" onClick={() => transition('declined')} disabled={pending}>
-            ✕ 辞退された
+            <span className="inline-flex items-center gap-1"><X className="w-3.5 h-3.5" />辞退された</span>
           </Button>
         </>
       )}
       {(currentStatus === 'accepted' || currentStatus === 'declined') && (
         <Button type="button" variant="ghost" size="sm" onClick={() => transition('draft')} disabled={pending}>
-          ↩ 下書きに戻す
+          <span className="inline-flex items-center gap-1"><Undo2 className="w-3.5 h-3.5" />下書きに戻す</span>
         </Button>
       )}
       <Button type="button" variant="danger" size="sm" onClick={handleDelete} disabled={pending}>

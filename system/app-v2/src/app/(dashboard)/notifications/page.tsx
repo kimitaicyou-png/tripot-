@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, BellOff } from 'lucide-react';
 import { auth } from '@/auth';
 import { listNotificationsForMember } from '@/lib/actions/notifications';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -59,7 +59,7 @@ export default async function NotificationsPage() {
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-4">
         {items.length === 0 ? (
           <EmptyState
-            icon="🔔"
+            icon={BellOff}
             title="まだ通知はありません"
             description="予算アラート / 沈黙顧客 / 案件詰まり等の cron 通知がここに集まります"
           />

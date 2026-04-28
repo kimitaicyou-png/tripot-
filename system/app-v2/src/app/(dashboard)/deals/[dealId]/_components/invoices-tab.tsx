@@ -1,3 +1,4 @@
+import { Receipt } from 'lucide-react';
 import { listInvoicesForDeal } from '@/lib/actions/invoices';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
@@ -33,13 +34,13 @@ export async function InvoicesTab({ dealId }: { dealId: string }) {
       <section className="bg-white border border-gray-200 rounded-xl p-6">
         <h3 className="text-sm font-medium text-gray-900 mb-1">請求書</h3>
         <p className="text-xs text-gray-500">
-          見積タブで「受諾」になった見積から「🧾 請求書を作成」ボタンで自動発行できます（番号自動採番・期限30日後）
+          見積タブで「受諾」になった見積から「請求書を作成」ボタンで自動発行できます（番号自動採番・期限30日後）
         </p>
       </section>
 
       {items.length === 0 ? (
         <EmptyState
-          icon="🧾"
+          icon={Receipt}
           title="まだ請求書がありません"
           description="見積を受諾済にしてから、見積タブの「請求書を作成」を押してください"
         />

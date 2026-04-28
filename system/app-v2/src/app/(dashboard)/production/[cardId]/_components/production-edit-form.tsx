@@ -2,6 +2,7 @@
 
 import { useActionState, useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Pencil } from 'lucide-react';
 import { updateProductionCard, deleteProductionCard, type ProductionFormState } from '@/lib/actions/production';
 
 const initialState: ProductionFormState = {};
@@ -39,9 +40,10 @@ export function ProductionEditForm(props: Props) {
         <button
           type="button"
           onClick={() => setEditing(true)}
-          className="px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
+          className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
         >
-          ✎ 編集
+          <Pencil className="w-3 h-3" />
+          編集
         </button>
         <button
           type="button"

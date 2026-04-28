@@ -6,12 +6,12 @@ import { createMeeting, type MeetingFormState } from '@/lib/actions/meetings';
 import { FormField, TextInput, TextArea, Select, Button, FormActions } from '@/components/ui/form';
 
 const TYPE_OPTIONS = [
-  { value: 'meeting', label: '🤝 商談' },
-  { value: 'call', label: '📞 電話' },
-  { value: 'gmeet', label: '🎥 オンラインMTG' },
-  { value: 'visit', label: '🚶 訪問' },
-  { value: 'email', label: '✉️ メール' },
-  { value: 'other', label: '📝 その他' },
+  { value: 'meeting', label: '商談' },
+  { value: 'call', label: '電話' },
+  { value: 'gmeet', label: 'オンラインMTG' },
+  { value: 'visit', label: '訪問' },
+  { value: 'email', label: 'メール' },
+  { value: 'other', label: 'その他' },
 ];
 
 const initialState: MeetingFormState = {};

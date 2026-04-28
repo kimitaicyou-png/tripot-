@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { CheckCircle2 } from 'lucide-react';
 import { createReview, type ReviewFormState } from '@/lib/actions/reviews';
 
 const initialState: ReviewFormState = {};
@@ -30,9 +31,10 @@ export function ReviewForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
+        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
       >
-        ✅ レビュー追加
+        <CheckCircle2 className="w-4 h-4" />
+        レビュー追加
       </button>
     );
   }

@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useRef } from 'react';
+import { Check, Plus } from 'lucide-react';
 import { createTestCase, type TestCaseFormState } from '@/lib/actions/test-cases';
 
 const initialState: TestCaseFormState = {};
@@ -38,13 +39,14 @@ export function TestCaseForm({ cardId }: { cardId: string }) {
         {state.errors?._form && (
           <p className="text-xs text-red-700">{state.errors._form.join(' / ')}</p>
         )}
-        {state.success && <p className="text-xs text-emerald-700">✓ 追加</p>}
+        {state.success && <p className="inline-flex items-center gap-1 text-xs text-emerald-700"><Check className="w-3 h-3" />追加</p>}
         <button
           type="submit"
           disabled={pending}
-          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="inline-flex items-center gap-1 ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
-          {pending ? '追加中...' : '＋ 追加'}
+          <Plus className="w-3.5 h-3.5" />
+          {pending ? '追加中...' : '追加'}
         </button>
       </div>
     </form>

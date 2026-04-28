@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { Mail, Sparkles, ArrowLeft, ClipboardCopy } from 'lucide-react';
 import {
   Dialog,
   DialogHeader,
@@ -11,15 +12,15 @@ import { FormField, Select, TextInput, TextArea, Button } from '@/components/ui/
 import { toast } from '@/components/ui/toaster';
 
 const INTENT_OPTIONS = [
-  { value: 'thank_you', label: '🙇 商談・打ち合わせのお礼' },
-  { value: 'follow_up', label: '🔁 提案後のフォローアップ' },
-  { value: 'proposal_send', label: '📄 提案書 送付の案内' },
-  { value: 'estimate_send', label: '🧮 見積書 送付の案内' },
-  { value: 'meeting_request', label: '📅 次回打ち合わせの日程調整' },
-  { value: 'price_discussion', label: '💴 価格の相談・交渉' },
-  { value: 'closing_check', label: '✅ 受注に向けた最終確認' },
-  { value: 'apology', label: '🙏 対応遅延・トラブルの謝罪' },
-  { value: 'custom', label: '📝 自由記述（追加指示で詳細）' },
+  { value: 'thank_you', label: '商談・打ち合わせのお礼' },
+  { value: 'follow_up', label: '提案後のフォローアップ' },
+  { value: 'proposal_send', label: '提案書 送付の案内' },
+  { value: 'estimate_send', label: '見積書 送付の案内' },
+  { value: 'meeting_request', label: '次回打ち合わせの日程調整' },
+  { value: 'price_discussion', label: '価格の相談・交渉' },
+  { value: 'closing_check', label: '受注に向けた最終確認' },
+  { value: 'apology', label: '対応遅延・トラブルの謝罪' },
+  { value: 'custom', label: '自由記述（追加指示で詳細）' },
 ];
 
 const FORMALITY_OPTIONS = [
@@ -111,7 +112,10 @@ export function EmailDraftButton({
   return (
     <>
       <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
-        ✉️ メール下書き
+        <span className="inline-flex items-center gap-1.5">
+          <Mail className="w-4 h-4" />
+          メール下書き
+        </span>
       </Button>
 
       <Dialog
@@ -206,19 +210,31 @@ export function EmailDraftButton({
                 キャンセル
               </Button>
               <Button type="button" variant="primary" onClick={handleGenerate} disabled={running}>
-                {running ? '✨ 生成中…' : '✨ AI で下書き'}
+                <span className="inline-flex items-center gap-1.5">
+                  <Sparkles className="w-4 h-4" />
+                  {running ? '生成中…' : 'AI で下書き'}
+                </span>
               </Button>
             </>
           ) : (
             <>
               <Button type="button" variant="ghost" onClick={() => setDraft(null)}>
-                ← 別の意図でやり直し
+                <span className="inline-flex items-center gap-1">
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  別の意図でやり直し
+                </span>
               </Button>
               <Button type="button" variant="secondary" onClick={copyAll}>
-                📋 コピー
+                <span className="inline-flex items-center gap-1.5">
+                  <ClipboardCopy className="w-4 h-4" />
+                  コピー
+                </span>
               </Button>
               <Button type="button" variant="primary" onClick={openMailto}>
-                ✉️ メーラーで開く
+                <span className="inline-flex items-center gap-1.5">
+                  <Mail className="w-4 h-4" />
+                  メーラーで開く
+                </span>
               </Button>
             </>
           )}

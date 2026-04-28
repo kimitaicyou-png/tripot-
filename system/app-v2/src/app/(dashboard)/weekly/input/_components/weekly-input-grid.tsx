@@ -91,7 +91,7 @@ export function WeeklyInputGrid({
         setMessage(result.errors._form.join(' / '));
         return;
       }
-      setMessage(`✓ ${result.inserted ?? 0} 件保存しました`);
+      setMessage(`${result.inserted ?? 0} 件保存しました`);
       clearAll();
       router.refresh();
     });

@@ -1,6 +1,22 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { eq, and } from 'drizzle-orm';
+import {
+  ArrowLeft,
+  Banknote,
+  Globe,
+  MessageCircle,
+  MessageSquare,
+  NotebookText,
+  Mail,
+  Video,
+  Users,
+  PenTool,
+  CreditCard,
+  Wallet,
+  Plug,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { integrations } from '@/db/schema';
@@ -21,19 +37,19 @@ const PROVIDER_LABEL: Record<string, string> = {
   paypay: 'PayPay',
 };
 
-const PROVIDER_ICON: Record<string, string> = {
-  mf: '💴',
-  freee: '🔵',
-  google: '🌐',
-  slack: '💬',
-  line: '💚',
-  notion: '📓',
-  gmail: '✉️',
-  zoom: '🎥',
-  teams: '👥',
-  cloudsign: '📝',
-  stripe: '💳',
-  paypay: '🟥',
+const PROVIDER_ICON: Record<string, LucideIcon> = {
+  mf: Banknote,
+  freee: Banknote,
+  google: Globe,
+  slack: MessageSquare,
+  line: MessageCircle,
+  notion: NotebookText,
+  gmail: Mail,
+  zoom: Video,
+  teams: Users,
+  cloudsign: PenTool,
+  stripe: CreditCard,
+  paypay: Wallet,
 };
 
 const STATUS_TONE: Record<string, 'up' | 'down' | 'neutral' | 'accent'> = {
@@ -65,7 +81,7 @@ export default async function SettingsIntegrationsPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="text-gray-700 hover:text-gray-900 text-sm">← ホーム</Link>
+        <Link href="/" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm"><ArrowLeft className="w-3.5 h-3.5" />ホーム</Link>
         <h1 className="text-lg font-semibold text-gray-900">連携設定</h1>
       </header>
 
@@ -80,13 +96,14 @@ export default async function SettingsIntegrationsPage() {
           {allProviders.map((p) => {
             const connection = connectedMap.get(p);
             const status = connection?.status ?? null;
+            const Icon = PROVIDER_ICON[p] ?? Plug;
             return (
               <li
                 key={p}
                 className="bg-white border border-gray-200 rounded-xl p-5 flex items-start justify-between gap-3"
               >
                 <div className="flex items-start gap-3 flex-1 min-w-0">
-                  <span className="text-2xl">{PROVIDER_ICON[p] ?? '🔌'}</span>
+                  <Icon className="w-6 h-6 text-gray-700 shrink-0" />
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-gray-900 font-medium">{PROVIDER_LABEL[p]}</p>
                     {connection ? (

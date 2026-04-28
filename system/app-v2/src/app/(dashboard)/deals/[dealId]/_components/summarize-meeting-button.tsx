@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Sparkles, RotateCcw, FileEdit } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 
@@ -60,7 +61,10 @@ export function SummarizeMeetingButton({
       onClick={handleSummarize}
       disabled={running || pending}
     >
-      {running ? '✨ 要約中…' : hasSummary ? '↻ 再要約' : '📝 要約'}
+      <span className="inline-flex items-center gap-1">
+        {running ? <Sparkles className="w-3.5 h-3.5" /> : hasSummary ? <RotateCcw className="w-3.5 h-3.5" /> : <FileEdit className="w-3.5 h-3.5" />}
+        {running ? '要約中…' : hasSummary ? '再要約' : '要約'}
+      </span>
     </Button>
   );
 }

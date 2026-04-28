@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { Check } from 'lucide-react';
 import { updateDealInternalNote, type InternalNoteState } from '@/lib/actions/deals';
 
 const initialState: InternalNoteState = {};
@@ -73,7 +74,7 @@ export function InternalNoteSection({
         {state.errors?._form && (
           <p className="text-xs text-red-700">{state.errors._form.join(' / ')}</p>
         )}
-        {state.success && <p className="text-xs text-emerald-700">✓ 保存しました</p>}
+        {state.success && <p className="inline-flex items-center gap-1 text-xs text-emerald-700"><Check className="w-3 h-3" />保存しました</p>}
         <button
           type="submit"
           disabled={pending}

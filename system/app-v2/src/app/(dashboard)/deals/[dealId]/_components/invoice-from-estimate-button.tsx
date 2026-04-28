@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Receipt } from 'lucide-react';
 import { createInvoiceFromEstimate } from '@/lib/actions/invoices';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -43,7 +44,10 @@ export function InvoiceFromEstimateButton({
       onClick={handleClick}
       disabled={pending}
     >
-      {pending ? '作成中…' : '🧾 請求書を作成'}
+      <span className="inline-flex items-center gap-1">
+        <Receipt className="w-3.5 h-3.5" />
+        {pending ? '作成中…' : '請求書を作成'}
+      </span>
     </Button>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useState, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
+import { X, Plus } from 'lucide-react';
 import { createEstimate } from '@/lib/actions/estimates';
 import { FormField, TextInput, Button, FormActions } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -113,7 +114,10 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
   return (
     <>
       <Button type="button" variant="primary" onClick={() => setOpen(true)}>
-        + 見積を新規作成
+        <span className="inline-flex items-center gap-1">
+          <Plus className="w-4 h-4" />
+          見積を新規作成
+        </span>
       </Button>
       <Dialog
         open={open}
@@ -182,10 +186,10 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
                     type="button"
                     onClick={() => removeLine(idx)}
                     disabled={lines.length === 1}
-                    className="col-span-1 px-2 py-2 text-gray-700 hover:text-red-700 disabled:opacity-30 text-sm"
+                    className="col-span-1 flex items-center justify-center px-2 py-2 text-gray-700 hover:text-red-700 disabled:opacity-30"
                     aria-label={`${idx + 1}行目を削除`}
                   >
-                    ✕
+                    <X className="w-4 h-4" />
                   </button>
                 </div>
               ))}
@@ -193,9 +197,10 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
             <button
               type="button"
               onClick={addLine}
-              className="mt-3 text-sm text-gray-700 hover:text-gray-900"
+              className="mt-3 inline-flex items-center gap-1 text-sm text-gray-700 hover:text-gray-900"
             >
-              + 行を追加
+              <Plus className="w-3.5 h-3.5" />
+              行を追加
             </button>
           </div>
 

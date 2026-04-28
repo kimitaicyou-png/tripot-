@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 
@@ -53,7 +54,10 @@ export function ProposalGenerateButton({ dealId }: { dealId: string }) {
       onClick={handleGenerate}
       disabled={running || pending}
     >
-      {running ? '✨ 生成中…(30秒前後)' : '✨ AIで提案書を生成'}
+      <span className="inline-flex items-center gap-1.5">
+        <Sparkles className="w-4 h-4" />
+        {running ? '生成中…(30秒前後)' : 'AIで提案書を生成'}
+      </span>
     </Button>
   );
 }

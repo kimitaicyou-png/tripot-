@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+import { Sparkles, RotateCcw, Phone, Handshake, FileText, Mail, Footprints, FileEdit } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 
@@ -13,12 +15,21 @@ type NextAction = {
 };
 
 const TYPE_LABEL: Record<NextAction['action_type'], string> = {
-  call: '📞 電話',
-  meeting: '🤝 商談',
-  proposal: '📄 提案',
-  email: '✉️ メール',
-  visit: '🚶 訪問',
-  other: '📝 その他',
+  call: '電話',
+  meeting: '商談',
+  proposal: '提案',
+  email: 'メール',
+  visit: '訪問',
+  other: 'その他',
+};
+
+const TYPE_ICON: Record<NextAction['action_type'], LucideIcon> = {
+  call: Phone,
+  meeting: Handshake,
+  proposal: FileText,
+  email: Mail,
+  visit: Footprints,
+  other: FileEdit,
 };
 
 function formatDue(days: number): string {
@@ -79,7 +90,10 @@ export function NextActionSection({ dealId }: { dealId: string }) {
             </p>
           </div>
           <Button type="button" variant="primary" onClick={handleSuggest} disabled={running}>
-            {running ? '✨ 提案中…' : '✨ 次の一手'}
+            <span className="inline-flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4" />
+              {running ? '提案中…' : '次の一手'}
+            </span>
           </Button>
         </div>
       </section>
@@ -96,14 +110,25 @@ export function NextActionSection({ dealId }: { dealId: string }) {
           </p>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={handleSuggest} disabled={running}>
-          {running ? '提案中…' : '↻ 再提案'}
+          <span className="inline-flex items-center gap-1">
+            <RotateCcw className="w-3.5 h-3.5" />
+            {running ? '提案中…' : '再提案'}
+          </span>
         </Button>
       </div>
 
       <div className="border-l-2 border-amber-300 pl-4 py-1 space-y-2">
         <p className="font-semibold text-xl text-gray-900 leading-snug">{data.action}</p>
-        <div className="flex flex-wrap gap-3 text-xs text-gray-700">
-          <span>{TYPE_LABEL[data.action_type] ?? data.action_type}</span>
+        <div className="flex flex-wrap items-center gap-3 text-xs text-gray-700">
+          {(() => {
+            const Icon = TYPE_ICON[data.action_type] ?? FileEdit;
+            return (
+              <span className="inline-flex items-center gap-1">
+                <Icon className="w-3.5 h-3.5" />
+                {TYPE_LABEL[data.action_type] ?? data.action_type}
+              </span>
+            );
+          })()}
           <span>·</span>
           <span className="font-mono">{formatDue(data.due_in_days)}</span>
         </div>

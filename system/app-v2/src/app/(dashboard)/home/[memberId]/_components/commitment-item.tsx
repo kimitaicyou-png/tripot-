@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import Link from 'next/link';
+import { Check, X } from 'lucide-react';
 import { completeCommitment, deleteCommitment } from '@/lib/actions/commitments';
 import { toast } from '@/components/ui/toaster';
 
@@ -80,7 +81,9 @@ export function CommitmentItem({
         />
       )}
       {isDone && (
-        <span className="mt-0.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center text-xs">✓</span>
+        <span className="mt-0.5 w-5 h-5 rounded-full bg-emerald-500 text-white flex items-center justify-center">
+          <Check className="w-3 h-3" />
+        </span>
       )}
       <div className="flex-1 min-w-0">
         <p className={`text-sm ${isDone ? 'line-through text-gray-700' : 'text-gray-900'}`}>
@@ -102,10 +105,10 @@ export function CommitmentItem({
         type="button"
         onClick={handleDelete}
         disabled={pending}
-        className="text-xs text-gray-700 hover:text-red-700 disabled:opacity-50"
+        className="flex items-center justify-center text-gray-700 hover:text-red-700 disabled:opacity-50"
         aria-label="削除"
       >
-        ✕
+        <X className="w-3.5 h-3.5" />
       </button>
     </li>
   );

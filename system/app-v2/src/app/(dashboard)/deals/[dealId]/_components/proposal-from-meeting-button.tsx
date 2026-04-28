@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Sparkles } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 
@@ -58,7 +59,10 @@ export function ProposalFromMeetingButton({
       onClick={handleGenerate}
       disabled={running || pending}
     >
-      {running ? '✨ 生成中…' : '✨ 提案書化'}
+      <span className="inline-flex items-center gap-1">
+        <Sparkles className="w-3.5 h-3.5" />
+        {running ? '生成中…' : '提案書化'}
+      </span>
     </Button>
   );
 }

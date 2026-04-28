@@ -1,3 +1,4 @@
+import { ClipboardList, ChevronRight, ChevronDown } from 'lucide-react';
 import { listEstimatesForDeal } from '@/lib/actions/estimates';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
@@ -47,7 +48,7 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
 
         {items.length === 0 ? (
           <EmptyState
-            icon="📋"
+            icon={ClipboardList}
             title="まだ見積がありません"
             description="提案内容が固まったら見積を作成してください"
           />
@@ -73,10 +74,14 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
                   {lines.length > 0 && (
                     <details className="group">
                       <summary className="text-xs text-gray-700 cursor-pointer hover:text-gray-900 list-none">
-                        <span className="inline-block group-open:hidden">
-                          ▶ 明細 {lines.length} 行を表示
+                        <span className="inline-flex items-center gap-1 group-open:hidden">
+                          <ChevronRight className="w-3 h-3" />
+                          明細 {lines.length} 行を表示
                         </span>
-                        <span className="hidden group-open:inline-block">▼ 明細を折りたたむ</span>
+                        <span className="hidden group-open:inline-flex items-center gap-1">
+                          <ChevronDown className="w-3 h-3" />
+                          明細を折りたたむ
+                        </span>
                       </summary>
                       <table className="mt-3 w-full text-sm">
                         <thead>

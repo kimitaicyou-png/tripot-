@@ -6,6 +6,7 @@ import {
   importBudgetActualsFromCsv,
   type BudgetActualFormState,
 } from '@/lib/actions/budget-actuals';
+import { Download } from 'lucide-react';
 import { Dialog, DialogHeader, DialogBody, DialogFooter } from '@/components/ui/dialog';
 import { Button, FormField, TextArea } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -37,7 +38,10 @@ export function ActualsImportDialog() {
   return (
     <>
       <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(true)}>
-        📥 昨年実績 取込
+        <span className="inline-flex items-center gap-1.5">
+          <Download className="w-3.5 h-3.5" />
+          昨年実績 取込
+        </span>
       </Button>
       <Dialog open={open} onClose={() => setOpen(false)} size="lg">
         <DialogHeader title="昨年実績を CSV で取込" onClose={() => setOpen(false)} />

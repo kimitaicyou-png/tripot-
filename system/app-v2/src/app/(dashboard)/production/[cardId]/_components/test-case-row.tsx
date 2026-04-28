@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Check, X } from 'lucide-react';
 import { recordTestRun } from '@/lib/actions/test-cases';
 
 type Props = {
@@ -33,10 +34,10 @@ export function TestCaseRow(props: Props) {
         <div className="flex items-baseline gap-3 flex-wrap">
           <p className="text-sm text-gray-900">{props.title}</p>
           {status === 'pass' && (
-            <span className="text-xs text-emerald-700 font-medium">✓ PASS</span>
+            <span className="inline-flex items-center gap-0.5 text-xs text-emerald-700 font-medium"><Check className="w-3 h-3" />PASS</span>
           )}
           {status === 'fail' && (
-            <span className="text-xs text-red-700 font-medium">✗ FAIL</span>
+            <span className="inline-flex items-center gap-0.5 text-xs text-red-700 font-medium"><X className="w-3 h-3" />FAIL</span>
           )}
           {status === null && (
             <span className="text-xs text-gray-500">未実行</span>

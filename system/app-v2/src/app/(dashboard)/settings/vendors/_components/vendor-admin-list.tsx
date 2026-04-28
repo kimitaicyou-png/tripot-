@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Star } from 'lucide-react';
 import { deleteVendor, type VendorFormState } from '@/lib/actions/vendors';
 import { Button } from '@/components/ui/form';
 import { Dialog, DialogHeader, DialogBody } from '@/components/ui/dialog';
@@ -54,7 +55,12 @@ export function VendorAdminList({ vendors }: { vendors: Vendor[] }) {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {v.rating && (
-                    <Badge tone="accent">★ {v.rating}/5</Badge>
+                    <Badge tone="accent">
+                      <span className="inline-flex items-center gap-0.5">
+                        <Star className="w-3 h-3 fill-current" />
+                        {v.rating}/5
+                      </span>
+                    </Badge>
                   )}
                   <Button
                     type="button"

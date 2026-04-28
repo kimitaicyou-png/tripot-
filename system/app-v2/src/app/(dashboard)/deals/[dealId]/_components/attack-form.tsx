@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { Plus, RotateCcw } from 'lucide-react';
 import { upsertAttackPlan, type AttackPlanFormState } from '@/lib/actions/attack-plans';
 import { FormField, TextInput, TextArea, Button, FormActions } from '@/components/ui/form';
 
@@ -23,7 +24,10 @@ export function AttackForm({ dealId, initial }: { dealId: string; initial: Initi
       !initial.key_person && !initial.competitor && !initial.budget_estimate && !initial.plan && !initial.next_action;
     return (
       <Button type="button" variant={isEmpty ? 'primary' : 'secondary'} size="sm" onClick={() => setOpen(true)}>
-        {isEmpty ? '+ 攻略カードを作成' : '↻ 攻略カードを編集'}
+        <span className="inline-flex items-center gap-1">
+          {isEmpty ? <Plus className="w-3.5 h-3.5" /> : <RotateCcw className="w-3.5 h-3.5" />}
+          {isEmpty ? '攻略カードを作成' : '攻略カードを編集'}
+        </span>
       </Button>
     );
   }

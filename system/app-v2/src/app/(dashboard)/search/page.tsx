@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Search } from 'lucide-react';
 import { auth } from '@/auth';
 import { globalSearch } from '@/lib/actions/search';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -76,7 +76,7 @@ export default async function SearchPage({
           </p>
         ) : hits.length === 0 ? (
           <EmptyState
-            icon="🔎"
+            icon={Search}
             title={`「${q}」に該当する結果がありません`}
             description="キーワードを変えて再検索してください"
           />

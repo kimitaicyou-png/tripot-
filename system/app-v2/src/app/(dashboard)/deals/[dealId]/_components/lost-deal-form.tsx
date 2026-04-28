@@ -2,19 +2,20 @@
 
 import { useActionState, useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { RotateCcw } from 'lucide-react';
 import { recordLostDeal, type LostDealFormState } from '@/lib/actions/lost-deals';
 import { FormField, TextInput, TextArea, Select, Button, FormActions } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 
 const REASON_OPTIONS = [
-  { value: '価格', label: '💴 価格が合わない' },
-  { value: '機能', label: '⚙️ 機能不足' },
-  { value: 'タイミング', label: '⏰ タイミング不一致' },
-  { value: '決裁', label: '🗳 決裁通らず' },
-  { value: '競合', label: '⚔️ 競合に取られた' },
-  { value: '内製化', label: '🏠 内製化' },
-  { value: '保留', label: '⏸ 保留・見送り' },
-  { value: 'その他', label: '📝 その他' },
+  { value: '価格', label: '価格が合わない' },
+  { value: '機能', label: '機能不足' },
+  { value: 'タイミング', label: 'タイミング不一致' },
+  { value: '決裁', label: '決裁通らず' },
+  { value: '競合', label: '競合に取られた' },
+  { value: '内製化', label: '内製化' },
+  { value: '保留', label: '保留・見送り' },
+  { value: 'その他', label: 'その他' },
 ];
 
 const initialState: LostDealFormState = {};
@@ -41,7 +42,7 @@ export function LostDealForm({
   if (!open) {
     return (
       <Button type="button" variant="secondary" size="sm" onClick={() => setOpen(true)}>
-        ↻ 編集
+        <span className="inline-flex items-center gap-1"><RotateCcw className="w-3.5 h-3.5" />編集</span>
       </Button>
     );
   }

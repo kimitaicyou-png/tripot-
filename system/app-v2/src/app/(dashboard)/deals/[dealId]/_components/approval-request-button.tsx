@@ -2,16 +2,17 @@
 
 import { useActionState, useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { Shield } from 'lucide-react';
 import { requestApproval, type ApprovalRequestState } from '@/lib/actions/approvals';
 import { Button, FormField, Select, TextArea, FormActions } from '@/components/ui/form';
 import { Dialog, DialogHeader, DialogBody, DialogFooter } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/toaster';
 
 const TYPE_OPTIONS = [
-  { value: 'discount', label: '💴 値引き承認' },
-  { value: 'expense', label: '🧾 経費承認' },
-  { value: 'contract', label: '📄 契約承認' },
-  { value: 'custom', label: '📝 その他' },
+  { value: 'discount', label: '値引き承認' },
+  { value: 'expense', label: '経費承認' },
+  { value: 'contract', label: '契約承認' },
+  { value: 'custom', label: 'その他' },
 ];
 
 const initialState: ApprovalRequestState = {};
@@ -32,7 +33,10 @@ export function ApprovalRequestButton({ dealId }: { dealId: string }) {
   return (
     <>
       <Button type="button" variant="secondary" onClick={() => setOpen(true)}>
-        🛡️ 承認申請
+        <span className="inline-flex items-center gap-1.5">
+          <Shield className="w-4 h-4" />
+          承認申請
+        </span>
       </Button>
 
       <Dialog open={open} onClose={() => setOpen(false)} size="md">

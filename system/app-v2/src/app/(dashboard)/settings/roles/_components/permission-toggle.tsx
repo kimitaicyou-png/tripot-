@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Check, Minus } from 'lucide-react';
 import { updateRolePermission } from '@/lib/actions/role-permissions';
 import { type Role } from '@/lib/role-permissions-meta';
 import { toast } from '@/components/ui/toaster';
@@ -39,13 +40,13 @@ export function PermissionToggle({
       onClick={handleToggle}
       disabled={pending}
       aria-pressed={allowed}
-      className={`inline-flex items-center justify-center w-7 h-7 rounded-lg text-xs transition-colors disabled:opacity-50 ${
+      className={`inline-flex items-center justify-center w-7 h-7 rounded-lg transition-colors disabled:opacity-50 ${
         allowed
           ? 'bg-emerald-500 text-white hover:bg-green-700'
           : 'bg-gray-50 border border-gray-200 text-gray-500 hover:bg-slate-100'
       }`}
     >
-      {allowed ? '✓' : '—'}
+      {allowed ? <Check className="w-3.5 h-3.5" /> : <Minus className="w-3.5 h-3.5" />}
     </button>
   );
 }

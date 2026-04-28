@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Sprout, Plus } from 'lucide-react';
 import { seedDefaultQuotes, addQuote } from '@/lib/actions/quotes';
 import { FormField, TextInput, TextArea, Button, FormActions } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -58,10 +59,10 @@ export function QuotesAdmin({ existingCount }: { existingCount: number }) {
         </div>
         <div className="flex gap-2">
           <Button type="button" variant="secondary" onClick={handleSeed} disabled={pending}>
-            🌱 初期データ投入
+            <span className="inline-flex items-center gap-1.5"><Sprout className="w-4 h-4" />初期データ投入</span>
           </Button>
           <Button type="button" variant="primary" onClick={() => setOpen((v) => !v)}>
-            {open ? '閉じる' : '+ 追加'}
+            <span className="inline-flex items-center gap-1">{open ? null : <Plus className="w-4 h-4" />}{open ? '閉じる' : '追加'}</span>
           </Button>
         </div>
       </div>

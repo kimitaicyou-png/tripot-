@@ -1,19 +1,30 @@
 import Link from 'next/link';
+import { Inbox } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 export function EmptyState({
-  icon = '◯',
+  icon,
   title,
   description,
   cta,
 }: {
-  icon?: string;
+  icon?: LucideIcon | string;
   title: string;
   description?: string;
   cta?: { href: string; label: string };
 }) {
+  const Icon: LucideIcon = typeof icon === 'function' ? icon : Inbox;
+  const useIconComponent = typeof icon !== 'string';
+
   return (
     <div className="bg-white border border-gray-200 rounded-xl p-12 text-center">
-      <p className="font-semibold text-5xl text-gray-500 mb-3">{icon}</p>
+      {useIconComponent ? (
+        <div className="flex justify-center mb-3">
+          <Icon className="w-12 h-12 text-gray-500" strokeWidth={1.5} />
+        </div>
+      ) : (
+        <p className="font-semibold text-5xl text-gray-500 mb-3">{icon}</p>
+      )}
       <p className="text-base text-gray-900 font-medium">{title}</p>
       {description && <p className="text-xs text-gray-700 mt-2">{description}</p>}
       {cta && (

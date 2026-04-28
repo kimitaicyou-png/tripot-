@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useTransition } from 'react';
+import { Bell, BellOff, MessageSquare, MessageCircle, Mail } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { upsertPreference } from '@/lib/actions/notification-prefs';
 import { CHANNELS } from '@/lib/notification-prefs-meta';
 import { toast } from '@/components/ui/toaster';
@@ -12,11 +14,11 @@ const CHANNEL_LABELS: Record<string, string> = {
   email: 'メール',
 };
 
-const CHANNEL_ICONS: Record<string, string> = {
-  app: '🔔',
-  slack: '💬',
-  line: '💚',
-  email: '✉️',
+const CHANNEL_ICONS: Record<string, LucideIcon> = {
+  app: Bell,
+  slack: MessageSquare,
+  line: MessageCircle,
+  email: Mail,
 };
 
 export function PrefRow({
@@ -76,32 +78,34 @@ export function PrefRow({
           type="button"
           onClick={toggleMute}
           disabled={pending}
-          className={`text-xs px-2 py-1 rounded-lg font-medium ${
+          className={`inline-flex items-center gap-1 text-xs px-2 py-1 rounded-lg font-medium ${
             isMuted
               ? 'bg-amber-50 text-amber-700 border border-amber-200'
               : 'text-gray-500 hover:text-gray-900'
           }`}
         >
-          {isMuted ? '🔕 ミュート中' : '🔕 ミュート'}
+          <BellOff className="w-3 h-3" />
+          {isMuted ? 'ミュート中' : 'ミュート'}
         </button>
       </div>
 
       <div className="flex flex-wrap gap-2">
         {CHANNELS.map((c) => {
           const enabled = channels.includes(c);
+          const Icon = CHANNEL_ICONS[c] ?? Bell;
           return (
             <button
               key={c}
               type="button"
               onClick={() => toggleChannel(c)}
               disabled={pending || isMuted}
-              className={`text-xs px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-50 ${
+              className={`inline-flex items-center gap-1 text-xs px-3 py-1.5 rounded-lg border transition-colors disabled:opacity-50 ${
                 enabled
                   ? 'bg-gray-900 text-white border-gray-900'
                   : 'bg-white text-gray-700 border-gray-200 hover:border-gray-900'
               }`}
             >
-              <span className="mr-1">{CHANNEL_ICONS[c]}</span>
+              <Icon className="w-3.5 h-3.5" />
               {CHANNEL_LABELS[c] ?? c}
             </button>
           );

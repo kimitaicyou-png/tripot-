@@ -1,5 +1,7 @@
 import Link from 'next/link';
 import { eq, and, isNull, desc } from 'drizzle-orm';
+import { Phone, Handshake, FileText, Mail, Footprints, FileEdit } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { tasks, actions, members } from '@/db/schema';
@@ -18,12 +20,21 @@ import { RunningSection } from './running-section';
 import { TargetSection } from './target-section';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
-  call: '📞 電話',
-  meeting: '🤝 商談',
-  proposal: '📄 提案',
-  email: '✉️ メール',
-  visit: '🚶 訪問',
-  other: '📝 その他',
+  call: '電話',
+  meeting: '商談',
+  proposal: '提案',
+  email: 'メール',
+  visit: '訪問',
+  other: 'その他',
+};
+
+const ACTION_TYPE_ICON: Record<string, LucideIcon> = {
+  call: Phone,
+  meeting: Handshake,
+  proposal: FileText,
+  email: Mail,
+  visit: Footprints,
+  other: FileEdit,
 };
 
 function formatYen(value: number | null): string {
@@ -173,22 +184,24 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
           <p className="text-sm text-gray-700">まだ行動が記録されていません</p>
         ) : (
           <ul className="space-y-3">
-            {dealActions.map((a) => (
-              <li key={a.id} className="flex items-start gap-3 border-l-2 border-gray-200 pl-3">
-                <div className="flex-1">
-                  <p className="text-sm text-gray-900">
-                    <span className="font-medium">
-                      {ACTION_TYPE_LABEL[a.type] ?? a.type}
-                    </span>
-                    <span className="text-gray-700 ml-2">by {a.member_name}</span>
-                  </p>
-                  {a.note && <p className="text-sm text-gray-700 mt-1">{a.note}</p>}
-                  <p className="text-xs font-mono text-gray-500 mt-1">
-                    {new Date(a.occurred_at).toLocaleString('ja-JP')}
-                  </p>
-                </div>
-              </li>
-            ))}
+            {dealActions.map((a) => {
+              const Icon = ACTION_TYPE_ICON[a.type] ?? FileEdit;
+              return (
+                <li key={a.id} className="flex items-start gap-3 border-l-2 border-gray-200 pl-3">
+                  <div className="flex-1">
+                    <p className="inline-flex items-center gap-1.5 text-sm text-gray-900">
+                      <Icon className="w-3.5 h-3.5" />
+                      <span className="font-medium">{ACTION_TYPE_LABEL[a.type] ?? a.type}</span>
+                      <span className="text-gray-700 ml-1">by {a.member_name}</span>
+                    </p>
+                    {a.note && <p className="text-sm text-gray-700 mt-1">{a.note}</p>}
+                    <p className="text-xs font-mono text-gray-500 mt-1">
+                      {new Date(a.occurred_at).toLocaleString('ja-JP')}
+                    </p>
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

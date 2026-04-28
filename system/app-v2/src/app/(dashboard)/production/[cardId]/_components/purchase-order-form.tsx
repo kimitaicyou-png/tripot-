@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { Package } from 'lucide-react';
 import { createPurchaseOrder, type PurchaseOrderFormState } from '@/lib/actions/purchase-orders';
 
 const initialState: PurchaseOrderFormState = {};
@@ -29,9 +30,10 @@ export function PurchaseOrderForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
+        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
       >
-        📦 発注追加
+        <Package className="w-4 h-4" />
+        発注追加
       </button>
     );
   }

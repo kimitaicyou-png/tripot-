@@ -1,15 +1,19 @@
 'use client';
 
 import { useState, useActionState, useTransition } from 'react';
+import { Phone, Handshake, FileText, Mail, Footprints, FileEdit, X } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { logActionEntry, type ActionFormState } from '@/lib/actions/log-action';
 
-const ACTION_TYPES = [
-  { value: 'call', label: '電話', icon: '📞' },
-  { value: 'meeting', label: '商談', icon: '🤝' },
-  { value: 'proposal', label: '提案', icon: '📄' },
-  { value: 'email', label: 'メール', icon: '✉️' },
-  { value: 'visit', label: '訪問', icon: '🚶' },
-  { value: 'other', label: 'その他', icon: '📝' },
+type ActionType = { value: string; label: string; icon: LucideIcon };
+
+const ACTION_TYPES: readonly ActionType[] = [
+  { value: 'call', label: '電話', icon: Phone },
+  { value: 'meeting', label: '商談', icon: Handshake },
+  { value: 'proposal', label: '提案', icon: FileText },
+  { value: 'email', label: 'メール', icon: Mail },
+  { value: 'visit', label: '訪問', icon: Footprints },
+  { value: 'other', label: 'その他', icon: FileEdit },
 ] as const;
 
 type Variant = 'fixed' | 'inline';
@@ -59,10 +63,10 @@ export function LogActionButton({
                 <button
                   type="button"
                   onClick={() => setOpen(false)}
-                  className="text-gray-700 hover:text-gray-900 text-2xl leading-none"
+                  className="text-gray-700 hover:text-gray-900 leading-none"
                   aria-label="閉じる"
                 >
-                  ×
+                  <X className="w-6 h-6" />
                 </button>
               </div>
 
@@ -72,22 +76,25 @@ export function LogActionButton({
                 <div>
                   <p className="text-sm font-medium text-gray-900 mb-2">種類</p>
                   <div className="grid grid-cols-3 gap-2">
-                    {ACTION_TYPES.map((t, i) => (
-                      <label
-                        key={t.value}
-                        className="flex flex-col items-center gap-1 px-3 py-3 border border-gray-200 rounded-lg cursor-pointer hover:border-gray-700 transition-colors has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900"
-                      >
-                        <input
-                          type="radio"
-                          name="type"
-                          value={t.value}
-                          defaultChecked={i === 0}
-                          className="sr-only"
-                        />
-                        <span className="text-2xl">{t.icon}</span>
-                        <span className="text-xs font-medium">{t.label}</span>
-                      </label>
-                    ))}
+                    {ACTION_TYPES.map((t, i) => {
+                      const Icon = t.icon;
+                      return (
+                        <label
+                          key={t.value}
+                          className="flex flex-col items-center gap-1 px-3 py-3 border border-gray-200 rounded-lg cursor-pointer hover:border-gray-700 transition-colors has-[:checked]:bg-gray-900 has-[:checked]:text-white has-[:checked]:border-gray-900"
+                        >
+                          <input
+                            type="radio"
+                            name="type"
+                            value={t.value}
+                            defaultChecked={i === 0}
+                            className="sr-only"
+                          />
+                          <Icon className="w-6 h-6" />
+                          <span className="text-xs font-medium">{t.label}</span>
+                        </label>
+                      );
+                    })}
                   </div>
                 </div>
 

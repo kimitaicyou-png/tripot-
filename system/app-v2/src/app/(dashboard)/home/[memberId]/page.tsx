@@ -195,7 +195,7 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
             <p className="text-sm text-gray-700">
               名言が未登録です。
               <a href="/settings/quotes" className="text-gray-900 underline ml-1">
-                設定 → 名言
+                設定の名言
               </a>{' '}
               から「初期データ投入」を実行してください
             </p>

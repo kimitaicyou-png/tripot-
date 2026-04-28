@@ -9,6 +9,7 @@ import {
   seedDefaultTemplates,
   type ProjectTemplateFormState,
 } from '@/lib/actions/project-templates';
+import { Sprout, Plus } from 'lucide-react';
 import { FormField, TextInput, TextArea, Button, FormActions } from '@/components/ui/form';
 import { Dialog, DialogHeader, DialogBody } from '@/components/ui/dialog';
 import { toast } from '@/components/ui/toaster';
@@ -118,10 +119,10 @@ export function TemplatesAdmin({
           </div>
           <div className="flex gap-2">
             <Button type="button" variant="secondary" onClick={handleSeed} disabled={pending}>
-              🌱 初期データ投入
+              <span className="inline-flex items-center gap-1.5"><Sprout className="w-4 h-4" />初期データ投入</span>
             </Button>
             <Button type="button" variant="primary" onClick={() => setCreateOpen(true)}>
-              + 新規追加
+              <span className="inline-flex items-center gap-1"><Plus className="w-4 h-4" />新規追加</span>
             </Button>
           </div>
         </div>

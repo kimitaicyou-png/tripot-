@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useRef } from 'react';
+import { Check } from 'lucide-react';
 import { createDealComment, type CommentFormState } from '@/lib/actions/deal-comments';
 
 const initialState: CommentFormState = {};
@@ -31,7 +32,7 @@ export function CommentForm({ dealId }: { dealId: string }) {
         {state.errors?._form && (
           <p className="text-xs text-red-700">{state.errors._form.join(' / ')}</p>
         )}
-        {state.success && <p className="text-xs text-emerald-700">✓ 投稿しました</p>}
+        {state.success && <p className="inline-flex items-center gap-1 text-xs text-emerald-700"><Check className="w-3 h-3" />投稿しました</p>}
         <button
           type="submit"
           disabled={pending}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { Bug } from 'lucide-react';
 import { createBug, type BugFormState } from '@/lib/actions/bugs';
 
 const initialState: BugFormState = {};
@@ -22,9 +23,10 @@ export function BugForm({ cardId }: { cardId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
+        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
       >
-        🐛 バグ報告
+        <Bug className="w-4 h-4" />
+        バグ報告
       </button>
     );
   }

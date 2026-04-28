@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Sprout } from 'lucide-react';
 import { seedDefaultRolePermissions } from '@/lib/actions/role-permissions';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -34,7 +35,10 @@ export function RolesAdminControls({ existingCount }: { existingCount: number })
 
   return (
     <Button type="button" variant="primary" size="sm" onClick={handleSeed} disabled={pending}>
-      {pending ? '投入中…' : '🌱 初期マトリクス投入'}
+      <span className="inline-flex items-center gap-1.5">
+        <Sprout className="w-3.5 h-3.5" />
+        {pending ? '投入中…' : '初期マトリクス投入'}
+      </span>
     </Button>
   );
 }

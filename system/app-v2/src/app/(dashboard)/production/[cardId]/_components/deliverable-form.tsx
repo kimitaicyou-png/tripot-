@@ -1,6 +1,7 @@
 'use client';
 
 import { useActionState, useState } from 'react';
+import { FolderOpen } from 'lucide-react';
 import { createDeliverable, type DeliverableFormState } from '@/lib/actions/deliverables';
 
 const initialState: DeliverableFormState = {};
@@ -15,9 +16,10 @@ export function DeliverableForm({ cardId }: { cardId: string }) {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
+        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
       >
-        📁 成果物追加
+        <FolderOpen className="w-4 h-4" />
+        成果物追加
       </button>
     );
   }

@@ -1,3 +1,4 @@
+import { FileSliders } from 'lucide-react';
 import { listProposalsForDeal } from '@/lib/actions/proposals';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
@@ -48,7 +49,7 @@ export async function ProposalsTab({ dealId }: { dealId: string }) {
 
         {items.length === 0 ? (
           <EmptyState
-            icon="📑"
+            icon={FileSliders}
             title="まだ提案書がありません"
             description="議事録を貯めてから「AIで生成」を押すと、過去の文脈を踏まえた提案書ができます"
           />

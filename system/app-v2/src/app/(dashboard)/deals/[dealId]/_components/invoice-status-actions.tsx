@@ -1,6 +1,7 @@
 'use client';
 
 import { useTransition } from 'react';
+import { Send, Mail, Check, AlertTriangle } from 'lucide-react';
 import { updateInvoiceStatus, deleteInvoice } from '@/lib/actions/invoices';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -56,22 +57,22 @@ export function InvoiceStatusActions({
     <div className="flex flex-wrap gap-2">
       {currentStatus === 'draft' && (
         <Button type="button" variant="primary" size="sm" onClick={() => transition('issued')} disabled={pending}>
-          ▶ 発行する
+          <span className="inline-flex items-center gap-1"><Send className="w-3.5 h-3.5" />発行する</span>
         </Button>
       )}
       {currentStatus === 'issued' && (
         <Button type="button" variant="primary" size="sm" onClick={() => transition('sent')} disabled={pending}>
-          ✉ 送付した
+          <span className="inline-flex items-center gap-1"><Mail className="w-3.5 h-3.5" />送付した</span>
         </Button>
       )}
       {(currentStatus === 'issued' || currentStatus === 'sent' || currentStatus === 'overdue') && (
         <Button type="button" variant="primary" size="sm" onClick={() => transition('paid')} disabled={pending}>
-          ✓ 入金確認
+          <span className="inline-flex items-center gap-1"><Check className="w-3.5 h-3.5" />入金確認</span>
         </Button>
       )}
       {currentStatus === 'sent' && (
         <Button type="button" variant="secondary" size="sm" onClick={() => transition('overdue')} disabled={pending}>
-          ⚠ 期限超過
+          <span className="inline-flex items-center gap-1"><AlertTriangle className="w-3.5 h-3.5" />期限超過</span>
         </Button>
       )}
       {currentStatus !== 'paid' && currentStatus !== 'voided' && (

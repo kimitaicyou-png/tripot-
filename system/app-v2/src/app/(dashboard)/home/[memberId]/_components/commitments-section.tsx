@@ -1,3 +1,4 @@
+import { ChevronRight, ChevronDown } from 'lucide-react';
 import { listCommitmentsForMember } from '@/lib/actions/commitments';
 import { CommitmentForm } from './commitment-form';
 import { CommitmentItem } from './commitment-item';
@@ -34,8 +35,14 @@ export async function CommitmentsSection({ memberId }: { memberId: string }) {
       {done.length > 0 && (
         <details className="group">
           <summary className="text-xs text-gray-700 cursor-pointer hover:text-gray-900 list-none">
-            <span className="inline-block group-open:hidden">▶ 完了済 {done.length} 件を表示</span>
-            <span className="hidden group-open:inline-block">▼ 完了済を折りたたむ</span>
+            <span className="inline-flex items-center gap-1 group-open:hidden">
+              <ChevronRight className="w-3 h-3" />
+              完了済 {done.length} 件を表示
+            </span>
+            <span className="hidden group-open:inline-flex items-center gap-1">
+              <ChevronDown className="w-3 h-3" />
+              完了済を折りたたむ
+            </span>
           </summary>
           <ul className="space-y-2 mt-2">
             {done.map((c) => (

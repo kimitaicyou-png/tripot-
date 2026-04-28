@@ -2,6 +2,8 @@
 
 import { useState, useTransition } from 'react';
 import { useRouter } from 'next/navigation';
+import { Check, X } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { updateProposalStatus, type ProposalStatus } from '@/lib/actions/proposals';
 
 const TRANSITIONS: Record<ProposalStatus, ProposalStatus[]> = {
@@ -15,8 +17,8 @@ const TRANSITIONS: Record<ProposalStatus, ProposalStatus[]> = {
 const LABEL: Record<ProposalStatus, string> = {
   draft: '下書きへ戻す',
   shared: '共有済にする',
-  won: '✓ 受注',
-  lost: '✗ 失注',
+  won: '受注',
+  lost: '失注',
   archived: 'アーカイブ',
 };
 
@@ -26,6 +28,11 @@ const TONE: Record<ProposalStatus, string> = {
   won: 'text-emerald-700 border-emerald-200 hover:bg-emerald-50',
   lost: 'text-red-700 border-red-200 hover:bg-red-50',
   archived: 'text-gray-700 border-gray-200 hover:text-gray-900 hover:border-gray-900',
+};
+
+const ICON: Partial<Record<ProposalStatus, LucideIcon>> = {
+  won: Check,
+  lost: X,
 };
 
 export function ProposalStatusActions({
@@ -67,16 +74,18 @@ export function ProposalStatusActions({
     <div className="flex items-center gap-2 flex-wrap">
       {nextStatuses.map((s) => {
         const isConfirming = confirmingStatus === s;
+        const Icon = ICON[s];
         return (
           <button
             key={s}
             type="button"
             onClick={() => handleClick(s)}
             disabled={pending}
-            className={`px-3 py-1 text-xs border rounded transition-colors disabled:opacity-40 ${
+            className={`inline-flex items-center gap-1 px-3 py-1 text-xs border rounded transition-colors disabled:opacity-40 ${
               isConfirming ? 'text-amber-700 border-amber-700 bg-amber-50' : TONE[s]
             }`}
           >
+            {Icon && !isConfirming && !pending && <Icon className="w-3.5 h-3.5" />}
             {pending ? '...' : isConfirming ? '本当に' : LABEL[s]}
           </button>
         );
