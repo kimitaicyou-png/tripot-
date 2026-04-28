@@ -4,6 +4,8 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
+import { Sparkles, RotateCcw, Lightbulb, AlertTriangle, AlertOctagon } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type FocusItem = {
   title: string;
@@ -29,10 +31,16 @@ const ALERT_TONE: Record<AlertItem['severity'], string> = {
   critical: 'border-red-200 bg-red-50 text-red-900',
 };
 
-const ALERT_ICON: Record<AlertItem['severity'], string> = {
-  info: '💡',
-  warning: '⚠️',
-  critical: '🚨',
+const ALERT_ICON: Record<AlertItem['severity'], LucideIcon> = {
+  info: Lightbulb,
+  warning: AlertTriangle,
+  critical: AlertOctagon,
+};
+
+const ALERT_ICON_COLOR: Record<AlertItem['severity'], string> = {
+  info: 'text-blue-600',
+  warning: 'text-amber-600',
+  critical: 'text-red-600',
 };
 
 export function MorningBrief({ memberId }: { memberId: string }) {
@@ -87,7 +95,10 @@ export function MorningBrief({ memberId }: { memberId: string }) {
             </p>
           </div>
           <Button type="button" variant="primary" onClick={handleGenerate} disabled={running}>
-            {running ? '✨ 生成中…' : '✨ 今日のブリーフィング'}
+            <span className="inline-flex items-center gap-1.5">
+              <Sparkles className="w-4 h-4" />
+              {running ? '生成中…' : '今日のブリーフィング'}
+            </span>
           </Button>
         </div>
       </section>
@@ -112,7 +123,10 @@ export function MorningBrief({ memberId }: { memberId: string }) {
           onClick={handleGenerate}
           disabled={running}
         >
-          {running ? '更新中…' : '↻ 再生成'}
+          <span className="inline-flex items-center gap-1.5">
+            <RotateCcw className="w-3.5 h-3.5" />
+            {running ? '更新中…' : '再生成'}
+          </span>
         </Button>
       </div>
 
@@ -160,15 +174,18 @@ export function MorningBrief({ memberId }: { memberId: string }) {
       {brief.alerts.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-widest text-gray-500">警告</p>
-          {brief.alerts.map((a, i) => (
-            <div
-              key={i}
-              className={`border rounded-lg px-3 py-2 text-sm ${ALERT_TONE[a.severity]}`}
-            >
-              <span className="mr-2">{ALERT_ICON[a.severity]}</span>
-              {a.message}
-            </div>
-          ))}
+          {brief.alerts.map((a, i) => {
+            const Icon = ALERT_ICON[a.severity];
+            return (
+              <div
+                key={i}
+                className={`border rounded-lg px-3 py-2 text-sm flex items-start gap-2 ${ALERT_TONE[a.severity]}`}
+              >
+                <Icon className={`w-4 h-4 shrink-0 mt-0.5 ${ALERT_ICON_COLOR[a.severity]}`} />
+                <span>{a.message}</span>
+              </div>
+            );
+          })}
         </div>
       )}
     </section>

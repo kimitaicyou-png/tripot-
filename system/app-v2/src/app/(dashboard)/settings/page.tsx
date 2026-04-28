@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { eq, and, isNull, sql } from 'drizzle-orm';
+import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote } from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import {
@@ -14,7 +16,7 @@ import {
 
 type SettingItem = {
   href: string;
-  icon: string;
+  icon: LucideIcon;
   title: string;
   description: string;
   status?: string;
@@ -56,48 +58,48 @@ export default async function SettingsHubPage() {
   const items: SettingItem[] = [
     {
       href: '/settings/company',
-      icon: '🏢',
+      icon: Building2,
       title: '会社設定',
       description: 'coaris.config 全項目（基本情報・機能フラグ・ステージ・DB レコード）',
       status: `${memberCountRow[0]?.n ?? 0} 名所属`,
     },
     {
       href: '/settings/quotes',
-      icon: '🎴',
+      icon: Quote,
       title: '名言管理',
       description: 'ホーム画面で表示される名言。会社別カスタム可',
       status: `${quotesRow[0]?.n ?? 0} 件`,
     },
     {
       href: '/settings/templates',
-      icon: '📁',
+      icon: FolderOpen,
       title: 'プロジェクトテンプレ',
       description: '制作カード新規作成時のテンプレ。LP/コーポレート/EC 等',
       status: `${templatesRow[0]?.n ?? 0} 件`,
     },
     {
       href: '/settings/vendors',
-      icon: '🏭',
+      icon: Factory,
       title: '外注先管理',
       description: '発注書（purchase_orders）が参照する vendor マスタ',
       status: `${vendorsRow[0]?.n ?? 0} 社`,
     },
     {
       href: '/settings/integrations',
-      icon: '🔌',
+      icon: Plug,
       title: '連携設定',
       description: '外部サービスとの OAuth 連携状態（MF / Slack / LINE / Google 他）',
       status: `${integrationsRow[0]?.n ?? 0} 接続中`,
     },
     {
       href: '/settings/mf',
-      icon: '💴',
+      icon: Banknote,
       title: 'マネーフォワード クラウド',
       description: '仕訳取込・照合・反映の3工程',
     },
     {
       href: '/settings/audit',
-      icon: '🪵',
+      icon: FileSearch,
       title: '監査ログ',
       description: '誰がいつ何を変更したかの全履歴。フィルタ + CSV エクスポート',
       status: `${(auditCountRow[0]?.n ?? 0).toLocaleString('ja-JP')} 件`,
@@ -107,7 +109,10 @@ export default async function SettingsHubPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="text-gray-700 hover:text-gray-900 text-sm">← ホーム</Link>
+        <Link href="/" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          ホーム
+        </Link>
         <h1 className="text-lg font-semibold text-gray-900">設定</h1>
       </header>
 
@@ -117,27 +122,30 @@ export default async function SettingsHubPage() {
         </p>
 
         <ul className="space-y-3">
-          {items.map((item) => (
-            <li key={item.href}>
-              <Link
-                href={item.href}
-                className="block bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-900 transition-colors"
-              >
-                <div className="flex items-start gap-4">
-                  <span className="text-3xl">{item.icon}</span>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-baseline justify-between gap-3">
-                      <p className="text-sm text-gray-900 font-medium">{item.title}</p>
-                      {item.status && (
-                        <span className="text-xs font-mono text-gray-500">{item.status}</span>
-                      )}
+          {items.map((item) => {
+            const Icon = item.icon;
+            return (
+              <li key={item.href}>
+                <Link
+                  href={item.href}
+                  className="block bg-white border border-gray-200 rounded-xl p-5 hover:border-gray-900 transition-colors"
+                >
+                  <div className="flex items-start gap-4">
+                    <Icon className="w-7 h-7 shrink-0 text-gray-700" />
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-baseline justify-between gap-3">
+                        <p className="text-sm text-gray-900 font-medium">{item.title}</p>
+                        {item.status && (
+                          <span className="text-xs font-mono text-gray-500">{item.status}</span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-700 mt-1">{item.description}</p>
                     </div>
-                    <p className="text-xs text-gray-700 mt-1">{item.description}</p>
                   </div>
-                </div>
-              </Link>
-            </li>
-          ))}
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </div>
     </main>

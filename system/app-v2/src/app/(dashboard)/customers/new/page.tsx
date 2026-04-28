@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { createCustomer, type CustomerFormState } from '@/lib/actions/customers';
 
 export default function CustomerNewPage() {
@@ -10,7 +11,7 @@ export default function CustomerNewPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/customers" className="text-gray-700 hover:text-gray-900 text-sm">← 顧客一覧</Link>
+        <Link href="/customers" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm"><ArrowLeft className="w-3.5 h-3.5" />顧客一覧</Link>
         <h1 className="text-lg font-semibold text-gray-900">新規顧客</h1>
       </header>
 

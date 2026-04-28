@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { customers, deals, members } from '@/db/schema';
@@ -88,8 +89,9 @@ export default async function CustomerDetailPage({
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/customers" className="text-gray-700 hover:text-gray-900 text-sm">
-          ← 顧客一覧
+        <Link href="/customers" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          顧客一覧
         </Link>
         <h1 className="text-lg font-semibold text-gray-900 truncate">{customer.name}</h1>
       </header>

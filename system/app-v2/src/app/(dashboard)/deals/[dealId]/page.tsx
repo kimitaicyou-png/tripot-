@@ -1,6 +1,7 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
 import { eq, and, isNull, sql } from 'drizzle-orm';
+import { ArrowLeft } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, members, customers, meetings, proposals, estimates, invoices, deal_contracts, deal_artifacts, deal_comments } from '@/db/schema';
@@ -141,8 +142,9 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/deals" className="text-gray-700 hover:text-gray-900 text-sm">
-          ← 案件一覧
+        <Link href="/deals" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          案件一覧
         </Link>
         <h1 className="text-lg font-semibold text-gray-900 truncate flex-1">{deal.title}</h1>
         <span

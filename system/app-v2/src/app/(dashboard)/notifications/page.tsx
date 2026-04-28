@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { auth } from '@/auth';
 import { listNotificationsForMember } from '@/lib/actions/notifications';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -43,7 +44,7 @@ export default async function NotificationsPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/" className="text-gray-700 hover:text-gray-900 text-sm">← ホーム</Link>
+        <Link href="/" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm"><ArrowLeft className="w-3.5 h-3.5" />ホーム</Link>
         <h1 className="text-lg font-semibold text-gray-900 flex-1">
           通知
           {unreadCount > 0 && (

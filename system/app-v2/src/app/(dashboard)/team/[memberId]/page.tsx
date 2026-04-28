@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { members, deals, customers, actions, tasks } from '@/db/schema';
@@ -136,8 +137,9 @@ export default async function TeamMemberDetailPage({
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/team" className="text-gray-700 hover:text-gray-900 text-sm">
-          ← チーム
+        <Link href="/team" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          チーム
         </Link>
         <h1 className="text-lg font-semibold text-gray-900">{member.name}</h1>
       </header>

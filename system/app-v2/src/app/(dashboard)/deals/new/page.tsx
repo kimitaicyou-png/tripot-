@@ -2,6 +2,7 @@
 
 import { useActionState } from 'react';
 import Link from 'next/link';
+import { ArrowLeft } from 'lucide-react';
 import { createDeal, type DealFormState } from '@/lib/actions/deals';
 
 const STAGE_OPTIONS = [
@@ -23,8 +24,9 @@ export default function DealNewPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/deals" className="text-gray-700 hover:text-gray-900 text-sm">
-          ← 案件一覧
+        <Link href="/deals" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          案件一覧
         </Link>
         <h1 className="text-lg font-semibold text-gray-900">新規案件</h1>
       </header>

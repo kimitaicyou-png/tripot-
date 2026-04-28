@@ -4,6 +4,7 @@ import { useActionState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
+import { ArrowLeft } from 'lucide-react';
 import { createTask, type TaskFormState } from '@/lib/actions/tasks';
 
 export default function TaskNewPage() {
@@ -19,7 +20,7 @@ export default function TaskNewPage() {
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/tasks" className="text-gray-700 hover:text-gray-900 text-sm">← タスク一覧</Link>
+        <Link href="/tasks" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm"><ArrowLeft className="w-3.5 h-3.5" />タスク一覧</Link>
         <h1 className="text-lg font-semibold text-gray-900">新規タスク</h1>
       </header>
 

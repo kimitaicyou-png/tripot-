@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import type { ReactNode } from 'react';
+import { ArrowLeft } from 'lucide-react';
 
 export function PageHeader({
   eyebrow,
@@ -19,8 +20,9 @@ export function PageHeader({
       <div className="px-6 py-6 max-w-7xl mx-auto flex items-end justify-between gap-4 flex-wrap">
         <div className="min-w-0">
           {back && (
-            <Link href={back.href} className="text-xs text-gray-700 hover:text-gray-900 transition-colors inline-block mb-1.5">
-              ← {back.label}
+            <Link href={back.href} className="inline-flex items-center gap-1 text-xs text-gray-700 hover:text-gray-900 transition-colors mb-1.5">
+              <ArrowLeft className="w-3.5 h-3.5" />
+              {back.label}
             </Link>
           )}
           {eyebrow && (

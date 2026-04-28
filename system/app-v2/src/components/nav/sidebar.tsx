@@ -3,36 +3,58 @@ import { signOut } from '@/auth';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 import { getMemberColor, getMemberInitial } from '@/lib/member-color';
 import { unreadCountForMember } from '@/lib/actions/notifications';
+import {
+  Home,
+  Briefcase,
+  CheckSquare,
+  Users,
+  CalendarDays,
+  BarChart3,
+  Target,
+  UserCog,
+  Kanban,
+  ClipboardCheck,
+  Building2,
+  Shield,
+  Quote,
+  FolderOpen,
+  Factory,
+  Bell,
+  Plug,
+  FileSearch,
+  Banknote,
+} from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
 
 type NavItem = {
   href: string;
   label: string;
-  icon: string;
+  icon: LucideIcon;
 };
 
 const NAV_ITEMS: NavItem[] = [
-  { href: '/home', label: 'ホーム', icon: '🏠' },
-  { href: '/deals', label: '案件', icon: '📋' },
-  { href: '/tasks', label: 'タスク', icon: '✓' },
-  { href: '/customers', label: '顧客', icon: '🤝' },
-  { href: '/weekly', label: '週次', icon: '📅' },
-  { href: '/monthly', label: '月次', icon: '📊' },
-  { href: '/budget', label: '事業計画', icon: '🎯' },
-  { href: '/team', label: 'チーム', icon: '👥' },
-  { href: '/production', label: '制作', icon: '🛠️' },
-  { href: '/approval', label: '承認', icon: '✋' },
+  { href: '/home', label: 'ホーム', icon: Home },
+  { href: '/deals', label: '案件', icon: Briefcase },
+  { href: '/tasks', label: 'タスク', icon: CheckSquare },
+  { href: '/customers', label: '顧客', icon: Users },
+  { href: '/weekly', label: '週次', icon: CalendarDays },
+  { href: '/monthly', label: '月次', icon: BarChart3 },
+  { href: '/budget', label: '事業計画', icon: Target },
+  { href: '/team', label: 'チーム', icon: UserCog },
+  { href: '/production', label: '制作', icon: Kanban },
+  { href: '/approval', label: '承認', icon: ClipboardCheck },
 ];
 
 const SETTINGS_ITEMS: NavItem[] = [
-  { href: '/settings/company', label: '会社', icon: '🏢' },
-  { href: '/settings/roles', label: '権限', icon: '🛡️' },
-  { href: '/settings/quotes', label: '名言', icon: '🎴' },
-  { href: '/settings/templates', label: 'テンプレ', icon: '📁' },
-  { href: '/settings/vendors', label: '外注先', icon: '🏭' },
-  { href: '/settings/notifications', label: '通知設定', icon: '🔔' },
-  { href: '/settings/integrations', label: '連携', icon: '🔌' },
-  { href: '/settings/audit', label: '監査', icon: '🪵' },
-  { href: '/settings/mf', label: 'MF', icon: '💴' },
+  { href: '/settings/company', label: '会社', icon: Building2 },
+  { href: '/settings/roles', label: '権限', icon: Shield },
+  { href: '/settings/quotes', label: '名言', icon: Quote },
+  { href: '/settings/templates', label: 'テンプレ', icon: FolderOpen },
+  { href: '/settings/vendors', label: '外注先', icon: Factory },
+  { href: '/settings/notifications', label: '通知設定', icon: Bell },
+  { href: '/settings/integrations', label: '連携', icon: Plug },
+  { href: '/settings/audit', label: '監査', icon: FileSearch },
+  { href: '/settings/mf', label: 'MF', icon: Banknote },
 ];
 
 export async function Sidebar({ user }: { user: { name?: string | null; member_id: string; role: string } }) {
@@ -69,6 +91,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
 
         {NAV_ITEMS.map((item) => {
           const href = item.href === '/home' ? `/home/${memberId}` : item.href;
+          const Icon = item.icon;
           return (
             <Link
               key={item.href}
@@ -76,7 +99,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
               href={href as any}
               className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
             >
-              <span className="text-base">{item.icon}</span>
+              <Icon className="w-5 h-5 shrink-0" />
               <span className="font-medium">{item.label}</span>
             </Link>
           );
@@ -86,7 +109,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
           href="/notifications"
           className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
         >
-          <span className="text-base">🔔</span>
+          <Bell className="w-5 h-5 shrink-0" />
           <span className="font-medium flex-1">通知</span>
           {unreadCount > 0 && (
             <span className="text-xs font-medium tabular-nums text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
@@ -101,17 +124,20 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
         >
           設定 →
         </Link>
-        {SETTINGS_ITEMS.map((item) => (
-          <Link
-            key={item.href}
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            href={item.href as any}
-            className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-white/70 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
-          >
-            <span>{item.icon}</span>
-            <span>{item.label}</span>
-          </Link>
-        ))}
+        {SETTINGS_ITEMS.map((item) => {
+          const Icon = item.icon;
+          return (
+            <Link
+              key={item.href}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              href={item.href as any}
+              className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-white/70 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
+            >
+              <Icon className="w-4 h-4 shrink-0" />
+              <span>{item.label}</span>
+            </Link>
+          );
+        })}
       </nav>
 
       <div className="border-t border-white/10 p-3">

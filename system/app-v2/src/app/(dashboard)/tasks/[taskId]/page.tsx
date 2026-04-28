@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect, notFound } from 'next/navigation';
+import { ArrowLeft } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { tasks, deals, members } from '@/db/schema';
@@ -51,8 +52,9 @@ export default async function TaskDetailPage({
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
-        <Link href="/tasks" className="text-gray-700 hover:text-gray-900 text-sm">
-          ← マイタスク
+        <Link href="/tasks" className="inline-flex items-center gap-1 text-gray-700 hover:text-gray-900 text-sm">
+          <ArrowLeft className="w-3.5 h-3.5" />
+          マイタスク
         </Link>
         <h1 className="text-lg font-semibold text-gray-900 truncate">{task.title}</h1>
       </header>
