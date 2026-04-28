@@ -14,15 +14,9 @@ import {
   UserCog,
   Kanban,
   ClipboardCheck,
-  Building2,
-  Shield,
-  Quote,
-  FolderOpen,
-  Factory,
   Bell,
-  Plug,
-  FileSearch,
-  Banknote,
+  Settings,
+  ChevronRight,
 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -32,29 +26,37 @@ type NavItem = {
   icon: LucideIcon;
 };
 
-const NAV_ITEMS: NavItem[] = [
-  { href: '/home', label: 'ホーム', icon: Home },
-  { href: '/deals', label: '案件', icon: Briefcase },
-  { href: '/tasks', label: 'タスク', icon: CheckSquare },
-  { href: '/customers', label: '顧客', icon: Users },
-  { href: '/weekly', label: '週次', icon: CalendarDays },
-  { href: '/monthly', label: '月次', icon: BarChart3 },
-  { href: '/budget', label: '事業計画', icon: Target },
-  { href: '/team', label: 'チーム', icon: UserCog },
-  { href: '/production', label: '制作', icon: Kanban },
-  { href: '/approval', label: '承認', icon: ClipboardCheck },
-];
+type NavSection = {
+  label: string;
+  items: NavItem[];
+};
 
-const SETTINGS_ITEMS: NavItem[] = [
-  { href: '/settings/company', label: '会社', icon: Building2 },
-  { href: '/settings/roles', label: '権限', icon: Shield },
-  { href: '/settings/quotes', label: '名言', icon: Quote },
-  { href: '/settings/templates', label: 'テンプレ', icon: FolderOpen },
-  { href: '/settings/vendors', label: '外注先', icon: Factory },
-  { href: '/settings/notifications', label: '通知設定', icon: Bell },
-  { href: '/settings/integrations', label: '連携', icon: Plug },
-  { href: '/settings/audit', label: '監査', icon: FileSearch },
-  { href: '/settings/mf', label: 'MF', icon: Banknote },
+const NAV_SECTIONS: NavSection[] = [
+  {
+    label: '個人',
+    items: [
+      { href: '/home', label: 'ホーム', icon: Home },
+      { href: '/deals', label: '案件', icon: Briefcase },
+      { href: '/tasks', label: 'タスク', icon: CheckSquare },
+      { href: '/customers', label: '顧客', icon: Users },
+    ],
+  },
+  {
+    label: '経営',
+    items: [
+      { href: '/weekly', label: '週次', icon: CalendarDays },
+      { href: '/monthly', label: '月次', icon: BarChart3 },
+      { href: '/budget', label: '事業計画', icon: Target },
+    ],
+  },
+  {
+    label: '組織',
+    items: [
+      { href: '/team', label: 'チーム', icon: UserCog },
+      { href: '/production', label: '制作', icon: Kanban },
+      { href: '/approval', label: '承認', icon: ClipboardCheck },
+    ],
+  },
 ];
 
 export async function Sidebar({ user }: { user: { name?: string | null; member_id: string; role: string } }) {
@@ -77,7 +79,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
         </Link>
       </div>
 
-      <nav className="flex-1 px-3 py-4 space-y-0.5 overflow-y-auto">
+      <nav className="flex-1 px-3 py-4 overflow-y-auto">
         <form action="/search" className="px-2 mb-3">
           <div className="relative">
             <input
@@ -89,55 +91,53 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
           </div>
         </form>
 
-        {NAV_ITEMS.map((item) => {
-          const href = item.href === '/home' ? `/home/${memberId}` : item.href;
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              href={href as any}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
-            >
-              <Icon className="w-5 h-5 shrink-0" />
-              <span className="font-medium">{item.label}</span>
-            </Link>
-          );
-        })}
+        {NAV_SECTIONS.map((section, sectionIdx) => (
+          <div key={section.label} className={sectionIdx === 0 ? '' : 'mt-4'}>
+            <p className="text-[10px] font-semibold uppercase tracking-widest text-white/40 px-3 mb-1.5">
+              {section.label}
+            </p>
+            <div className="space-y-0.5">
+              {section.items.map((item) => {
+                const href = item.href === '/home' ? `/home/${memberId}` : item.href;
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.href}
+                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                    href={href as any}
+                    className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
+                  >
+                    <Icon className="w-5 h-5 shrink-0" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                );
+              })}
+            </div>
+          </div>
+        ))}
 
-        <Link
-          href="/notifications"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
-        >
-          <Bell className="w-5 h-5 shrink-0" />
-          <span className="font-medium flex-1">通知</span>
-          {unreadCount > 0 && (
-            <span className="text-xs font-medium tabular-nums text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
-              {unreadCount}
-            </span>
-          )}
-        </Link>
-
-        <Link
-          href="/settings"
-          className="text-xs font-semibold uppercase tracking-wider text-white/50 mt-4 mb-2 px-3 hover:text-white block"
-        >
-          設定 →
-        </Link>
-        {SETTINGS_ITEMS.map((item) => {
-          const Icon = item.icon;
-          return (
-            <Link
-              key={item.href}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              href={item.href as any}
-              className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-white/70 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              <span>{item.label}</span>
-            </Link>
-          );
-        })}
+        <div className="mt-4 pt-4 border-t border-white/10 space-y-0.5">
+          <Link
+            href="/notifications"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
+          >
+            <Bell className="w-5 h-5 shrink-0" />
+            <span className="font-medium flex-1">通知</span>
+            {unreadCount > 0 && (
+              <span className="text-xs font-medium tabular-nums text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
+                {unreadCount}
+              </span>
+            )}
+          </Link>
+          <Link
+            href="/settings"
+            className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
+          >
+            <Settings className="w-5 h-5 shrink-0" />
+            <span className="font-medium flex-1">設定</span>
+            <ChevronRight className="w-4 h-4 text-white/40" />
+          </Link>
+        </div>
       </nav>
 
       <div className="border-t border-white/10 p-3">
