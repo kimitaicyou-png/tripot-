@@ -27,7 +27,7 @@ export function StatCard({
   const valueSize = big ? 'text-5xl md:text-6xl' : 'text-3xl md:text-4xl';
 
   return (
-    <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
+    <div className="stat bg-card border border-border rounded-xl p-5 shadow-sm">
       <p className="text-xs uppercase tracking-wider text-subtle">{label}</p>
       <p className={`font-serif italic ${valueSize} ${valueColor} mt-1.5 tracking-tight tabular-nums`}>
         {value}
