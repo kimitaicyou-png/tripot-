@@ -1,95 +1,30 @@
 @import 'tailwindcss';
 
-/* §7.1 フォント / §7.5 カラートークン（coaris.co.jp 紺青寄せ） */
+/* 正典：秋美+隊長「Tripot Design System v1.0」
+ * 仕様：Geist Sans + Tailwind 標準カラー（blue-600 / gray-900/700/500/200/50）
+ * カスタムトークン最小、Tailwind デフォルトに従う
+ */
+
 @theme {
-  --font-sans: var(--font-sans-jp), var(--font-sans), 'Hiragino Sans', system-ui, sans-serif;
-  --font-serif: var(--font-serif), var(--font-serif-jp), 'Hiragino Mincho ProN', serif;
-  --font-mono: var(--font-mono), ui-monospace, 'SF Mono', Menlo, monospace;
+  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, 'Hiragino Sans', sans-serif;
+  --font-mono: var(--font-geist-mono), ui-monospace, 'SF Mono', Menlo, monospace;
 
-  /* §7.5 テキスト */
-  --color-ink: #1A1A1A;
-  --color-ink-mid: #1E293B;
-  --color-muted: #333333;
-  --color-subtle: #666666;
-
-  /* §7.5 背景 */
-  --color-surface: #F8F8F8;
-  --color-card: #FFFFFF;
-  --color-border: #DDDDDD;
-
-  /* §7.5 KPI / tone */
-  --color-kpi-up: #16A34A;
-  --color-kpi-down: #DC2626;
-
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.04);
-  --shadow-DEFAULT: 0 1px 3px rgba(0, 0, 0, 0.04);
-
-  --radius-lg: 8px;
-  --radius-xl: 12px;
-}
-
-:root {
-  /* §7.5 プライマリ（coaris 紺青、coaris.co.jp 寄せ） */
-  --primary: #0066CC;
-  --primary-hover: #1E40AF;
-  --primary-subtle: #E8F0FA;
-
-  /* §7.5 ボーダー hairline 階層 */
-  --border-hairline: rgba(0, 0, 0, 0.04);
-  --border-mid: rgba(0, 0, 0, 0.07);
-
-  /* §7.5 KPI bg */
-  --kpi-up-bg: #F0FDF4;
-  --kpi-down-bg: #FEF2F2;
-  --accent: #B45309;
-  --accent-bg: #FFFBEB;
-
-  --bezier-bar: cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-
-/* §7.1 font-feature-settings — 日本語 palt 詰め + 数字 tnum/ss01/zero */
-html {
-  font-feature-settings: "palt" 1, "tnum" 1, "ss01" 1, "zero" 1;
-  font-size: 16px;
-}
-
-/* §7.3 line-height（黄金 1.6） */
-body {
-  line-height: 1.6;
-  font-feature-settings: "palt" 1, "tnum" 1, "ss01" 1, "zero" 1;
-}
-
-h1, h2, h3, .section-title {
-  line-height: 1.35;  /* §7.3 見出し引き締め 1.3-1.4 */
-}
-
-/* §7.3 巨大数字は詰める */
-.hero-value, .stat-value, [class*="text-6xl"], [class*="text-7xl"], [class*="text-8xl"] {
-  line-height: 1.0;
-}
-
-/* §7.6 深黒 sidebar（深海ネイビー gradient + 字間調整） */
-.sidebar {
-  background: linear-gradient(180deg, #0F2030 0%, #0A1620 100%);
-  box-shadow:
-    inset -1px 0 0 rgba(255, 255, 255, 0.06),
-    1px 0 0 rgba(0, 0, 0, 0.18);
-}
-.sidebar .brand-mark { letter-spacing: -0.01em; }
-.sidebar .brand-sub { letter-spacing: 0.2em; text-transform: uppercase; }
-.sidebar .nav-item { letter-spacing: 0.06em; }
-.sidebar .nav-group-label { letter-spacing: 0.22em; }
-
-.sidebar .nav-item:hover {
-  background: rgba(255, 255, 255, 0.05);
+  /* 正典：秋美+隊長「Tripot Design System v1.0」§1 カラーパレット
+   * 旧トークン名 → Tailwind 標準色マッピング（互換層、Phase 2 で全ファイル書き換え予定）
+   */
+  --color-ink: #111827;          /* gray-900：見出し・本文主役 */
+  --color-ink-mid: #374151;      /* gray-700：hover 強調 */
+  --color-muted: #374151;        /* gray-700：本文 */
+  --color-subtle: #6B7280;       /* gray-500：補足・ラベル */
+  --color-surface: #F9FAFB;      /* gray-50：ページ背景 */
+  --color-card: #FFFFFF;         /* カード背景 */
+  --color-border: #E5E7EB;       /* gray-200：ボーダー */
+  --color-kpi-up: #047857;       /* emerald-700：完了・プラス */
+  --color-kpi-down: #B91C1C;     /* red-700：危険・マイナス */
 }
 
 html, body {
   height: 100%;
-}
-
-body {
-  font-feature-settings: 'rlig' 1, 'calt' 1;
 }
 
 @page {
@@ -112,130 +47,6 @@ body {
   }
 }
 
-/* ========================================================
- * §7.10 microinteraction（hover state 全面設計、2026-04-27 美冬）
- * Asymmetric transition：enter 120-150ms snappy / exit 200-250ms relaxed
- * Linear（静けさ）+ Stripe（繊細な浮上）の組み合わせ
- * ======================================================== */
+/* §11 アクセシビリティ：focus-visible:ring-2 ring-blue-500 ring-offset-2 はクラスで明示 */
 
-/* StatCard */
-.stat {
-  transition: box-shadow 250ms ease-out, border-color 250ms ease-out, transform 250ms ease-out;
-}
-.stat:hover {
-  transition: box-shadow 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
-  border-color: rgba(0, 0, 0, 0.13);
-  box-shadow:
-    0 6px 20px rgba(0, 0, 0, 0.09),
-    0 2px 6px rgba(0, 0, 0, 0.05),
-    inset 0 1px 0 rgba(255, 255, 255, 0.92);
-  transform: translateY(-3px);
-}
-
-/* Hero card */
-.hero {
-  transition: box-shadow 250ms ease-out, border-color 250ms ease-out, transform 250ms ease-out;
-}
-.hero:hover {
-  transition: box-shadow 150ms ease-out, border-color 150ms ease-out, transform 150ms ease-out;
-  border-color: rgba(0, 0, 0, 0.13);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-  transform: translateY(-2px);
-}
-
-/* row（リスト行）*/
-.row {
-  position: relative;
-  transition: box-shadow 200ms ease-out, border-color 200ms ease-out;
-}
-.row::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  background: var(--primary);
-  opacity: 0;
-  transition: opacity 200ms var(--bezier-bar);
-}
-.row:hover {
-  transition: box-shadow 120ms ease-out, border-color 120ms ease-out;
-  border-color: rgba(37, 99, 235, 0.14);
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.06);
-}
-.row:hover::before {
-  opacity: 1;
-  transition: opacity 150ms var(--bezier-bar);
-}
-
-/* nav-item — Linear 流（translateX 永久廃止、左 2.5px bar scaleY 出現）*/
-.nav-item {
-  position: relative;
-  transition: background-color 200ms ease-out, color 200ms ease-out;
-}
-.nav-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 50%;
-  transform: translateY(-50%) scaleY(0);
-  transform-origin: center;
-  width: 2.5px;
-  height: 18px;
-  background: rgba(255, 255, 255, 0.35);
-  transition: transform 200ms var(--bezier-bar);
-}
-.nav-item:hover::before {
-  transform: translateY(-50%) scaleY(1);
-  transition: transform 150ms var(--bezier-bar);
-}
-.nav-item.is-active::before {
-  transform: translateY(-50%) scaleY(1);
-  background: var(--primary);
-}
-
-/* nav-item（明色 sidebar 版、深黒以外で使用）*/
-.nav-item-light::before {
-  background: var(--primary);
-}
-
-/* button — primary（Asymmetric transition）*/
-.btn-primary {
-  transition: background-color 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out;
-}
-.btn-primary:hover {
-  transition: background-color 120ms ease-out, transform 120ms ease-out, box-shadow 120ms ease-out;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.30);
-}
-.btn-primary:active {
-  transform: scale(0.97);
-  transition-duration: 0ms;
-}
-
-/* button — secondary */
-.btn-secondary {
-  transition: background-color 200ms ease-out, transform 200ms ease-out, box-shadow 200ms ease-out, border-color 200ms ease-out;
-}
-.btn-secondary:hover {
-  transition: background-color 120ms ease-out, transform 120ms ease-out, box-shadow 120ms ease-out, border-color 120ms ease-out;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.07);
-  border-color: rgba(0, 0, 0, 0.20);
-}
-.btn-secondary:active {
-  transform: scale(0.97);
-  transition-duration: 0ms;
-}
-
-/* mini-bar（horizontal bar charts、scaleY brighten）*/
-.mini-bar {
-  transition: filter 200ms ease-out, transform 200ms ease-out;
-  transform-origin: bottom;
-}
-.mini-bar:hover {
-  transition: filter 100ms ease-out, transform 100ms ease-out;
-  filter: brightness(1.12) saturate(1.2);
-  transform: scaleY(1.08);
-}
+/* §6 ボタンの transition-all duration-150 はクラスで明示済 */

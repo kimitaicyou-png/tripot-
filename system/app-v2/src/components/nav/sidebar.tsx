@@ -42,15 +42,15 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
   const unreadCount = await unreadCountForMember(memberId);
 
   return (
-    <aside className="sidebar hidden md:flex md:w-60 md:flex-col h-screen sticky top-0">
-      <div className="px-5 py-5 border-b border-white/[0.06]">
+    <aside className="hidden md:flex md:w-60 md:flex-col bg-white border-r border-gray-200 h-screen sticky top-0">
+      <div className="px-5 py-5 border-b border-gray-200">
         <Link href={`/home/${memberId}`} className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-white/10 flex items-center justify-center">
-            <span className="font-serif italic text-white text-sm">t</span>
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+            <span className="text-white text-sm font-semibold">t</span>
           </div>
           <div>
-            <p className="font-serif italic text-lg text-white leading-none brand-mark">tripot.</p>
-            <p className="text-[10px] text-white/40 font-mono mt-0.5 brand-sub">{TRIPOT_CONFIG.shortName} / Coaris HD</p>
+            <p className="text-lg font-semibold text-gray-900 leading-none">tripot</p>
+            <p className="text-xs text-gray-500 mt-0.5">{TRIPOT_CONFIG.shortName} / Coaris HD</p>
           </div>
         </Link>
       </div>
@@ -62,7 +62,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
               type="search"
               name="q"
               placeholder="🔎 横断検索"
-              className="w-full px-3 py-1.5 text-sm text-white bg-white/5 border border-white/10 rounded-lg focus:outline-none focus:ring-2 focus:ring-white/20 placeholder:text-white/40"
+              className="w-full px-3 py-1.5 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 placeholder:text-gray-500"
             />
           </div>
         </form>
@@ -74,7 +74,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
               key={item.href}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               href={href as any}
-              className="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/75 hover:text-white"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98] transition-all duration-150"
             >
               <span className="text-base">{item.icon}</span>
               <span className="font-medium">{item.label}</span>
@@ -84,12 +84,12 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
 
         <Link
           href="/notifications"
-          className="nav-item flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/75 hover:text-white"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98] transition-all duration-150"
         >
           <span className="text-base">🔔</span>
           <span className="font-medium flex-1">通知</span>
           {unreadCount > 0 && (
-            <span className="text-xs font-mono tabular-nums text-ink bg-amber-400 px-2 py-0.5 rounded-full">
+            <span className="text-xs font-medium tabular-nums text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full">
               {unreadCount}
             </span>
           )}
@@ -97,7 +97,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
 
         <Link
           href="/settings"
-          className="text-[10px] uppercase tracking-widest text-white/40 mt-4 mb-2 px-3 hover:text-white/70 block nav-group-label"
+          className="text-xs font-medium uppercase tracking-wider text-gray-500 mt-4 mb-2 px-3 hover:text-gray-900 block"
         >
           設定 →
         </Link>
@@ -106,7 +106,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
             key={item.href}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href={item.href as any}
-            className="nav-item flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-white/55 hover:text-white"
+            className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98] transition-all duration-150"
           >
             <span>{item.icon}</span>
             <span>{item.label}</span>
@@ -114,14 +114,14 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
         ))}
       </nav>
 
-      <div className="border-t border-white/[0.06] p-3">
+      <div className="border-t border-gray-200 p-3">
         <div className="flex items-center gap-2 px-2 py-2 rounded-lg">
           <div className={`w-8 h-8 rounded-lg ${color} flex items-center justify-center text-white text-sm font-semibold shrink-0`}>
             {initial}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-white truncate">{user.name}</p>
-            <p className="text-xs text-white/50">{roleLabel(user.role)}</p>
+            <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
+            <p className="text-xs text-gray-500">{roleLabel(user.role)}</p>
           </div>
         </div>
         <form
@@ -132,7 +132,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
         >
           <button
             type="submit"
-            className="w-full mt-2 px-3 py-1.5 text-xs text-white/55 hover:text-white transition-colors text-left"
+            className="w-full mt-2 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-900 active:scale-[0.98] transition-all duration-150 text-left"
           >
             ログアウト
           </button>
