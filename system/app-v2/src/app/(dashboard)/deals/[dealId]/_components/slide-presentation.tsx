@@ -157,7 +157,7 @@ function SlideContent({ slide }: { slide: Slide }) {
     return (
       <div className="text-center space-y-6">
         <p className="text-xs uppercase tracking-widest text-subtle">{typeLabel}</p>
-        <h1 className="font-serif italic text-5xl md:text-7xl text-ink tracking-tight leading-tight">
+        <h1 className="font-semibold text-5xl md:text-7xl text-ink tracking-tight leading-tight">
           {slide.title}
         </h1>
         {slide.subtitle && (
@@ -171,11 +171,11 @@ function SlideContent({ slide }: { slide: Slide }) {
     return (
       <div className="text-center space-y-6">
         <p className="text-xs uppercase tracking-widest text-subtle">{typeLabel}</p>
-        <h2 className="font-serif italic text-4xl md:text-6xl text-ink tracking-tight leading-tight">
+        <h2 className="font-semibold text-4xl md:text-6xl text-ink tracking-tight leading-tight">
           {slide.title}
         </h2>
         {slide.message && (
-          <p className="font-serif italic text-2xl md:text-3xl text-ink-mid leading-relaxed">
+          <p className="font-semibold text-2xl md:text-3xl text-ink-mid leading-relaxed">
             {slide.message}
           </p>
         )}
@@ -187,7 +187,7 @@ function SlideContent({ slide }: { slide: Slide }) {
     <div className="space-y-8">
       <div className="space-y-2">
         <p className="text-xs uppercase tracking-widest text-subtle">{typeLabel}</p>
-        <h2 className="font-serif italic text-4xl md:text-5xl text-ink tracking-tight">
+        <h2 className="font-semibold text-4xl md:text-5xl text-ink tracking-tight">
           {slide.title}
         </h2>
         {slide.subtitle && (
@@ -220,7 +220,7 @@ function SlideContent({ slide }: { slide: Slide }) {
       )}
 
       {slide.message && (
-        <p className="font-serif italic text-2xl text-ink-mid leading-relaxed border-l-2 border-ink pl-6">
+        <p className="font-semibold text-2xl text-ink-mid leading-relaxed border-l-2 border-ink pl-6">
           {slide.message}
         </p>
       )}

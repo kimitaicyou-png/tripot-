@@ -24,16 +24,16 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
       <aside className="md:w-1/2 bg-slate-950 text-white flex flex-col justify-between p-8 md:p-16">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-white/10 flex items-center justify-center">
-            <span className="font-serif italic text-xl">t</span>
+            <span className="font-semibold text-xl">t</span>
           </div>
           <div>
-            <p className="font-serif italic text-2xl">tripot.</p>
+            <p className="font-semibold text-2xl">tripot.</p>
             <p className="text-xs text-slate-500 mt-0.5">Coaris HD</p>
           </div>
         </div>
 
         <div>
-          <p className="font-serif italic text-3xl md:text-5xl leading-tight tracking-tight">
+          <p className="font-semibold text-3xl md:text-5xl leading-tight tracking-tight">
             {quote}
           </p>
           <p className="text-sm text-slate-500 mt-6 font-sans">

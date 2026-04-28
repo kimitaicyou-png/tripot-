@@ -45,7 +45,7 @@ export function MemberActivityGrid({
                     {initial}
                   </div>
                   <p className="flex-1 text-sm text-ink font-medium truncate">{m.name}</p>
-                  <p className="font-serif italic text-2xl text-ink tabular-nums leading-none">
+                  <p className="font-semibold text-2xl text-ink tabular-nums leading-none">
                     {m.total}
                   </p>
                 </div>

@@ -277,25 +277,25 @@ export default async function MonthlyDetailPage({
           <div className="bg-card border border-border rounded-xl p-6 grid grid-cols-4 gap-4 text-center">
             <div>
               <p className="text-xs uppercase tracking-wider text-subtle">合計</p>
-              <p className="font-serif italic text-3xl text-ink mt-1 tabular-nums">
+              <p className="font-semibold text-3xl text-ink mt-1 tabular-nums">
                 {actionStats?.total ?? 0}
               </p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-wider text-subtle">電話</p>
-              <p className="font-serif italic text-3xl text-ink mt-1 tabular-nums">
+              <p className="font-semibold text-3xl text-ink mt-1 tabular-nums">
                 {actionStats?.calls ?? 0}
               </p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-wider text-subtle">商談</p>
-              <p className="font-serif italic text-3xl text-ink mt-1 tabular-nums">
+              <p className="font-semibold text-3xl text-ink mt-1 tabular-nums">
                 {actionStats?.meetings ?? 0}
               </p>
             </div>
             <div>
               <p className="text-xs uppercase tracking-wider text-subtle">提案</p>
-              <p className="font-serif italic text-3xl text-ink mt-1 tabular-nums">
+              <p className="font-semibold text-3xl text-ink mt-1 tabular-nums">
                 {actionStats?.proposals ?? 0}
               </p>
             </div>

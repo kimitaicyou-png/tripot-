@@ -26,7 +26,7 @@ export function FunnelCard({
         <div>
           <p className="text-xs uppercase tracking-widest text-subtle">案件ファネル</p>
           <div className="flex items-baseline gap-2 mt-1">
-            <p className="font-serif italic text-3xl text-ink tabular-nums">{overall}</p>
+            <p className="font-semibold text-3xl text-ink tabular-nums">{overall}</p>
             <p className="text-sm text-muted">% 総合転換率</p>
           </div>
         </div>

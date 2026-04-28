@@ -42,15 +42,15 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
   const unreadCount = await unreadCountForMember(memberId);
 
   return (
-    <aside className="hidden md:flex md:w-60 md:flex-col bg-white border-r border-gray-200 h-screen sticky top-0">
-      <div className="px-5 py-5 border-b border-gray-200">
-        <Link href={`/home/${memberId}`} className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center">
+    <aside className="hidden md:flex md:w-60 md:flex-col bg-[#1a1f36] text-white h-screen sticky top-0">
+      <div className="px-5 py-5 border-b border-white/10">
+        <Link href={`/home/${memberId}`} className="flex items-center gap-2.5">
+          <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
             <span className="text-white text-sm font-semibold">t</span>
           </div>
-          <div>
-            <p className="text-lg font-semibold text-gray-900 leading-none">tripot</p>
-            <p className="text-xs text-gray-500 mt-0.5">{TRIPOT_CONFIG.shortName} / Coaris HD</p>
+          <div className="min-w-0">
+            <p className="text-xs font-semibold text-white/70 uppercase tracking-wider leading-none mb-0.5">Coaris AI</p>
+            <p className="text-sm font-semibold text-white leading-tight truncate">{TRIPOT_CONFIG.name.replace('株式会社', '').trim()}</p>
           </div>
         </Link>
       </div>
@@ -61,8 +61,8 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
             <input
               type="search"
               name="q"
-              placeholder="🔎 横断検索"
-              className="w-full px-3 py-1.5 text-sm text-gray-900 bg-gray-50 border border-gray-200 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 placeholder:text-gray-500"
+              placeholder="横断検索 ⌘K"
+              className="w-full px-3 py-1.5 text-sm text-white bg-white/5 border border-white/10 rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 focus-visible:ring-offset-[#1a1f36] placeholder:text-white/40"
             />
           </div>
         </form>
@@ -74,7 +74,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
               key={item.href}
               // eslint-disable-next-line @typescript-eslint/no-explicit-any
               href={href as any}
-              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98] transition-all duration-150"
+              className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
             >
               <span className="text-base">{item.icon}</span>
               <span className="font-medium">{item.label}</span>
@@ -84,7 +84,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
 
         <Link
           href="/notifications"
-          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-gray-700 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98] transition-all duration-150"
+          className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
         >
           <span className="text-base">🔔</span>
           <span className="font-medium flex-1">通知</span>
@@ -97,7 +97,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
 
         <Link
           href="/settings"
-          className="text-xs font-medium uppercase tracking-wider text-gray-500 mt-4 mb-2 px-3 hover:text-gray-900 block"
+          className="text-xs font-semibold uppercase tracking-wider text-white/50 mt-4 mb-2 px-3 hover:text-white block"
         >
           設定 →
         </Link>
@@ -106,7 +106,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
             key={item.href}
             // eslint-disable-next-line @typescript-eslint/no-explicit-any
             href={item.href as any}
-            className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-gray-700 hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98] transition-all duration-150"
+            className="flex items-center gap-3 px-3 py-1.5 rounded-lg text-xs text-white/70 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
           >
             <span>{item.icon}</span>
             <span>{item.label}</span>
@@ -114,14 +114,14 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
         ))}
       </nav>
 
-      <div className="border-t border-gray-200 p-3">
+      <div className="border-t border-white/10 p-3">
         <div className="flex items-center gap-2 px-2 py-2 rounded-lg">
           <div className={`w-8 h-8 rounded-lg ${color} flex items-center justify-center text-white text-sm font-semibold shrink-0`}>
             {initial}
           </div>
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
-            <p className="text-xs text-gray-500">{roleLabel(user.role)}</p>
+            <p className="text-sm font-medium text-white truncate">{user.name}</p>
+            <p className="text-xs text-white/50">{roleLabel(user.role)}</p>
           </div>
         </div>
         <form
@@ -132,7 +132,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
         >
           <button
             type="submit"
-            className="w-full mt-2 px-3 py-1.5 text-xs text-gray-500 hover:text-gray-900 active:scale-[0.98] transition-all duration-150 text-left"
+            className="w-full mt-2 px-3 py-1.5 text-xs text-white/60 hover:text-white active:scale-[0.98] transition-all duration-150 text-left"
           >
             ログアウト
           </button>

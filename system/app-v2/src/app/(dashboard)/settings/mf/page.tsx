@@ -52,17 +52,17 @@ export default async function MfSettingsPage() {
           <div className="grid grid-cols-3 gap-4">
             <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
               <p className="text-xs text-subtle">① 取り込み済</p>
-              <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{journalStats?.imported ?? 0}</p>
+              <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{journalStats?.imported ?? 0}</p>
               <p className="text-xs text-muted mt-2">MF から取り込まれた仕訳</p>
             </div>
             <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
               <p className="text-xs text-subtle">② 照合済</p>
-              <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{journalStats?.matched ?? 0}</p>
+              <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{journalStats?.matched ?? 0}</p>
               <p className="text-xs text-muted mt-2">案件と紐付けされた仕訳</p>
             </div>
             <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
               <p className="text-xs text-subtle">③ KPI反映済</p>
-              <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{journalStats?.reflected ?? 0}</p>
+              <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{journalStats?.reflected ?? 0}</p>
               <p className="text-xs text-muted mt-2">月次KPIに反映された仕訳</p>
             </div>
           </div>
@@ -70,7 +70,7 @@ export default async function MfSettingsPage() {
 
         <section className="bg-card border border-border rounded-xl p-5 shadow-sm">
           <p className="text-sm font-medium text-ink">請求書</p>
-          <p className="font-serif italic text-4xl text-ink mt-2 tabular-nums">{invoiceCount}</p>
+          <p className="font-semibold text-4xl text-ink mt-2 tabular-nums">{invoiceCount}</p>
           <p className="text-xs text-muted mt-1">MF から取得済み</p>
         </section>
 

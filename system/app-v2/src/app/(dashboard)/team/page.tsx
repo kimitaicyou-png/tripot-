@@ -109,7 +109,7 @@ export default async function TeamPage() {
                         {m.active_deals} 件
                       </p>
                     </div>
-                    <p className="font-serif italic text-3xl text-ink tabular-nums leading-none">
+                    <p className="font-semibold text-3xl text-ink tabular-nums leading-none">
                       {formatYen(m.revenue)}
                     </p>
                     <div className="h-1 bg-slate-100 rounded-full overflow-hidden mt-3">

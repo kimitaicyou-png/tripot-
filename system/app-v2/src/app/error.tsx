@@ -10,7 +10,7 @@ export default function GlobalError({ error, reset }: { error: Error & { digest?
   return (
     <main className="min-h-screen bg-surface flex items-center justify-center p-8">
       <div className="max-w-md text-center">
-        <h1 className="font-serif italic text-5xl text-ink mb-4">エラーが発生しました</h1>
+        <h1 className="font-semibold text-5xl text-ink mb-4">エラーが発生しました</h1>
         <p className="text-sm text-muted">
           ページの読み込みに失敗しました。もう一度お試しください。
         </p>

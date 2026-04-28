@@ -40,7 +40,7 @@ export function RevenueAchievementCard({
         <span className="text-xs text-muted">残り営業日 {remainingDays}日</span>
       </div>
       <div className="flex items-baseline gap-2 mt-3">
-        <p className={`font-serif italic text-5xl ${tone} tabular-nums leading-none`}>{pct}</p>
+        <p className={`font-semibold text-5xl ${tone} tabular-nums leading-none`}>{pct}</p>
         <p className="text-base text-muted">%</p>
       </div>
       <div className="mt-3">

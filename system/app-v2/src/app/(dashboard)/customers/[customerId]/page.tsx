@@ -97,7 +97,7 @@ export default async function CustomerDetailPage({
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
         <section className="bg-card border border-border rounded-xl p-6">
           <p className="text-xs text-subtle">入金累計</p>
-          <p className="font-serif italic text-5xl text-ink tracking-tight tabular-nums mt-1">
+          <p className="font-semibold text-5xl text-ink tracking-tight tabular-nums mt-1">
             {formatYen(totalRevenue)}
           </p>
         </section>

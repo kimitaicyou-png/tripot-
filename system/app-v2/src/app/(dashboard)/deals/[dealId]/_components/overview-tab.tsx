@@ -87,7 +87,7 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
     <div className="space-y-6">
       <section className="bg-card border border-border rounded-xl p-6">
         <p className="text-xs uppercase tracking-widest text-subtle">受注金額</p>
-        <p className="font-serif italic text-5xl text-ink tracking-tight tabular-nums mt-1">
+        <p className="font-semibold text-5xl text-ink tracking-tight tabular-nums mt-1">
           {formatYen(deal.amount)}
         </p>
         {deal.revenue_type !== 'spot' && deal.monthly_amount ? (

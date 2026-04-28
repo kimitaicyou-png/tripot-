@@ -49,7 +49,7 @@ export function RevenueTrendCard({
       <div className="flex items-start justify-between">
         <div>
           <p className="text-xs uppercase tracking-widest text-subtle">週次売上推移</p>
-          <p className="font-serif italic text-3xl text-ink tabular-nums mt-1">
+          <p className="font-semibold text-3xl text-ink tabular-nums mt-1">
             ¥{Math.round(last.value).toLocaleString('ja-JP')}
             <span className="text-sm text-muted ml-1 font-sans not-italic">万</span>
           </p>

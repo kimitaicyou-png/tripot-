@@ -193,7 +193,7 @@ export default async function WeeklyCfPage({
                     <p className="text-sm text-ink font-mono mt-0.5">{w.label}</p>
                   </div>
                   <div className="text-right">
-                    <p className="font-serif italic text-2xl text-ink tabular-nums leading-none">
+                    <p className="font-semibold text-2xl text-ink tabular-nums leading-none">
                       {formatYen(w.raw)}
                     </p>
                     <p className="text-xs text-amber-700 font-mono tabular-nums mt-1">

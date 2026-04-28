@@ -117,7 +117,7 @@ export function MorningBrief({ memberId }: { memberId: string }) {
       </div>
 
       {brief.message && (
-        <p className="font-serif italic text-lg text-ink-mid border-l-2 border-amber-300 pl-4 py-1">
+        <p className="font-semibold text-lg text-ink-mid border-l-2 border-amber-300 pl-4 py-1">
           {brief.message}
         </p>
       )}

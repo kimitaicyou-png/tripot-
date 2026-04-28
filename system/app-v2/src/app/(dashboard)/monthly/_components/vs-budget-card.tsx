@@ -23,7 +23,7 @@ export function VsBudgetCard({
     <section className="bg-card border border-border rounded-xl p-6 shadow-sm">
       <div className="flex items-baseline justify-between mb-4">
         <p className="text-sm font-medium text-ink">vs 計画</p>
-        <p className={`font-serif italic text-4xl tabular-nums leading-none ${tone}`}>
+        <p className={`font-semibold text-4xl tabular-nums leading-none ${tone}`}>
           {targetRevenue > 0 ? `${progressRate}%` : '—'}
         </p>
       </div>

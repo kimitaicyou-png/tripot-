@@ -70,7 +70,7 @@ export function TargetSection(props: Props) {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <p className="text-xs text-subtle">売上目標</p>
-            <p className="font-serif italic text-2xl text-ink tabular-nums mt-1">
+            <p className="font-semibold text-2xl text-ink tabular-nums mt-1">
               {formatYen(props.targetRevenue)}
             </p>
             {props.targetRevenue > 0 && (
@@ -89,7 +89,7 @@ export function TargetSection(props: Props) {
           </div>
           <div>
             <p className="text-xs text-subtle">粗利目標</p>
-            <p className="font-serif italic text-2xl text-ink tabular-nums mt-1">
+            <p className="font-semibold text-2xl text-ink tabular-nums mt-1">
               {formatYen(props.targetGp)}
             </p>
           </div>

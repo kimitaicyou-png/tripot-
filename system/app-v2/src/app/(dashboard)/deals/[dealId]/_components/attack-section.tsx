@@ -52,7 +52,7 @@ export async function AttackSection({ dealId }: { dealId: string }) {
           )}
         </div>
       ) : (
-        <p className="text-sm text-muted italic">攻略カード未作成</p>
+        <p className="text-sm text-muted">攻略カード未作成</p>
       )}
 
       <AttackForm

@@ -160,21 +160,21 @@ export default async function TeamMemberDetailPage({
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-xl p-5">
             <p className="text-xs text-subtle">売上累計</p>
-            <p className="font-serif italic text-2xl text-ink mt-1 tabular-nums">
+            <p className="font-semibold text-2xl text-ink mt-1 tabular-nums">
               {formatYen(totalRevenue)}
             </p>
           </div>
           <div className="bg-card border border-border rounded-xl p-5">
             <p className="text-xs text-subtle">進行中</p>
-            <p className="font-serif italic text-2xl text-ink mt-1 tabular-nums">{activeDeals} 件</p>
+            <p className="font-semibold text-2xl text-ink mt-1 tabular-nums">{activeDeals} 件</p>
           </div>
           <div className="bg-card border border-border rounded-xl p-5">
             <p className="text-xs text-subtle">直近7日 行動量</p>
-            <p className="font-serif italic text-2xl text-ink mt-1 tabular-nums">{actionStats?.total ?? 0}</p>
+            <p className="font-semibold text-2xl text-ink mt-1 tabular-nums">{actionStats?.total ?? 0}</p>
           </div>
           <div className="bg-card border border-border rounded-xl p-5">
             <p className="text-xs text-subtle">タスク</p>
-            <p className="font-serif italic text-2xl text-ink mt-1 tabular-nums">
+            <p className="font-semibold text-2xl text-ink mt-1 tabular-nums">
               {taskCounts?.todo ?? 0}
               <span className="text-sm text-muted ml-2">/ {(taskCounts?.todo ?? 0) + (taskCounts?.done ?? 0)}</span>
             </p>

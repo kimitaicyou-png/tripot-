@@ -59,7 +59,7 @@ export function RunningSection(props: Props) {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <p className="text-xs text-subtle">月額</p>
-            <p className="font-serif italic text-2xl text-ink tabular-nums mt-1">
+            <p className="font-semibold text-2xl text-ink tabular-nums mt-1">
               {formatYen(props.monthlyAmount)}
             </p>
           </div>
@@ -80,7 +80,7 @@ export function RunningSection(props: Props) {
           </div>
           <div>
             <p className="text-xs text-subtle">継続回数</p>
-            <p className="font-serif italic text-2xl text-ink tabular-nums mt-1">{props.renewalCount}</p>
+            <p className="font-semibold text-2xl text-ink tabular-nums mt-1">{props.renewalCount}</p>
           </div>
         </div>
 

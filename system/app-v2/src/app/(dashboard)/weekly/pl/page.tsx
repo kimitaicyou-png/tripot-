@@ -287,7 +287,7 @@ export default async function WeeklyPlPage({
                   <div key={i} className="text-center">
                     <p className="text-xs font-mono tabular-nums text-subtle">{r.week}</p>
                     <p
-                      className={`font-serif italic text-2xl tabular-nums mt-1 ${
+                      className={`font-semibold text-2xl tabular-nums mt-1 ${
                         op > 0 ? 'text-kpi-up' : op < 0 ? 'text-kpi-down' : 'text-ink'
                       }`}
                     >
@@ -318,7 +318,7 @@ export default async function WeeklyPlPage({
             <div className="bg-card border border-border rounded-xl p-6 space-y-3">
               <div className="flex items-baseline gap-3 pb-3 border-b border-border">
                 <p className="text-xs uppercase tracking-widest text-subtle">合計</p>
-                <p className="font-serif italic text-3xl text-ink tabular-nums">
+                <p className="font-semibold text-3xl text-ink tabular-nums">
                   {(totalMinutes / 60).toFixed(1)}h
                 </p>
                 <p className="text-xs text-subtle">/ {timeLogRows.length}名</p>

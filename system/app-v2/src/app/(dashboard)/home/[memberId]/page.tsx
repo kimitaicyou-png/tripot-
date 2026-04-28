@@ -178,14 +178,14 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
       <div className="px-6 py-8 max-w-5xl mx-auto pb-32 md:pb-12">
         <section>
           <p className="text-sm text-muted">あなたの売上（入金確定）</p>
-          <h1 className="font-serif italic text-6xl md:text-8xl text-ink tracking-tight tabular-nums mt-2">
+          <h1 className="font-semibold text-6xl md:text-8xl text-ink tracking-tight tabular-nums mt-2">
             {formatYen(dealStats?.revenue ?? 0)}
           </h1>
         </section>
 
         {quote ? (
           <section className="mt-12 border-l-2 border-ink pl-6 py-2">
-            <p className="font-serif italic text-2xl text-ink-mid leading-relaxed">{quote.body}</p>
+            <p className="font-semibold text-2xl text-ink-mid leading-relaxed">{quote.body}</p>
             {quote.author && (
               <p className="text-xs text-subtle mt-2">— {quote.author}</p>
             )}
@@ -209,19 +209,19 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
         <section className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
             <p className="text-xs text-subtle">進行中の案件</p>
-            <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{dealStats?.activeCount ?? 0}</p>
+            <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{dealStats?.activeCount ?? 0}</p>
           </div>
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
             <p className="text-xs text-subtle">残タスク</p>
-            <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{taskCount}</p>
+            <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{taskCount}</p>
           </div>
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
             <p className="text-xs text-subtle">今週の電話</p>
-            <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{actionStats?.calls ?? 0}</p>
+            <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{actionStats?.calls ?? 0}</p>
           </div>
           <div className="bg-card border border-border rounded-xl p-5 shadow-sm">
             <p className="text-xs text-subtle">今週の商談</p>
-            <p className="font-serif italic text-4xl text-ink mt-1 tabular-nums">{actionStats?.meetings ?? 0}</p>
+            <p className="font-semibold text-4xl text-ink mt-1 tabular-nums">{actionStats?.meetings ?? 0}</p>
           </div>
         </section>
 
@@ -244,7 +244,7 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
           <div className="flex items-end gap-3">
             <div className="flex-1">
               <p className="text-xs text-subtle">合計</p>
-              <p className="font-serif italic text-3xl text-ink tabular-nums">{actionStats?.total ?? 0}</p>
+              <p className="font-semibold text-3xl text-ink tabular-nums">{actionStats?.total ?? 0}</p>
             </div>
             <div className="flex-1">
               <p className="text-xs text-subtle">電話</p>

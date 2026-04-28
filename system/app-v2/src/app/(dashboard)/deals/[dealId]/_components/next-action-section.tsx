@@ -101,7 +101,7 @@ export function NextActionSection({ dealId }: { dealId: string }) {
       </div>
 
       <div className="border-l-2 border-amber-300 pl-4 py-1 space-y-2">
-        <p className="font-serif italic text-xl text-ink leading-snug">{data.action}</p>
+        <p className="font-semibold text-xl text-ink leading-snug">{data.action}</p>
         <div className="flex flex-wrap gap-3 text-xs text-muted">
           <span>{TYPE_LABEL[data.action_type] ?? data.action_type}</span>
           <span>·</span>

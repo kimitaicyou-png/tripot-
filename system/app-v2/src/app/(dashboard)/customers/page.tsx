@@ -85,7 +85,7 @@ export default async function CustomersPage() {
                       {c.deal_count}件
                     </p>
                   </div>
-                  <p className="font-serif italic text-2xl text-ink tabular-nums leading-none">
+                  <p className="font-semibold text-2xl text-ink tabular-nums leading-none">
                     {formatYen(c.total_amount)}
                   </p>
                   <div className="mt-3 space-y-0.5">

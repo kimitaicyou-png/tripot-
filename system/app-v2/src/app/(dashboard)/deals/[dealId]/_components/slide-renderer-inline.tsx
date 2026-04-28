@@ -58,7 +58,7 @@ export function SlideRendererInline({ slides }: { slides: Slide[] }) {
               </ul>
             )}
             {s.message && (
-              <p className="text-sm text-ink italic border-l-2 border-amber-300 pl-3">
+              <p className="text-sm text-ink border-l-2 border-amber-300 pl-3">
                 {s.message}
               </p>
             )}

@@ -119,7 +119,7 @@ export function WeeklyInputGrid({
         </div>
         <div className="flex flex-col gap-1">
           <span className="text-xs uppercase tracking-widest font-medium text-subtle">合計</span>
-          <span className="font-serif italic text-3xl text-ink tabular-nums">{totals.grand}</span>
+          <span className="font-semibold text-3xl text-ink tabular-nums">{totals.grand}</span>
         </div>
         <div className="ml-auto flex gap-2">
           <button
@@ -194,7 +194,7 @@ export function WeeklyInputGrid({
                       </div>
                     </td>
                   ))}
-                  <td className={`pr-6 py-3 text-center font-mono tabular-nums ${presentation ? 'text-2xl font-serif italic' : 'text-base'} text-ink`}>
+                  <td className={`pr-6 py-3 text-center font-mono tabular-nums ${presentation ? 'text-2xl font-semibold' : 'text-base'} text-ink`}>
                     {memberSum}
                   </td>
                 </tr>
@@ -207,11 +207,11 @@ export function WeeklyInputGrid({
                 種類別合計
               </td>
               {ACTION_TYPES.map((t) => (
-                <td key={t.key} className={`py-3 text-center font-mono tabular-nums ${presentation ? 'text-2xl font-serif italic' : 'text-base'} text-ink`}>
+                <td key={t.key} className={`py-3 text-center font-mono tabular-nums ${presentation ? 'text-2xl font-semibold' : 'text-base'} text-ink`}>
                   {totals.perType[t.key]}
                 </td>
               ))}
-              <td className={`pr-6 py-3 text-center font-mono tabular-nums ${presentation ? 'text-3xl font-serif italic' : 'text-lg'} text-ink`}>
+              <td className={`pr-6 py-3 text-center font-mono tabular-nums ${presentation ? 'text-3xl font-semibold' : 'text-lg'} text-ink`}>
                 {totals.grand}
               </td>
             </tr>

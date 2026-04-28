@@ -351,7 +351,7 @@ export default async function MonthlyFinancePage({
                   ))}
                   <tr className="border-t-2 border-border bg-bg">
                     <td className="px-4 py-3 font-medium text-ink">合計</td>
-                    <td className="px-4 py-3 text-right font-mono tabular-nums font-serif italic text-2xl text-ink">{formatYen(fixedTotal)}</td>
+                    <td className="px-4 py-3 text-right font-mono tabular-nums font-semibold text-2xl text-ink">{formatYen(fixedTotal)}</td>
                     <td className="px-4 py-3 text-right font-mono tabular-nums text-muted">{formatYen(prevFixedTotal)}</td>
                     <td className={`px-4 py-3 text-right font-mono tabular-nums ${fixedRatio > 0.05 ? 'text-kpi-down' : fixedRatio < -0.05 ? 'text-kpi-up' : 'text-muted'}`}>
                       {pct(fixedRatio)}

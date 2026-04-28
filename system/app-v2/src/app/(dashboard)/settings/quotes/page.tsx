@@ -39,7 +39,7 @@ export default async function SettingsQuotesPage() {
                 key={q.id}
                 className="bg-card border border-border rounded-xl p-5 border-l-2 border-l-amber-300"
               >
-                <p className="font-serif italic text-lg text-ink leading-snug">{q.body}</p>
+                <p className="font-semibold text-lg text-ink leading-snug">{q.body}</p>
                 <div className="flex items-center justify-between mt-2 text-xs text-subtle">
                   <span>{q.author ? `— ${q.author}` : '（無記名）'}</span>
                   <span className="font-mono">weight {q.weight}</span>
