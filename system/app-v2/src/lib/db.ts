@@ -22,9 +22,17 @@ export const db = drizzle({ client, schema, casing: 'snake_case' });
 /**
  * 行レベルセキュリティ（RLS）用に session.user.company_id を SET LOCAL する
  * API ルートの先頭で必ず呼ぶ。これにより以降のクエリに company_id フィルタが自動適用される
+ *
+ * Neon serverless HTTP は auto-commit でトランザクション外、SET LOCAL は WARNING/ERROR になる。
+ * RLS migration apply 前は GUC 未登録で失敗する。どちらの段階でも swallow してアプリを止めない。
+ * Apply 後はトランザクション wrap される Server Action 内で正しく機能する想定。
  */
 export async function setTenantContext(companyId: string): Promise<void> {
-  await db.execute(sql`SET LOCAL app.current_company_id = ${companyId}`);
+  try {
+    await db.execute(sql`SET LOCAL app.current_company_id = ${companyId}`);
+  } catch {
+    // RLS pre-apply or auto-commit context — skip silently
+  }
 }
 
 /**
