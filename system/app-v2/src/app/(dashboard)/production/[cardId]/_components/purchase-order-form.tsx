@@ -1,0 +1,114 @@
+'use client';
+
+import { useActionState, useState } from 'react';
+import { createPurchaseOrder, type PurchaseOrderFormState } from '@/lib/actions/purchase-orders';
+
+const initialState: PurchaseOrderFormState = {};
+
+type VendorOption = { id: string; name: string };
+
+export function PurchaseOrderForm({
+  cardId,
+  vendors,
+}: {
+  cardId: string;
+  vendors: VendorOption[];
+}) {
+  const action = createPurchaseOrder.bind(null, cardId);
+  const [state, formAction, pending] = useActionState(action, initialState);
+  const [open, setOpen] = useState(false);
+
+  if (vendors.length === 0) {
+    return (
+      <span className="text-xs text-subtle">外注先マスタが未登録です</span>
+    );
+  }
+
+  if (!open) {
+    return (
+      <button
+        type="button"
+        onClick={() => setOpen(true)}
+        className="px-4 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 transition-opacity"
+      >
+        📦 発注追加
+      </button>
+    );
+  }
+
+  return (
+    <form
+      action={formAction}
+      onSubmit={() => setTimeout(() => setOpen(false), 100)}
+      className="bg-card border border-border rounded-lg p-5 space-y-4"
+    >
+      <label className="flex flex-col gap-1">
+        <span className="text-xs uppercase tracking-widest font-medium text-subtle">外注先</span>
+        <select
+          name="vendor_id"
+          required
+          className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+        >
+          {vendors.map((v) => (
+            <option key={v.id} value={v.id}>{v.name}</option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex flex-col gap-1">
+        <span className="text-xs uppercase tracking-widest font-medium text-subtle">発注タイトル</span>
+        <input
+          type="text"
+          name="title"
+          required
+          maxLength={200}
+          placeholder="例：UI実装外注 / グラフィック納品"
+          className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+        />
+      </label>
+
+      <div className="grid grid-cols-2 gap-3">
+        <label className="flex flex-col gap-1">
+          <span className="text-xs uppercase tracking-widest font-medium text-subtle">発注金額（円）</span>
+          <input
+            type="number"
+            name="amount"
+            min={0}
+            defaultValue={0}
+            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink font-mono tabular-nums"
+          />
+        </label>
+
+        <label className="flex flex-col gap-1">
+          <span className="text-xs uppercase tracking-widest font-medium text-subtle">発注日（任意）</span>
+          <input
+            type="date"
+            name="issued_on"
+            className="px-3 py-2 text-sm bg-bg border border-border rounded focus:outline-none focus:border-ink"
+          />
+        </label>
+      </div>
+
+      {state.errors?._form && (
+        <p className="text-sm text-red-700">{state.errors._form.join(' / ')}</p>
+      )}
+
+      <div className="flex justify-end gap-2">
+        <button
+          type="button"
+          onClick={() => setOpen(false)}
+          className="px-4 py-2 text-sm text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors"
+        >
+          キャンセル
+        </button>
+        <button
+          type="submit"
+          disabled={pending}
+          className="px-5 py-2 text-sm font-medium bg-ink text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+        >
+          {pending ? '登録中...' : '登録'}
+        </button>
+      </div>
+    </form>
+  );
+}

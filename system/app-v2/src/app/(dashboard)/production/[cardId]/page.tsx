@@ -6,6 +6,9 @@ import { production_cards, deals } from '@/db/schema';
 import { eq, and, isNull } from 'drizzle-orm';
 import { listBugsForCard } from '@/lib/actions/bugs';
 import { listTestCasesForCard, listChangeLogsForCard } from '@/lib/actions/test-cases';
+import { listPurchaseOrdersForCard, listVendorsForSelect } from '@/lib/actions/purchase-orders';
+import { listDeliverablesForCard } from '@/lib/actions/deliverables';
+import { listReviewsForCard } from '@/lib/actions/reviews';
 import { setTenantContext } from '@/lib/db';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
@@ -17,6 +20,11 @@ import { BugForm } from './_components/bug-form';
 import { BugRow } from './_components/bug-row';
 import { TestCaseForm } from './_components/test-case-form';
 import { TestCaseRow } from './_components/test-case-row';
+import { PurchaseOrderForm } from './_components/purchase-order-form';
+import { PurchaseOrderRow } from './_components/purchase-order-row';
+import { DeliverableForm } from './_components/deliverable-form';
+import { ReviewForm } from './_components/review-form';
+import { ReviewRow } from './_components/review-row';
 
 const STATUS_LABEL: Record<string, string> = {
   requirements: '要件定義',
@@ -42,7 +50,7 @@ export default async function ProductionCardDetailPage({
 
   const { cardId } = await params;
 
-  const [card, bugList, testCases, changeLogs] = await Promise.all([
+  const [card, bugList, testCases, changeLogs, poList, vendorList, deliverableList, reviewList] = await Promise.all([
     db
       .select({
         id: production_cards.id,
@@ -70,6 +78,10 @@ export default async function ProductionCardDetailPage({
     listBugsForCard(cardId),
     listTestCasesForCard(cardId),
     listChangeLogsForCard(cardId),
+    listPurchaseOrdersForCard(cardId),
+    listVendorsForSelect(),
+    listDeliverablesForCard(cardId),
+    listReviewsForCard(cardId),
   ]);
 
   if (!card) notFound();
@@ -166,6 +178,130 @@ export default async function ProductionCardDetailPage({
                   reporter_name={b.reporter_name}
                   created_at={b.created_at}
                   resolved_at={b.resolved_at}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <SectionHeading
+              eyebrow="PURCHASE ORDERS"
+              title="外注発注"
+              count={poList.length}
+            />
+            <PurchaseOrderForm cardId={cardId} vendors={vendorList} />
+          </div>
+          {poList.length === 0 ? (
+            <EmptyState
+              icon="◌"
+              title="発注なし"
+              description="外注先への発注をここで管理（発注・納品・支払の3ステップ）"
+            />
+          ) : (
+            <ul className="space-y-2">
+              {poList.map((p) => (
+                <PurchaseOrderRow
+                  key={p.id}
+                  id={p.id}
+                  cardId={cardId}
+                  title={p.title}
+                  amount={p.amount}
+                  vendor_name={p.vendor_name}
+                  issued_on={p.issued_on}
+                  delivered_on={p.delivered_on}
+                  paid_on={p.paid_on}
+                  created_at={p.created_at}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <SectionHeading
+              eyebrow="DELIVERABLES"
+              title="成果物"
+              count={deliverableList.length}
+            />
+            <DeliverableForm cardId={cardId} />
+          </div>
+          {deliverableList.length === 0 ? (
+            <EmptyState
+              icon="◌"
+              title="成果物なし"
+              description="納品物・中間成果物のバージョン管理"
+            />
+          ) : (
+            <ul className="space-y-2">
+              {deliverableList.map((d) => (
+                <li
+                  key={d.id}
+                  className="bg-card border border-border rounded-lg p-4 flex items-start justify-between gap-3"
+                >
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-baseline gap-2 flex-wrap">
+                      <p className="text-base font-medium text-ink">{d.name}</p>
+                      <span className="text-xs uppercase tracking-widest text-subtle">v{d.version}</span>
+                    </div>
+                    {d.note && (
+                      <p className="text-sm text-muted whitespace-pre-wrap mt-1">{d.note}</p>
+                    )}
+                    <p className="text-xs text-subtle font-mono tabular-nums mt-1">
+                      {new Date(d.created_at).toLocaleString('ja-JP')}
+                      {d.delivered_at && ` · 納品 ${new Date(d.delivered_at).toLocaleString('ja-JP')}`}
+                    </p>
+                  </div>
+                  {d.file_url && (
+                    <a
+                      href={d.file_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="px-3 py-1 text-xs text-muted border border-border rounded hover:text-ink hover:border-ink transition-colors shrink-0"
+                    >
+                      ↗ ファイル
+                    </a>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </section>
+
+        <section className="space-y-3">
+          <div className="flex items-center justify-between">
+            <SectionHeading
+              eyebrow="REVIEWS"
+              title="レビュー"
+              count={reviewList.length}
+            />
+            <ReviewForm
+              cardId={cardId}
+              deliverables={deliverableList.map((d) => ({ id: d.id, name: d.name, version: d.version }))}
+            />
+          </div>
+          {reviewList.length === 0 ? (
+            <EmptyState
+              icon="◌"
+              title="レビューなし"
+              description="成果物の承認・差戻・修正依頼をここで管理"
+            />
+          ) : (
+            <ul className="space-y-2">
+              {reviewList.map((r) => (
+                <ReviewRow
+                  key={r.id}
+                  id={r.id}
+                  cardId={cardId}
+                  deliverable_name={r.deliverable_name}
+                  deliverable_version={r.deliverable_version}
+                  reviewer_name={r.reviewer_name}
+                  status={r.status}
+                  feedback={r.feedback}
+                  reviewed_at={r.reviewed_at}
+                  created_at={r.created_at}
                 />
               ))}
             </ul>
