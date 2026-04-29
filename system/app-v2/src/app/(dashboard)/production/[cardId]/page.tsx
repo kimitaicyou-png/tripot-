@@ -10,11 +10,13 @@ import { listTestCasesForCard, listChangeLogsForCard } from '@/lib/actions/test-
 import { listPurchaseOrdersForCard, listVendorsForSelect } from '@/lib/actions/purchase-orders';
 import { listDeliverablesForCard } from '@/lib/actions/deliverables';
 import { listReviewsForCard } from '@/lib/actions/reviews';
+import { listTimeLogsForCard, timeLogTotalsForCard } from '@/lib/actions/time-logs';
 import { setTenantContext } from '@/lib/db';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
+import { Inbox, Clock, History } from 'lucide-react';
 import { ProductionStatusButton } from '../_components/production-status-button';
 import { ProductionEditForm } from './_components/production-edit-form';
 import { BugForm } from './_components/bug-form';
@@ -26,6 +28,17 @@ import { PurchaseOrderRow } from './_components/purchase-order-row';
 import { DeliverableForm } from './_components/deliverable-form';
 import { ReviewForm } from './_components/review-form';
 import { ReviewRow } from './_components/review-row';
+import { TimeLogForm } from './_components/time-log-form';
+import { TimeLogRow } from './_components/time-log-row';
+
+function formatHours(minutes: number): string {
+  if (minutes === 0) return '0時間';
+  const h = Math.floor(minutes / 60);
+  const m = minutes % 60;
+  if (h === 0) return `${m}分`;
+  if (m === 0) return `${h}時間`;
+  return `${h}時間${m}分`;
+}
 
 const STATUS_LABEL: Record<string, string> = {
   requirements: '要件定義',
@@ -51,7 +64,7 @@ export default async function ProductionCardDetailPage({
 
   const { cardId } = await params;
 
-  const [card, bugList, testCases, changeLogs, poList, vendorList, deliverableList, reviewList] = await Promise.all([
+  const [card, bugList, testCases, changeLogs, poList, vendorList, deliverableList, reviewList, timeLogs, timeLogTotals] = await Promise.all([
     db
       .select({
         id: production_cards.id,
@@ -83,6 +96,8 @@ export default async function ProductionCardDetailPage({
     listVendorsForSelect(),
     listDeliverablesForCard(cardId),
     listReviewsForCard(cardId),
+    listTimeLogsForCard(cardId),
+    timeLogTotalsForCard(cardId),
   ]);
 
   if (!card) notFound();
@@ -162,7 +177,7 @@ export default async function ProductionCardDetailPage({
           </div>
           {bugList.length === 0 ? (
             <EmptyState
-              icon="◌"
+              icon={Inbox}
               title="バグ報告なし"
               description="制作中の不具合は ここで追跡してクローズまで管理"
             />
@@ -197,7 +212,7 @@ export default async function ProductionCardDetailPage({
           </div>
           {poList.length === 0 ? (
             <EmptyState
-              icon="◌"
+              icon={Inbox}
               title="発注なし"
               description="外注先への発注をここで管理（発注・納品・支払の3ステップ）"
             />
@@ -232,7 +247,7 @@ export default async function ProductionCardDetailPage({
           </div>
           {deliverableList.length === 0 ? (
             <EmptyState
-              icon="◌"
+              icon={Inbox}
               title="成果物なし"
               description="納品物・中間成果物のバージョン管理"
             />
@@ -287,7 +302,7 @@ export default async function ProductionCardDetailPage({
           </div>
           {reviewList.length === 0 ? (
             <EmptyState
-              icon="◌"
+              icon={Inbox}
               title="レビューなし"
               description="成果物の承認・差戻・修正依頼をここで管理"
             />
@@ -320,7 +335,7 @@ export default async function ProductionCardDetailPage({
           <TestCaseForm cardId={cardId} />
           {testCases.length === 0 ? (
             <EmptyState
-              icon="◌"
+              icon={Inbox}
               title="テストケースなし"
               description="納品前の品質チェック項目を登録"
             />
@@ -342,6 +357,42 @@ export default async function ProductionCardDetailPage({
           )}
         </section>
 
+        <section className="space-y-3">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
+            <SectionHeading
+              eyebrow="TIME LOGS"
+              title="工数記録"
+              count={timeLogs.length}
+            />
+            <p className="text-sm text-gray-700">
+              累計 <span className="font-mono tabular-nums text-gray-900 font-medium">{formatHours(timeLogTotals.totalMinutes)}</span>
+              <span className="text-xs text-gray-500 ml-1">（{timeLogTotals.logCount} 件）</span>
+            </p>
+          </div>
+          <TimeLogForm cardId={cardId} />
+          {timeLogs.length === 0 ? (
+            <EmptyState
+              icon={Clock}
+              title="工数記録なし"
+              description="作業時間を分単位で記録。実績コストの計算根拠になります"
+            />
+          ) : (
+            <ul className="space-y-2 mt-3">
+              {timeLogs.map((tl) => (
+                <TimeLogRow
+                  key={tl.id}
+                  id={tl.id}
+                  cardId={cardId}
+                  minutes={tl.minutes}
+                  occurred_on={tl.occurred_on}
+                  note={tl.note}
+                  member_name={tl.member_name}
+                />
+              ))}
+            </ul>
+          )}
+        </section>
+
         <section>
           <SectionHeading
             eyebrow="CHANGE LOGS"
@@ -350,7 +401,7 @@ export default async function ProductionCardDetailPage({
           />
           {changeLogs.length === 0 ? (
             <EmptyState
-              icon="◌"
+              icon={History}
               title="変更履歴なし"
               description="ステータス変更などの業務ログがここに表示されます"
             />
