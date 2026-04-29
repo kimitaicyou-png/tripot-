@@ -90,8 +90,8 @@ export default async function WeeklyPlPage({
       .then((rows) => rows[0]),
     db
       .select({
-        cogs: sql<number>`COALESCE(SUM(${mf_journals.amount}) FILTER (WHERE ${mf_journals.account_code} = ANY(${COGS_CODES})), 0)::int`,
-        sga: sql<number>`COALESCE(SUM(${mf_journals.amount}) FILTER (WHERE ${mf_journals.account_code} = ANY(${SGA_CODES})), 0)::int`,
+        cogs: sql<number>`COALESCE(SUM(${mf_journals.amount}) FILTER (WHERE ${inArray(mf_journals.account_code, COGS_CODES)}), 0)::int`,
+        sga: sql<number>`COALESCE(SUM(${mf_journals.amount}) FILTER (WHERE ${inArray(mf_journals.account_code, SGA_CODES)}), 0)::int`,
       })
       .from(mf_journals)
       .where(
@@ -104,8 +104,8 @@ export default async function WeeklyPlPage({
       .then((rows) => rows[0]),
     db
       .select({
-        cogs: sql<number>`COALESCE(SUM(${mf_journals.amount}) FILTER (WHERE ${mf_journals.account_code} = ANY(${COGS_CODES})), 0)::int`,
-        sga: sql<number>`COALESCE(SUM(${mf_journals.amount}) FILTER (WHERE ${mf_journals.account_code} = ANY(${SGA_CODES})), 0)::int`,
+        cogs: sql<number>`COALESCE(SUM(${mf_journals.amount}) FILTER (WHERE ${inArray(mf_journals.account_code, COGS_CODES)}), 0)::int`,
+        sga: sql<number>`COALESCE(SUM(${mf_journals.amount}) FILTER (WHERE ${inArray(mf_journals.account_code, SGA_CODES)}), 0)::int`,
       })
       .from(mf_journals)
       .where(
@@ -153,13 +153,13 @@ export default async function WeeklyPlPage({
           COALESCE((
             SELECT SUM(amount)::int FROM ${mf_journals}
             WHERE company_id = ${companyId}
-              AND account_code = ANY(${COGS_CODES})
+              AND account_code IN (${sql.join(COGS_CODES.map(c => sql`${c}`), sql`, `)})
               AND entry_date >= w::date AND entry_date < (w + INTERVAL '7 days')::date
           ), 0) AS cogs,
           COALESCE((
             SELECT SUM(amount)::int FROM ${mf_journals}
             WHERE company_id = ${companyId}
-              AND account_code = ANY(${SGA_CODES})
+              AND account_code IN (${sql.join(SGA_CODES.map(c => sql`${c}`), sql`, `)})
               AND entry_date >= w::date AND entry_date < (w + INTERVAL '7 days')::date
           ), 0) AS sga
         FROM weeks
