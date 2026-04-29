@@ -23,8 +23,12 @@ function getAnthropic(): Anthropic {
   if (cachedClient) return cachedClient;
   const apiKey = process.env.ANTHROPIC_API_KEY;
   if (!apiKey) {
+    const hasKey = Object.prototype.hasOwnProperty.call(process.env, 'ANTHROPIC_API_KEY');
+    const keyLen = process.env.ANTHROPIC_API_KEY?.length ?? 'undefined';
+    const envCount = Object.keys(process.env).length;
+    const anthropicKeys = Object.keys(process.env).filter((k) => k.includes('ANTHROPIC')).join(',') || 'none';
     throw new AiError(
-      'ANTHROPIC_API_KEY is not set. Configure it in Vercel env (Sensitive policy) or .env.local',
+      `ANTHROPIC_API_KEY is not set. [debug: hasKey=${hasKey} keyLen=${keyLen} envCount=${envCount} anthropicKeys=${anthropicKeys}]`,
       undefined,
       false
     );
