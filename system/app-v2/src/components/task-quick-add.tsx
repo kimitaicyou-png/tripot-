@@ -1,9 +1,5 @@
 'use client';
 
-/**
- * タスク即時追加フォーム — 案件詳細やタスク一覧画面から使う
- */
-
 import { useActionState, useRef, useEffect } from 'react';
 import { createTask, type TaskFormState } from '@/lib/actions/tasks';
 
