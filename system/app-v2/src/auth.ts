@@ -11,6 +11,7 @@
 
 import NextAuth from 'next-auth';
 import Google from 'next-auth/providers/google';
+import Credentials from 'next-auth/providers/credentials';
 import { eq, and, isNull } from 'drizzle-orm';
 import { db, logAudit } from '@/lib/db';
 import { members, companies } from '@/db/schema';
@@ -22,6 +23,9 @@ const DEV_ALLOWED_EMAILS = (process.env.DEV_ALLOWED_EMAILS ?? '')
   .map((e) => e.trim().toLowerCase())
   .filter(Boolean);
 
+const IS_DEV_BYPASS_ENABLED =
+  process.env.NODE_ENV === 'development' && process.env.DEV_AUTO_LOGIN === '1';
+
 export const { handlers, auth, signIn, signOut } = NextAuth({
   basePath: '/api/auth',
   providers: [
@@ -29,6 +33,30 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       clientId: process.env.AUTH_GOOGLE_ID_V2!,
       clientSecret: process.env.AUTH_GOOGLE_SECRET_V2!,
     }),
+    ...(IS_DEV_BYPASS_ENABLED
+      ? [
+          Credentials({
+            id: 'dev-bypass',
+            name: 'Dev Bypass (development only)',
+            credentials: {
+              email: { label: 'Email', type: 'text' },
+            },
+            async authorize(creds) {
+              if (!IS_DEV_BYPASS_ENABLED) return null;
+              const email = (creds?.email as string | undefined)?.toLowerCase();
+              if (!email) return null;
+              const member = await db
+                .select({ id: members.id, name: members.name, email: members.email })
+                .from(members)
+                .where(and(eq(members.email, email), isNull(members.deleted_at)))
+                .limit(1)
+                .then((rows) => rows[0]);
+              if (!member) return null;
+              return { id: member.id, email: member.email, name: member.name };
+            },
+          }),
+        ]
+      : []),
   ],
 
   session: {
