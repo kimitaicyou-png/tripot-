@@ -43,7 +43,7 @@ export function TestCaseForm({ cardId }: { cardId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="inline-flex items-center gap-1 ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="inline-flex items-center gap-1 ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           <Plus className="w-3.5 h-3.5" />
           {pending ? '追加中...' : '追加'}

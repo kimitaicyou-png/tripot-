@@ -126,7 +126,7 @@ export function ProposalSlidesEditor({
             type="button"
             onClick={handleSave}
             disabled={pending || !valid}
-            className="px-4 py-1.5 text-xs font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+            className="px-4 py-1.5 text-xs font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
           >
             {pending ? '保存中...' : '保存'}
           </button>

@@ -133,7 +133,7 @@ export function WeeklyInputGrid({
             type="button"
             onClick={handleSubmit}
             disabled={pending || totals.grand === 0}
-            className="px-5 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+            className="px-5 py-2 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
           >
             {pending ? '保存中...' : `${totals.grand} 件まとめて保存`}
           </button>

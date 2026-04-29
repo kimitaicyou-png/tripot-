@@ -36,7 +36,7 @@ export function CommentForm({ dealId }: { dealId: string }) {
         <button
           type="submit"
           disabled={pending}
-          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '投稿中...' : '投稿'}
         </button>

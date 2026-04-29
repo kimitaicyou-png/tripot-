@@ -78,7 +78,7 @@ export function InternalNoteSection({
         <button
           type="submit"
           disabled={pending}
-          className="px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="px-4 py-1.5 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
           onClick={() => setTimeout(() => setEditing(false), 200)}
         >
           {pending ? '保存中...' : '保存'}

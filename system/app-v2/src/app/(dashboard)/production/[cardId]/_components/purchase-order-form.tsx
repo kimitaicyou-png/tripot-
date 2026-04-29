@@ -30,7 +30,7 @@ export function PurchaseOrderForm({
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 transition-opacity"
+        className="inline-flex items-center gap-1.5 px-4 py-2 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 transition-opacity"
       >
         <Package className="w-4 h-4" />
         発注追加
@@ -106,7 +106,7 @@ export function PurchaseOrderForm({
         <button
           type="submit"
           disabled={pending}
-          className="px-5 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="px-5 py-2 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '登録中...' : '登録'}
         </button>

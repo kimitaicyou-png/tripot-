@@ -120,7 +120,7 @@ export function ProductionEditForm(props: Props) {
         <button
           type="submit"
           disabled={pending}
-          className="px-5 py-2 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="px-5 py-2 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '保存中...' : '保存'}
         </button>

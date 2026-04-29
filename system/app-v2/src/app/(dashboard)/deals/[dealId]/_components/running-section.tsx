@@ -163,7 +163,7 @@ export function RunningSection(props: Props) {
           type="submit"
           disabled={pending}
           onClick={() => setTimeout(() => setEditing(false), 200)}
-          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-bg rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
+          className="ml-auto px-4 py-1.5 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 transition-opacity"
         >
           {pending ? '保存中...' : '保存'}
         </button>
