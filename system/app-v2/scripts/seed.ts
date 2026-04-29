@@ -7,7 +7,7 @@
  *
  * 投入されるもの：
  * - companies: tripot（株式会社トライポット）
- * - members: 隊長（土岐公人 president）+ 小野ちゃん（小野崇 hq_member）
+ * - members: 隊長（土岐公人 president）+ 小野ちゃん（小野隆士 hq_member）
  * - サンプル deals: 動作確認用に3件
  */
 
@@ -63,7 +63,7 @@ async function seed() {
   // 2. members
   const memberSeeds = [
     { email: 'k.toki@coaris.ai', name: '土岐 公人', role: 'president' as const, department: '代表' },
-    { email: 'ono@coaris.ai', name: '小野 崇', role: 'hq_member' as const, department: '本部' },
+    { email: 'ono@coaris.ai', name: '小野 隆士', role: 'hq_member' as const, department: '本部' },
   ];
 
   for (const m of memberSeeds) {

@@ -612,6 +612,53 @@ async function seed() {
   }
   console.log(`  ✅ budgets: 2026年12ヶ月分`);
 
+  // 12. bridge_notices 3件（本部 → tripot 指示プッシュのデモ）
+  const noticeSeeds = [
+    {
+      title: '4月期決算 数字確定のお願い',
+      body: '4月末締めの月次レポート、本部に5/3 17:00 までに送信してください。bridge/kpi 経由で自動送信されますので、月次画面の「本部に送信」ボタンを押すだけです。',
+      severity: 'info',
+      sent_days_ago: 1,
+      acknowledge: false,
+    },
+    {
+      title: '⚠ 経費承認フロー変更（5/1〜）',
+      body: '5月1日より、10万円超の経費は本部承認必須となります。承認申請ボタンから「経費承認」を選択してください。',
+      severity: 'warning',
+      sent_days_ago: 3,
+      acknowledge: true,
+    },
+    {
+      title: '🚨 セキュリティ：パスワード再設定のお願い',
+      body: '社内システムのパスワード方針変更により、5/15 までに全メンバーのパスワード再設定が必要です。詳細は別途メールでご案内します。',
+      severity: 'critical',
+      sent_days_ago: 5,
+      acknowledge: false,
+    },
+  ];
+
+  for (const n of noticeSeeds) {
+    const existing = await db
+      .select({ id: schema.bridge_notices.id })
+      .from(schema.bridge_notices)
+      .where(and(eq(schema.bridge_notices.company_id, tripot.id), eq(schema.bridge_notices.title, n.title)))
+      .limit(1)
+      .then((rows) => rows[0]);
+    if (existing) continue;
+    const sentAt = new Date();
+    sentAt.setDate(sentAt.getDate() - n.sent_days_ago);
+    await db.insert(schema.bridge_notices).values({
+      company_id: tripot.id,
+      title: n.title,
+      body: n.body,
+      severity: n.severity,
+      sent_at: sentAt,
+      acknowledged_at: n.acknowledge ? new Date() : null,
+      acknowledged_by: n.acknowledge ? toki.id : null,
+    });
+    console.log(`  ✅ bridge_notice: ${n.title}`);
+  }
+
   console.log('\n🎉 demo seed 完了！');
   console.log(`\n   メンバー ${allMembers.length}名 / 顧客 ${customers.length}社 / 案件 ${allDeals.length}件`);
 }
