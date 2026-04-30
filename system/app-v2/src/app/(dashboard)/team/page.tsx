@@ -9,6 +9,7 @@ import { getMemberColor, getMemberInitial } from '@/lib/member-color';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
+import { OverloadAlertCard } from './_components/overload-alert-card';
 
 const ROLE_LABEL: Record<string, string> = {
   president: '社長',
@@ -82,6 +83,8 @@ export default async function TeamPage() {
               <StatCard label="進行中の案件" value={totalActive} big />
               <StatCard label="チーム累計売上" value={formatYen(totalRevenue)} tone="up" big />
             </section>
+
+            <OverloadAlertCard companyId={session.user.company_id} />
 
             <section className="grid grid-cols-1 md:grid-cols-2 gap-4">
               {rows.map((m) => {

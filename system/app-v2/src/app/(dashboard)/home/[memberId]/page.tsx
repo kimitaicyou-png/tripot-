@@ -10,6 +10,7 @@ import { CommitmentsSection } from './_components/commitments-section';
 import { RevenueAchievementCard } from './_components/revenue-achievement-card';
 import { RevenueTrendCard } from './_components/revenue-trend-card';
 import { FunnelCard } from './_components/funnel-card';
+import { SilentCustomersCard } from './_components/silent-customers-card';
 import { pickQuoteForMember } from '@/lib/actions/quotes';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
 
@@ -238,6 +239,10 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
 
         <div className="mt-8">
           <CommitmentsSection memberId={memberId} />
+        </div>
+
+        <div className="mt-8">
+          <SilentCustomersCard companyId={companyId} />
         </div>
 
         <section className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm">

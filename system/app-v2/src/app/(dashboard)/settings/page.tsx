@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote } from 'lucide-react';
+import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote, Bot } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -11,8 +11,10 @@ import {
   project_templates,
   integrations,
   audit_logs,
+  ai_jobs,
   members as membersTable,
 } from '@/db/schema';
+import { gte } from 'drizzle-orm';
 
 type SettingItem = {
   href: string;
@@ -28,7 +30,11 @@ export default async function SettingsHubPage() {
 
   const companyId = session.user.company_id;
 
-  const [quotesRow, vendorsRow, templatesRow, integrationsRow, auditCountRow, memberCountRow] = await Promise.all([
+  const monthStart = new Date();
+  monthStart.setDate(1);
+  monthStart.setHours(0, 0, 0, 0);
+
+  const [quotesRow, vendorsRow, templatesRow, integrationsRow, auditCountRow, memberCountRow, aiUsageRow] = await Promise.all([
     db
       .select({ n: sql<number>`count(*)::int` })
       .from(quotes)
@@ -53,6 +59,10 @@ export default async function SettingsHubPage() {
       .select({ n: sql<number>`count(*)::int` })
       .from(membersTable)
       .where(and(eq(membersTable.company_id, companyId), isNull(membersTable.deleted_at))),
+    db
+      .select({ n: sql<number>`count(*)::int` })
+      .from(ai_jobs)
+      .where(and(eq(ai_jobs.company_id, companyId), gte(ai_jobs.created_at, monthStart))),
   ]);
 
   const items: SettingItem[] = [
@@ -103,6 +113,13 @@ export default async function SettingsHubPage() {
       title: '監査ログ',
       description: '誰がいつ何を変更したかの全履歴。フィルタ + CSV エクスポート',
       status: `${(auditCountRow[0]?.n ?? 0).toLocaleString('ja-JP')} 件`,
+    },
+    {
+      href: '/settings/ai-usage',
+      icon: Bot,
+      title: 'AI 利用状況',
+      description: '当月の AI 呼出数・コスト ／ 機能別 ／ ユーザー別 ／ 履歴',
+      status: `${(aiUsageRow[0]?.n ?? 0).toLocaleString('ja-JP')} 回 / 今月`,
     },
   ];
 

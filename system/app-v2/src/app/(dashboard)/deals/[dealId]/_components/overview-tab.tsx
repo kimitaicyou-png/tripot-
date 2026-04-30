@@ -11,6 +11,7 @@ import { LogActionButton } from '@/components/log-action-button';
 import { deleteDeal } from '@/lib/actions/deals';
 import { TRIPOT_CONFIG } from '../../../../../../coaris.config';
 import { NextActionSection } from './next-action-section';
+import { RiskScoreSection } from './risk-score-section';
 import { EmailDraftButton } from './email-draft-button';
 import { AttackSection } from './attack-section';
 import { ApprovalRequestButton } from './approval-request-button';
@@ -109,6 +110,8 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
       </section>
 
       <NextActionSection dealId={dealId} />
+
+      <RiskScoreSection dealId={dealId} />
 
       <AttackSection dealId={dealId} />
 
