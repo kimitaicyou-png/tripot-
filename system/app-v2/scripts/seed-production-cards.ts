@@ -26,7 +26,7 @@ async function main() {
   console.log('[seed-prod] existing cards:', existing.length);
 
   // 3. Map deal stage → production status
-  const statusMap = {
+  const statusMap: Record<string, string> = {
     in_production: 'building',
     delivered: 'delivered',
     paid: 'delivered',
@@ -40,7 +40,7 @@ async function main() {
       continue;
     }
 
-    const status = statusMap[d.stage] ?? 'requirements';
+    const status = statusMap[d.stage as string] ?? 'requirements';
     const startedAt = d.ordered_at;
     const deliveredAt = d.delivered_at;
     // Calc estimated/actual cost: 約 60% of deal amount as cost
@@ -54,7 +54,7 @@ async function main() {
         (${d.company_id}, ${d.id}, ${d.title}, ${status}, ${startedAt}, ${deliveredAt}, ${estimatedCost}, ${actualCost})
       RETURNING id, title, status
     `;
-    inserted.push(...result);
+    inserted.push(...(result as { id: string; title: string; status: string }[]));
     console.log(`  ✓ ${d.title} | status=${status} | est=¥${estimatedCost} actual=¥${actualCost}`);
   }
 
