@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useTransition } from 'react';
+import { useState, useTransition, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ExternalLink, GripVertical } from 'lucide-react';
@@ -59,6 +59,8 @@ export function ProductionKanban({ initialCards }: { initialCards: Card[] }) {
   const [cards, setCards] = useState<Card[]>(initialCards);
   const [activeId, setActiveId] = useState<string | null>(null);
   const [, startTransition] = useTransition();
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
 
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
@@ -97,6 +99,17 @@ export function ProductionKanban({ initialCards }: { initialCards: Card[] }) {
   }
 
   const activeCard = activeId ? cards.find((c) => c.id === activeId) : null;
+
+  if (!mounted) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-3">
+        {STATUS_GROUPS.map((group) => {
+          const list = cards.filter((c) => c.status === group.key);
+          return <Column key={group.key} group={group} cards={list} />;
+        })}
+      </div>
+    );
+  }
 
   return (
     <DndContext
