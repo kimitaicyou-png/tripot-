@@ -180,6 +180,9 @@ export type CompanyConfig = {
     syncMode: SyncMode;
     webhookUrl?: string;
   };
+
+  /** AI 工数最適化の時給単価（円）— optimize-work AI で削減金額計算に使用 */
+  hourlyRateYen: number;
 };
 
 /* ============================================================
@@ -285,6 +288,7 @@ export const TRIPOT_CONFIG: CompanyConfig = {
     syncMode: 'hybrid',
     webhookUrl: 'https://coaris.ai/api/hq/webhook',
   },
+  hourlyRateYen: 3000,
 };
 
 /* ============================================================

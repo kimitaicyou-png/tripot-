@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals } from '@/db/schema';
-import { eq, and, isNull, gte, lte, ne } from 'drizzle-orm';
+import { eq, and, isNull, gte, lte, ne, sql } from 'drizzle-orm';
 import { WeeklyTabs } from '../_components/tabs';
 import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue, StatCard } from '@/components/ui/stat-card';
@@ -106,6 +106,36 @@ export default async function WeeklyCfPage({
       ),
     );
 
+  const openDealsTotal = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(deals)
+    .where(
+      and(
+        eq(deals.company_id, session.user.company_id),
+        isNull(deals.deleted_at),
+        ne(deals.stage, 'lost'),
+        ne(deals.stage, 'paid'),
+      ),
+    )
+    .then((r) => r[0]?.count ?? 0);
+
+  const closeDateSetCount = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(deals)
+    .where(
+      and(
+        eq(deals.company_id, session.user.company_id),
+        isNull(deals.deleted_at),
+        ne(deals.stage, 'lost'),
+        ne(deals.stage, 'paid'),
+        sql`${deals.expected_close_date} IS NOT NULL`,
+      ),
+    )
+    .then((r) => r[0]?.count ?? 0);
+
+  const coverageRate = openDealsTotal > 0 ? Math.round((closeDateSetCount / openDealsTotal) * 100) : 0;
+  const coverageTone: 'good' | 'warn' | 'bad' = coverageRate >= 70 ? 'good' : coverageRate >= 40 ? 'warn' : 'bad';
+
   const weeks = Array.from({ length: 6 }, (_, i) => {
     const start = addDays(week0Start, i * 7);
     const end = addDays(start, 6);
@@ -178,6 +208,26 @@ export default async function WeeklyCfPage({
             </>
           }
         />
+
+        <div className={`rounded-lg px-4 py-3 border ${
+          coverageTone === 'good' ? 'bg-emerald-50 border-emerald-200' :
+          coverageTone === 'warn' ? 'bg-amber-50 border-amber-200' :
+          'bg-rose-50 border-rose-200'
+        }`}>
+          <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">予測信頼度</p>
+          <p className={`text-sm ${
+            coverageTone === 'good' ? 'text-emerald-800' :
+            coverageTone === 'warn' ? 'text-amber-800' :
+            'text-rose-800'
+          }`}>
+            <span className="font-semibold tabular-nums text-base">{coverageRate}%</span>
+            {' '}（オープン案件 <span className="font-mono tabular-nums">{openDealsTotal}</span> 件中、
+            完了予定日が設定済 <span className="font-mono tabular-nums">{closeDateSetCount}</span> 件）
+            {coverageTone === 'bad' && '：未設定が多いため予測精度が低めです。各案件で完了予定日の入力を推奨'}
+            {coverageTone === 'warn' && '：4割以上の案件で予定日未設定。経営判断には信頼度を考慮'}
+            {coverageTone === 'good' && '：7割以上カバー、経営判断資料として実用範囲'}
+          </p>
+        </div>
 
         <section className="space-y-4">
           <SectionHeading eyebrow="WEEKS" title="週別ブレイクダウン" />

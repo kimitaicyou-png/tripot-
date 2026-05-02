@@ -27,6 +27,29 @@ const VALID_STAGES = [
   'lost',
 ];
 
+const STAGE_JP_MAP: Record<string, string> = {
+  '見込み': 'prospect',
+  '見込': 'prospect',
+  '提案中': 'proposing',
+  '提案': 'proposing',
+  '受注': 'ordered',
+  '制作中': 'in_production',
+  '制作': 'in_production',
+  '納品': 'delivered',
+  '検収': 'acceptance',
+  '請求': 'invoiced',
+  '請求済': 'invoiced',
+  '入金': 'paid',
+  '入金済': 'paid',
+  '失注': 'lost',
+};
+
+function normalizeStage(input: string): string {
+  const trimmed = input.trim();
+  if (STAGE_JP_MAP[trimmed]) return STAGE_JP_MAP[trimmed];
+  return trimmed.toLowerCase();
+}
+
 type PreviewRow = {
   rowNumber: number;
   title: string;
@@ -96,7 +119,7 @@ export default function DealsImportPage() {
       const title = row[titleCol]?.trim() ?? '';
       const customer_name = customerCol ? row[customerCol]?.trim() ?? '' : '';
       const assignee_email = assigneeCol ? row[assigneeCol]?.trim() ?? '' : '';
-      const stageRaw = stageCol ? row[stageCol]?.trim().toLowerCase() ?? 'prospect' : 'prospect';
+      const stageRaw = stageCol ? normalizeStage(row[stageCol] ?? 'prospect') : 'prospect';
       const stage = VALID_STAGES.includes(stageRaw) ? stageRaw : 'prospect';
       const amountRaw = amountCol ? row[amountCol]?.trim() ?? '0' : '0';
       const amount = parseInt(amountRaw.replace(/[¥,]/g, '') || '0', 10) || 0;
@@ -218,6 +241,9 @@ export default function DealsImportPage() {
               / <span className="font-mono">stage</span>（{VALID_STAGES.join(' | ')}）
               / <span className="font-mono">amount</span>（円整数）
               / <span className="font-mono">expected_close_date</span>（YYYY-MM-DD）
+            </p>
+            <p className="text-xs text-gray-500 mt-2">
+              ※ stage は日本語入力可：見込み / 提案中 / 受注 / 制作中 / 納品 / 検収 / 請求 / 入金 / 失注
             </p>
           </div>
           <p className="text-xs text-gray-500">

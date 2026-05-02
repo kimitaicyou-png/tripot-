@@ -207,7 +207,7 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
           <MorningBrief memberId={memberId} />
         </div>
 
-        <section className="mt-8 grid grid-cols-2 md:grid-cols-4 gap-4">
+        <section className="mt-8 grid grid-cols-2 gap-4 max-w-md">
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
             <p className="text-xs text-gray-500">進行中の案件</p>
             <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{dealStats?.activeCount ?? 0}</p>
@@ -215,14 +215,6 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
             <p className="text-xs text-gray-500">残タスク</p>
             <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{taskCount}</p>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p className="text-xs text-gray-500">今週の電話</p>
-            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{actionStats?.calls ?? 0}</p>
-          </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p className="text-xs text-gray-500">今週の商談</p>
-            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{actionStats?.meetings ?? 0}</p>
           </div>
         </section>
 

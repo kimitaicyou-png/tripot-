@@ -1,3 +1,4 @@
+import Link from 'next/link';
 import { getMemberColor, getMemberInitial } from '@/lib/member-color';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -34,9 +35,10 @@ export function MemberActivityGrid({
             const initial = getMemberInitial(m.name);
             const widthPct = Math.round((m.total / maxActions) * 100);
             return (
-              <div
+              <Link
                 key={m.id}
-                className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm"
+                href={`/home/${m.id}`}
+                className="block bg-white border border-gray-200 rounded-xl p-5 shadow-sm hover:border-gray-400 active:scale-[0.99] transition-all"
               >
                 <div className="flex items-center gap-3 mb-3">
                   <div
@@ -69,7 +71,7 @@ export function MemberActivityGrid({
                     <p className="font-mono tabular-nums text-sm text-gray-900 mt-0.5">{m.proposals}</p>
                   </div>
                 </div>
-              </div>
+              </Link>
             );
           })}
         </div>

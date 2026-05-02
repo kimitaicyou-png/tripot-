@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote, Bot } from 'lucide-react';
+import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote, Bot, Sparkles } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -120,6 +120,13 @@ export default async function SettingsHubPage() {
       title: 'AI 利用状況',
       description: '当月の AI 呼出数・コスト ／ 機能別 ／ ユーザー別 ／ 履歴',
       status: `${(aiUsageRow[0]?.n ?? 0).toLocaleString('ja-JP')} 回 / 今月`,
+    },
+    {
+      href: '/settings/ai-features',
+      icon: Sparkles,
+      title: 'AI 機能ガイド',
+      description: 'AI 9機能（チャット / 朝ブリーフィング / 案件リスク / 次の一手 / メール / 提案書 / 議事録要約 / タスク生成 / 工数最適化 / アサイン推薦）の場所と使い方',
+      status: '9 機能稼働中',
     },
   ];
 

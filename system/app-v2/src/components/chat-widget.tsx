@@ -64,7 +64,7 @@ export function ChatWidget() {
       <button
         type="button"
         onClick={() => setOpen(true)}
-        className="fixed bottom-20 md:bottom-6 right-24 z-40 w-14 h-14 bg-blue-600 text-white rounded-full shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center"
+        className="fixed bottom-36 md:bottom-24 right-6 z-40 w-14 h-14 bg-blue-600 text-white rounded-full shadow-sm hover:bg-blue-700 active:scale-[0.98] transition-all flex items-center justify-center"
         aria-label="コアリスAIに話しかける"
       >
         <MessageCircle className="w-6 h-6" />

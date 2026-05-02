@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, members, customers } from '@/db/schema';
-import { eq, and, isNull, desc } from 'drizzle-orm';
+import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
@@ -54,6 +54,7 @@ export default async function DealsListPage() {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
 
+  const PAGE_LIMIT = 200;
   const rows = await db
     .select({
       id: deals.id,
@@ -71,7 +72,14 @@ export default async function DealsListPage() {
     .leftJoin(customers, eq(deals.customer_id, customers.id))
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .orderBy(desc(deals.updated_at))
-    .limit(200);
+    .limit(PAGE_LIMIT);
+
+  const totalDealsCount = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(deals)
+    .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
+    .then((r) => r[0]?.count ?? 0);
+  const isPartialList = totalDealsCount > PAGE_LIMIT;
 
   const totalActive = rows.filter((d) =>
     ['proposing', 'ordered', 'in_production'].includes(d.stage),
@@ -118,6 +126,16 @@ export default async function DealsListPage() {
       />
 
       <div className="px-6 py-10 max-w-7xl mx-auto space-y-12">
+        {isPartialList && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+            <p className="text-sm text-amber-900">
+              <span className="font-semibold">表示件数の上限に達しています。</span>
+              {' '}全 <span className="font-mono tabular-nums">{totalDealsCount}</span> 件中、最新 <span className="font-mono tabular-nums">{PAGE_LIMIT}</span> 件のみ表示中。
+              特定の案件は検索機能をご利用ください（ページネーション機能は今後実装予定）。
+            </p>
+          </div>
+        )}
+
         {rows.length === 0 ? (
           <EmptyState
             icon="◯"

@@ -5,8 +5,9 @@ import { auth } from '@/auth';
 import { db, logAudit } from '@/lib/db';
 import { production_cards, tasks } from '@/db/schema';
 import { callJson, AiError } from '@/lib/ai';
+import { TRIPOT_CONFIG } from '../../../../../coaris.config';
 
-const HOURLY_RATE_YEN = 3000;
+const HOURLY_RATE_YEN = TRIPOT_CONFIG.hourlyRateYen;
 
 const AI_REDUCTION_MAP: Record<string, number> = {
   development: 0.80,

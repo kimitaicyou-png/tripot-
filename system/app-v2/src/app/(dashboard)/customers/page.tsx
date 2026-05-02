@@ -16,6 +16,7 @@ export default async function CustomersPage() {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
 
+  const PAGE_LIMIT = 200;
   const rows = await db
     .select({
       id: customers.id,
@@ -30,7 +31,14 @@ export default async function CustomersPage() {
     .where(and(eq(customers.company_id, session.user.company_id), isNull(customers.deleted_at)))
     .groupBy(customers.id, customers.name, customers.contact_email, customers.contact_phone)
     .orderBy(desc(sql`COUNT(${deals.id})`))
-    .limit(200);
+    .limit(PAGE_LIMIT);
+
+  const totalCustomersCount = await db
+    .select({ count: sql<number>`count(*)::int` })
+    .from(customers)
+    .where(and(eq(customers.company_id, session.user.company_id), isNull(customers.deleted_at)))
+    .then((r) => r[0]?.count ?? 0);
+  const isPartialList = totalCustomersCount > PAGE_LIMIT;
 
   const totalRevenue = rows.reduce((s, c) => s + (c.total_amount ?? 0), 0);
   const totalDeals = rows.reduce((s, c) => s + (c.deal_count ?? 0), 0);
@@ -65,6 +73,15 @@ export default async function CustomersPage() {
       />
 
       <div className="px-6 py-10 max-w-5xl mx-auto space-y-10">
+        {isPartialList && (
+          <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
+            <p className="text-sm text-amber-900">
+              <span className="font-semibold">表示件数の上限に達しています。</span>
+              {' '}全 <span className="font-mono tabular-nums">{totalCustomersCount}</span> 件中、案件数の多い順に最新 <span className="font-mono tabular-nums">{PAGE_LIMIT}</span> 件のみ表示中（ページネーション機能は今後実装予定）。
+            </p>
+          </div>
+        )}
+
         {rows.length === 0 ? (
           <EmptyState
             icon="◯"
