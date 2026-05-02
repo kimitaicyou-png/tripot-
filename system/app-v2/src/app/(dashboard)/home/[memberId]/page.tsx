@@ -4,7 +4,6 @@ import { db } from '@/lib/db';
 import { members, deals, tasks, actions, budgets } from '@/db/schema';
 import { eq, and, sql, isNull, gte } from 'drizzle-orm';
 import { LogActionButton } from '@/components/log-action-button';
-import { ChatWidget } from '@/components/chat-widget';
 import { MorningBrief } from './_components/morning-brief';
 import { CommitmentsSection } from './_components/commitments-section';
 import { RevenueAchievementCard } from './_components/revenue-achievement-card';
@@ -269,7 +268,6 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
       </div>
 
       <LogActionButton />
-      <ChatWidget />
     </main>
   );
 }
