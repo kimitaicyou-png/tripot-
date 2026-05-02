@@ -36,7 +36,12 @@ export async function upsertBudget(_prev: BudgetFormState, formData: FormData): 
   if (!parsed.success) return { errors: { _form: ['入力値が不正です'] } };
 
   const existing = await db
-    .select({ id: budgets.id })
+    .select({
+      id: budgets.id,
+      target_revenue: budgets.target_revenue,
+      target_gross_profit: budgets.target_gross_profit,
+      target_operating_profit: budgets.target_operating_profit,
+    })
     .from(budgets)
     .where(
       and(
@@ -71,7 +76,22 @@ export async function upsertBudget(_prev: BudgetFormState, formData: FormData): 
     action: existing ? 'budget.update' : 'budget.create',
     resource_type: 'budget',
     resource_id: existing?.id ?? null,
-    metadata: { year: parsed.data.year, month: parsed.data.month, target_revenue: parsed.data.target_revenue },
+    metadata: {
+      year: parsed.data.year,
+      month: parsed.data.month,
+      before: existing
+        ? {
+            target_revenue: existing.target_revenue,
+            target_gross_profit: existing.target_gross_profit,
+            target_operating_profit: existing.target_operating_profit,
+          }
+        : null,
+      after: {
+        target_revenue: parsed.data.target_revenue,
+        target_gross_profit: parsed.data.target_gross_profit,
+        target_operating_profit: parsed.data.target_operating_profit,
+      },
+    },
   });
 
   revalidatePath('/budget');

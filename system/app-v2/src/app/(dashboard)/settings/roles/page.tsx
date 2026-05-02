@@ -24,6 +24,7 @@ const ROLE_LABELS: Record<Role, string> = {
 export default async function SettingsRolesPage() {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
+  if (session.user.role === 'member') redirect('/');
 
   const rows = await listRolePermissions();
   const resources = getResourceList();

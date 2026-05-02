@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { db } from '@/lib/db';
+import { db, setTenantContext } from '@/lib/db';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
 import { buildKpiForCompany } from '@/lib/bridge/translator';
 
@@ -20,6 +20,8 @@ export async function GET(request: Request) {
   if (!company) {
     return NextResponse.json({ error: 'Company not registered in DB' }, { status: 500 });
   }
+
+  await setTenantContext(company.id);
 
   const kpi = await buildKpiForCompany({
     companySlug: TRIPOT_CONFIG.id,

@@ -1,9 +1,5 @@
 import type { ReactNode } from 'react';
 
-// 正典：秋美+隊長「Tripot Design System v1.0」§2 タイポグラフィ
-// KPI数値(大): text-[28px] font-semibold text-gray-900 tabular-nums
-// KPI数値(中): text-xl font-semibold text-gray-900 tabular-nums
-
 type Tone = 'default' | 'up' | 'down' | 'accent';
 
 export function StatCard({

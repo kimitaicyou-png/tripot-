@@ -12,6 +12,7 @@ const decisionSchema = z.enum(['approved', 'rejected']);
 export async function decideApproval(approvalId: string, decision: 'approved' | 'rejected'): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  if (session.user.role === 'member') throw new Error('承認権限がありません（president または hq_member のみ）');
   await setTenantContext(session.user.company_id);
 
   const parsed = decisionSchema.safeParse(decision);

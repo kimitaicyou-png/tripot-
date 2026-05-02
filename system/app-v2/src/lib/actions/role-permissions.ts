@@ -60,6 +60,7 @@ export async function seedDefaultRolePermissions(): Promise<{
 }> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  if (session.user.role === 'member') throw new Error('権限がありません（president または hq_member のみ）');
   await setTenantContext(session.user.company_id);
 
   const [existingRow] = await db
@@ -124,6 +125,7 @@ export async function updateRolePermission(
 ): Promise<void> {
   const session = await auth();
   if (!session?.user?.member_id) throw new Error('認証が必要です');
+  if (session.user.role === 'member') throw new Error('権限がありません（president または hq_member のみ）');
   await setTenantContext(session.user.company_id);
 
   const parsed = updateSchema.safeParse({ role, resource, action, allowed });

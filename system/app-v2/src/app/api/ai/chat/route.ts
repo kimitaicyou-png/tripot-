@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { z } from 'zod';
 import Anthropic from '@anthropic-ai/sdk';
 import { auth } from '@/auth';
+import { setTenantContext } from '@/lib/db';
 import { CHAT_TOOLS, executeToolCall } from '@/lib/ai/chat-tools';
 
 const requestSchema = z.object({
@@ -29,6 +30,7 @@ export async function POST(request: Request) {
   if (!session?.user?.member_id) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
+  await setTenantContext(session.user.company_id);
 
   let body: unknown = {};
   try {

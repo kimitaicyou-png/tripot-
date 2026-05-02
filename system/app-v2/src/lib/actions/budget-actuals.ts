@@ -52,7 +52,13 @@ export async function upsertBudgetActual(
   const operating_profit = data.revenue - data.cogs - data.sga;
 
   const existing = await db
-    .select({ id: budget_actuals.id })
+    .select({
+      id: budget_actuals.id,
+      revenue: budget_actuals.revenue,
+      cogs: budget_actuals.cogs,
+      sga: budget_actuals.sga,
+      operating_profit: budget_actuals.operating_profit,
+    })
     .from(budget_actuals)
     .where(
       and(
@@ -76,6 +82,31 @@ export async function upsertBudgetActual(
         updated_at: new Date(),
       })
       .where(eq(budget_actuals.id, existing.id));
+
+    await logAudit({
+      member_id: session.user.member_id,
+      company_id: session.user.company_id,
+      action: 'budget_actual.update',
+      resource_type: 'budget_actual',
+      resource_id: existing.id,
+      metadata: {
+        year,
+        month,
+        before: {
+          revenue: existing.revenue,
+          cogs: existing.cogs,
+          sga: existing.sga,
+          operating_profit: existing.operating_profit,
+        },
+        after: {
+          revenue: data.revenue,
+          cogs: data.cogs,
+          sga: data.sga,
+          operating_profit,
+        },
+        source: data.source ?? null,
+      },
+    });
     return { inserted: false };
   }
 
@@ -88,6 +119,25 @@ export async function upsertBudgetActual(
     sga: data.sga,
     operating_profit,
     source: data.source ?? null,
+  });
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'budget_actual.create',
+    resource_type: 'budget_actual',
+    metadata: {
+      year,
+      month,
+      before: null,
+      after: {
+        revenue: data.revenue,
+        cogs: data.cogs,
+        sga: data.sga,
+        operating_profit,
+      },
+      source: data.source ?? null,
+    },
   });
   return { inserted: true };
 }

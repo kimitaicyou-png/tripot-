@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { eq, and, isNull } from 'drizzle-orm';
 import { z } from 'zod';
 import { auth } from '@/auth';
-import { db, logAudit } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
 import { deals, customers, meetings, proposals } from '@/db/schema';
 import { callJson, AiError } from '@/lib/ai';
 import { sql } from 'drizzle-orm';
@@ -39,6 +39,7 @@ export async function POST(request: Request) {
   if (!session?.user?.member_id) {
     return NextResponse.json({ error: 'unauthorized' }, { status: 401 });
   }
+  await setTenantContext(session.user.company_id);
 
   let body: unknown;
   try {
