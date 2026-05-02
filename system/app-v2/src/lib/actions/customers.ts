@@ -115,3 +115,88 @@ export async function deleteCustomer(customerId: string): Promise<void> {
   revalidatePath('/customers');
   redirect('/customers');
 }
+
+const bulkCustomerRowSchema = z.object({
+  name: z.string().min(1, '顧客名は必須').max(200),
+  contact_email: z
+    .string()
+    .email('メール形式が不正')
+    .optional()
+    .or(z.literal(''))
+    .nullable(),
+  contact_phone: z.string().max(50).optional().nullable(),
+});
+
+export type BulkCustomerRow = z.infer<typeof bulkCustomerRowSchema>;
+
+export type BulkCreateCustomersResult = {
+  inserted: number;
+  skipped: number;
+  errors: Array<{ row: number; message: string }>;
+};
+
+export async function bulkCreateCustomers(
+  rows: BulkCustomerRow[]
+): Promise<BulkCreateCustomersResult> {
+  const session = await auth();
+  if (!session?.user?.member_id) {
+    return { inserted: 0, skipped: 0, errors: [{ row: 0, message: '認証が必要です' }] };
+  }
+  await setTenantContext(session.user.company_id);
+
+  const errors: BulkCreateCustomersResult['errors'] = [];
+  const valid: Array<{
+    company_id: string;
+    name: string;
+    contact_email: string | null;
+    contact_phone: string | null;
+  }> = [];
+
+  rows.forEach((row, idx) => {
+    const parsed = bulkCustomerRowSchema.safeParse(row);
+    if (!parsed.success) {
+      errors.push({
+        row: idx + 1,
+        message: parsed.error.errors
+          .map((e) => `${e.path.join('.') || 'value'}: ${e.message}`)
+          .join('; '),
+      });
+      return;
+    }
+    valid.push({
+      company_id: session.user.company_id,
+      name: parsed.data.name.trim(),
+      contact_email: parsed.data.contact_email ? parsed.data.contact_email.trim() : null,
+      contact_phone: parsed.data.contact_phone ? parsed.data.contact_phone.trim() : null,
+    });
+  });
+
+  if (valid.length === 0) {
+    return { inserted: 0, skipped: rows.length, errors };
+  }
+
+  const inserted = await db
+    .insert(customers)
+    .values(valid)
+    .returning({ id: customers.id });
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'customers.bulk_create',
+    resource_type: 'customer',
+    resource_id: 'bulk',
+    metadata: {
+      inserted: inserted.length,
+      errors_count: errors.length,
+      sample_names: valid.slice(0, 5).map((v) => v.name),
+    },
+  });
+
+  revalidatePath('/customers');
+  return {
+    inserted: inserted.length,
+    skipped: rows.length - inserted.length,
+    errors,
+  };
+}

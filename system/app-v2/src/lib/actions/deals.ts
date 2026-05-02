@@ -13,7 +13,8 @@ import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { auth } from '@/auth';
 import { db, logAudit, setTenantContext } from '@/lib/db';
-import { deals } from '@/db/schema';
+import { deals, customers, members } from '@/db/schema';
+import { isNull, ilike, sql } from 'drizzle-orm';
 
 const dealSchema = z.object({
   title: z.string().min(1, '案件名は必須です').max(200),
@@ -304,4 +305,162 @@ export async function updateDealInternalNote(
 
   revalidatePath(`/deals/${dealId}`);
   return { success: true };
+}
+
+const VALID_STAGES = [
+  'prospect',
+  'proposing',
+  'ordered',
+  'in_production',
+  'delivered',
+  'acceptance',
+  'invoiced',
+  'paid',
+  'lost',
+] as const;
+
+const bulkDealRowSchema = z.object({
+  title: z.string().min(1, '案件名は必須').max(200),
+  customer_name: z.string().max(200).optional().nullable(),
+  assignee_email: z.string().max(200).optional().nullable(),
+  stage: z.enum(VALID_STAGES).default('prospect'),
+  amount: z.coerce.number().int().nonnegative().default(0),
+  expected_close_date: z
+    .string()
+    .regex(/^\d{4}-\d{2}-\d{2}$/, 'YYYY-MM-DD 形式')
+    .optional()
+    .or(z.literal(''))
+    .nullable(),
+});
+
+export type BulkDealRow = z.infer<typeof bulkDealRowSchema>;
+
+export type BulkCreateDealsResult = {
+  inserted: number;
+  skipped: number;
+  errors: Array<{ row: number; message: string }>;
+};
+
+export async function bulkCreateDeals(
+  rows: BulkDealRow[]
+): Promise<BulkCreateDealsResult> {
+  const session = await auth();
+  if (!session?.user?.member_id) {
+    return { inserted: 0, skipped: 0, errors: [{ row: 0, message: '認証が必要です' }] };
+  }
+  await setTenantContext(session.user.company_id);
+
+  const allCustomers = await db
+    .select({ id: customers.id, name: customers.name })
+    .from(customers)
+    .where(
+      and(
+        eq(customers.company_id, session.user.company_id),
+        isNull(customers.deleted_at)
+      )
+    );
+
+  const customerByName = new Map(
+    allCustomers.map((c) => [c.name.trim().toLowerCase(), c.id])
+  );
+
+  const allMembers = await db
+    .select({ id: members.id, email: members.email })
+    .from(members)
+    .where(
+      and(
+        eq(members.company_id, session.user.company_id),
+        isNull(members.deleted_at)
+      )
+    );
+
+  const memberByEmail = new Map(
+    allMembers.map((m) => [m.email.trim().toLowerCase(), m.id])
+  );
+
+  const errors: BulkCreateDealsResult['errors'] = [];
+  const valid: Array<{
+    company_id: string;
+    title: string;
+    customer_id: string | null;
+    assignee_id: string | null;
+    stage: (typeof VALID_STAGES)[number];
+    amount: number;
+    expected_close_date: string | null;
+  }> = [];
+
+  rows.forEach((row, idx) => {
+    const parsed = bulkDealRowSchema.safeParse(row);
+    if (!parsed.success) {
+      errors.push({
+        row: idx + 1,
+        message: parsed.error.errors
+          .map((e) => `${e.path.join('.') || 'value'}: ${e.message}`)
+          .join('; '),
+      });
+      return;
+    }
+
+    let customerId: string | null = null;
+    if (parsed.data.customer_name) {
+      const lookup = customerByName.get(parsed.data.customer_name.trim().toLowerCase());
+      if (!lookup) {
+        errors.push({
+          row: idx + 1,
+          message: `customer_name "${parsed.data.customer_name}" が顧客マスタに見つかりません（先に顧客を import してください）`,
+        });
+        return;
+      }
+      customerId = lookup;
+    }
+
+    let assigneeId: string | null = null;
+    if (parsed.data.assignee_email) {
+      const lookup = memberByEmail.get(parsed.data.assignee_email.trim().toLowerCase());
+      if (!lookup) {
+        errors.push({
+          row: idx + 1,
+          message: `assignee_email "${parsed.data.assignee_email}" がメンバーに見つかりません`,
+        });
+        return;
+      }
+      assigneeId = lookup;
+    }
+
+    valid.push({
+      company_id: session.user.company_id,
+      title: parsed.data.title.trim(),
+      customer_id: customerId,
+      assignee_id: assigneeId,
+      stage: parsed.data.stage,
+      amount: parsed.data.amount,
+      expected_close_date: parsed.data.expected_close_date || null,
+    });
+  });
+
+  if (valid.length === 0) {
+    return { inserted: 0, skipped: rows.length, errors };
+  }
+
+  const inserted = await db.insert(deals).values(valid).returning({ id: deals.id });
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deals.bulk_create',
+    resource_type: 'deal',
+    resource_id: 'bulk',
+    metadata: {
+      inserted: inserted.length,
+      errors_count: errors.length,
+      sample_titles: valid.slice(0, 5).map((v) => v.title),
+    },
+  });
+
+  revalidatePath('/deals');
+  return {
+    inserted: inserted.length,
+    skipped: rows.length - inserted.length,
+    errors,
+  };
 }
