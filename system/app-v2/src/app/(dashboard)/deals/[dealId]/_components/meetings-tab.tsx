@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MeetingForm } from './meeting-form';
 import { ProposalFromMeetingButton } from './proposal-from-meeting-button';
 import { SummarizeMeetingButton } from './summarize-meeting-button';
+import { GenerateTasksFromMeetingButton } from './generate-tasks-from-meeting-button';
 
 type Need = { tag: string; priority: 'high' | 'medium' | 'low'; context: string };
 
@@ -84,6 +85,7 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                       <SummarizeMeetingButton meetingId={m.id} hasSummary={Boolean(m.summary)} />
                     )}
                     <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
+                    <GenerateTasksFromMeetingButton meetingId={m.id} />
                   </div>
                 </div>
 

@@ -20,6 +20,7 @@ import { Inbox, Clock, History } from 'lucide-react';
 import { ProductionStatusButton } from '../_components/production-status-button';
 import { ProductionEditForm } from './_components/production-edit-form';
 import { AiWorkOptimizerSection } from './_components/ai-work-optimizer-section';
+import { AiAssignRecommendSection } from './_components/ai-assign-recommend-section';
 import { BugForm } from './_components/bug-form';
 import { BugRow } from './_components/bug-row';
 import { TestCaseForm } from './_components/test-case-form';
@@ -168,6 +169,8 @@ export default async function ProductionCardDetailPage({
         </section>
 
         <AiWorkOptimizerSection cardId={cardId} />
+
+        <AiAssignRecommendSection cardId={cardId} />
 
         <section className="space-y-3">
           <div className="flex items-center justify-between">
