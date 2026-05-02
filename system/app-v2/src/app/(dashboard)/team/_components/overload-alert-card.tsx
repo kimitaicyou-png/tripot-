@@ -76,7 +76,7 @@ export async function OverloadAlertCard({ companyId }: { companyId: string }) {
 
           return (
             <li key={m.id} className="py-3 flex items-center gap-3">
-              <Users className="w-4 h-4 text-gray-400 shrink-0" />
+              <Users className="w-4 h-4 text-gray-500 shrink-0" />
               <div className="flex-1 min-w-0">
                 <Link
                   href={`/team/${m.id}`}

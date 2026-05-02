@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import { signOut } from '@/auth';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 import { getMemberColor, getMemberInitial } from '@/lib/member-color';
@@ -103,8 +104,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
                 return (
                   <Link
                     key={item.href}
-                    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                    href={href as any}
+                    href={href as Route}
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
                   >
                     <Icon className="w-5 h-5 shrink-0" />

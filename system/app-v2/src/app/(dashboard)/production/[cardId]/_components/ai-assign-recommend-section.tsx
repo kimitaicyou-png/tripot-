@@ -218,7 +218,7 @@ export function AiAssignRecommendSection({ cardId }: { cardId: string }) {
 
       <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
         <p className="text-xs text-blue-700">
-          AI 推薦は **判断の参考** です。最終アサインは案件 / メンバー詳細から手動で行います。
+          AI 推薦は判断の参考です。最終アサインは案件 / メンバー詳細から手動で行います。
           score は skill_match × 30 + 稼働 + 速度 + 品質 + 最安 のロジック合計。
         </p>
       </div>

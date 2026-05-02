@@ -165,9 +165,22 @@ export function GenerateTasksFromMeetingButton({ meetingId }: { meetingId: strin
             </div>
           )}
 
-          <p className="text-xs text-gray-500">
-            * これは preview 表示です。実際のタスク追加は手動で「タスク」タブから（今後の拡張で一括追加対応予定）
-          </p>
+          <div className="rounded-lg bg-gray-50 border border-gray-200 px-4 py-3 space-y-2">
+            <p className="text-xs text-gray-700">
+              これは AI が議事録から抽出した <span className="font-semibold">タスク候補</span> のプレビューです。
+            </p>
+            <button
+              type="button"
+              disabled
+              className="w-full px-4 py-2 bg-gray-100 text-gray-500 text-sm font-medium rounded-lg cursor-not-allowed border border-gray-200"
+              title="今後実装予定：このタスクを一括で「タスク」タブに追加できるようになります"
+            >
+              タスクに一括追加（今後実装予定）
+            </button>
+            <p className="text-xs text-gray-500">
+              現在は手動で「タスク」タブから登録してください。
+            </p>
+          </div>
         </div>
       )}
     </div>

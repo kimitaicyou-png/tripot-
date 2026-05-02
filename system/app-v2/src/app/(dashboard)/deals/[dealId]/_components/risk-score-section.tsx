@@ -132,7 +132,7 @@ export function RiskScoreSection({ dealId }: { dealId: string }) {
 
       <div className={`border-l-2 ${LEVEL_BAR[data.level]} pl-4 py-1 flex items-end gap-4`}>
         <div>
-          <p className={`font-serif italic text-6xl tabular-nums tracking-tight ${LEVEL_SCORE_COLOR[data.level]}`}>
+          <p className={`font-semibold text-6xl tabular-nums tracking-tight ${LEVEL_SCORE_COLOR[data.level]}`}>
             {data.score}
           </p>
         </div>
@@ -152,7 +152,7 @@ export function RiskScoreSection({ dealId }: { dealId: string }) {
         <ul className="space-y-1.5">
           {data.reasons.map((r, idx) => (
             <li key={idx} className="text-sm text-gray-700 flex items-start gap-2">
-              <span className="text-gray-400 mt-0.5">·</span>
+              <span className="text-gray-500 mt-0.5">·</span>
               <span>{r}</span>
             </li>
           ))}

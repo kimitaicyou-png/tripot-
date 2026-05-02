@@ -11,7 +11,7 @@ import { parseCsv, findColumn, type CsvRow } from '@/lib/csv-parser';
 import { bulkCreateDeals, type BulkCreateDealsResult } from '@/lib/actions/deals';
 
 const TEMPLATE_CSV = `title,customer_name,assignee_email,stage,amount,expected_close_date
-ECサイト構築 PoC,株式会社サンプル商事,k.toki@coaris.ai,proposing,3000000,2026-06-30
+ECサイト構築 PoC,株式会社サンプル商事,sample@example.com,proposing,3000000,2026-06-30
 業務システム刷新,株式会社テックサンプル,,ordered,8000000,2026-08-31
 `;
 

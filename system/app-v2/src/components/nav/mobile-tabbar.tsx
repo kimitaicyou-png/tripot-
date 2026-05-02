@@ -1,4 +1,5 @@
 import Link from 'next/link';
+import type { Route } from 'next';
 import { Home, Briefcase, CheckSquare, CalendarDays, BarChart3 } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
@@ -22,8 +23,7 @@ export function MobileTabBar({ memberId }: { memberId: string }) {
           return (
             <li key={tab.href}>
               <Link
-                // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                href={href as any}
+                href={href as Route}
                 className="flex flex-col items-center justify-center py-2 px-1 text-xs text-gray-700 hover:text-gray-900 active:scale-[0.98] transition-all"
               >
                 <Icon className="w-5 h-5" />

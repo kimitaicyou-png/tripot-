@@ -92,6 +92,24 @@ async function seed() {
   const tani = allMembers.find((m) => m.email === 'tanifuji@coaris.ai')!;
   const kawa = allMembers.find((m) => m.email === 'kawazoe@coaris.ai')!;
 
+  const memberSkillSeeds: Record<string, { skills: string[]; avg_speed_rate: number; quality_score: number; unit_price_yen: number }> = {
+    'k.toki@coaris.ai': { skills: ['経営戦略', 'マーケティング', '営業', '組織設計'], avg_speed_rate: 110, quality_score: 4.5, unit_price_yen: 8000 },
+    'ono@coaris.ai': { skills: ['DX推進', 'IT統制', 'データ分析', 'プロジェクト管理', 'AI'], avg_speed_rate: 105, quality_score: 4.3, unit_price_yen: 5000 },
+    'tanifuji@coaris.ai': { skills: ['営業', '顧客折衝', '提案', 'クロージング', '関係構築'], avg_speed_rate: 115, quality_score: 4.4, unit_price_yen: 4500 },
+    'kawazoe@coaris.ai': { skills: ['営業', '新規開拓', '商談', 'プレゼン'], avg_speed_rate: 100, quality_score: 4.0, unit_price_yen: 4000 },
+    'kuriyama@coaris.ai': { skills: ['IR', 'TOB戦略', '財務', '法務', '上場準備'], avg_speed_rate: 90, quality_score: 4.8, unit_price_yen: 12000 },
+  };
+
+  for (const [email, seed] of Object.entries(memberSkillSeeds)) {
+    const m = allMembers.find((x) => x.email === email);
+    if (!m) continue;
+    await db
+      .update(schema.members)
+      .set({ metadata: seed })
+      .where(eq(schema.members.id, m.id));
+    console.log(`  ✅ skills seed: ${m.name} (${seed.skills.length}個)`);
+  }
+
   // 3. 顧客 6社
   const customerSeeds = [
     { name: '株式会社 アクシス', contact_email: 'sato@axis-corp.example', contact_phone: '03-1234-5678' },

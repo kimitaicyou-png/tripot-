@@ -10,8 +10,8 @@ import { HeroValue, StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
 
-const COGS_CODES = ['5110', '5210', '5310', '5410', '5510', '5610']; // 売上原価系
-const SGA_CODES = ['6110', '6210', '6310', '6410', '6510', '6610', '6710', '6810']; // 販管費系
+const COGS_CODES = ['5110', '5210', '5310', '5410', '5510', '5610'];
+const SGA_CODES = ['6110', '6210', '6310', '6410', '6510', '6610', '6710', '6810'];
 
 function formatYen(v: number | null): string {
   return `¥${(v ?? 0).toLocaleString('ja-JP')}`;

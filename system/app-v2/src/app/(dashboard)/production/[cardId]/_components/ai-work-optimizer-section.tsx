@@ -177,7 +177,7 @@ export function AiWorkOptimizerSection({ cardId }: { cardId: string }) {
         </div>
         <div className="border border-amber-200 rounded-lg p-4 bg-amber-50">
           <p className="text-xs text-amber-800">予算削減効果</p>
-          <p className="font-serif italic text-3xl text-amber-700 mt-1 tabular-nums tracking-tight">
+          <p className="font-semibold text-3xl text-amber-700 mt-1 tabular-nums tracking-tight">
             {formatYen(data.summary.cost_saving_yen)}
           </p>
           <p className="text-xs text-amber-700 mt-1">
