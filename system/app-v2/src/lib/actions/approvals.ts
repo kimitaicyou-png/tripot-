@@ -3,17 +3,16 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { approvals } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const decisionSchema = z.enum(['approved', 'rejected']);
 
 export async function decideApproval(approvalId: string, decision: 'approved' | 'rejected'): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  if (session.user.role === 'member') throw new Error('承認権限がありません（president または hq_member のみ）');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'approval', action: 'decide' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const parsed = decisionSchema.safeParse(decision);
   if (!parsed.success) throw new Error('decision が不正です');
@@ -66,9 +65,9 @@ export async function requestApproval(
   _prev: ApprovalRequestState,
   formData: FormData,
 ): Promise<ApprovalRequestState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'approval', action: 'request' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = requestSchema.safeParse({
     deal_id: formData.get('deal_id') || null,

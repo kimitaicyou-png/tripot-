@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, desc } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { test_cases, change_logs } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const createSchema = z.object({
   production_card_id: z.string().uuid(),
@@ -23,9 +23,9 @@ export async function createTestCase(
   _prev: TestCaseFormState,
   formData: FormData
 ): Promise<TestCaseFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = createSchema.safeParse({
     production_card_id: cardId,
@@ -64,9 +64,9 @@ export async function recordTestRun(
   passed: boolean,
   result?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   await db
     .update(test_cases)
@@ -91,9 +91,9 @@ export async function recordTestRun(
 }
 
 export async function listTestCasesForCard(cardId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select()
@@ -108,9 +108,9 @@ export async function listTestCasesForCard(cardId: string) {
 }
 
 export async function listChangeLogsForCard(cardId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select()

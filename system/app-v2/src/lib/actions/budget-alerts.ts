@@ -2,9 +2,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { eq, and, sql, isNull, gte } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { budgets, budget_actuals, deals, notifications } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 export type BudgetAlertResult = {
   generated: number;
@@ -17,9 +17,9 @@ const THRESHOLD_LOW = 0.8;
 const THRESHOLD_MID = 0.95;
 
 export async function evaluateBudgetAlerts(): Promise<BudgetAlertResult> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { generated: 0, skipped: 0, errors: ['認証が必要です'] };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'budget', action: 'read' });
+  if (!guard.ok) return { generated: 0, skipped: 0, errors: [guard.error] };
+  const { session } = guard;
 
   const companyId = session.user.company_id;
   const today = new Date();

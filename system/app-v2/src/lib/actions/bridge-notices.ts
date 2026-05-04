@@ -2,14 +2,14 @@
 
 import { revalidatePath } from 'next/cache';
 import { eq, and, desc, isNull, sql } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { bridge_notices, members } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 export async function listBridgeNotices() {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({
@@ -29,9 +29,9 @@ export async function listBridgeNotices() {
 }
 
 export async function unackBridgeNoticesCount(): Promise<number> {
-  const session = await auth();
-  if (!session?.user?.member_id) return 0;
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  if (!guard.ok) return 0;
+  const { session } = guard;
 
   const [row] = await db
     .select({ n: sql<number>`COUNT(*)::int` })
@@ -47,9 +47,9 @@ export async function unackBridgeNoticesCount(): Promise<number> {
 }
 
 export async function acknowledgeBridgeNotice(noticeId: string): Promise<{ success: boolean; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   const [updated] = await db
     .update(bridge_notices)

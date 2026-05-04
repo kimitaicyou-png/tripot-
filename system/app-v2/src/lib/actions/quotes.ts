@@ -2,15 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import { eq, and, sql, isNull } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { quotes } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 
 export async function listActiveQuotes() {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
   return db
     .select()
     .from(quotes)
@@ -26,9 +26,9 @@ export async function pickQuoteForMember(memberId: string): Promise<{
   body: string;
   author: string | null;
 } | null> {
-  const session = await auth();
-  if (!session?.user?.member_id) return null;
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  if (!guard.ok) return null;
+  const { session } = guard;
 
   const rows = await db
     .select({
@@ -64,9 +64,9 @@ export async function pickQuoteForMember(memberId: string): Promise<{
 }
 
 export async function seedDefaultQuotes(): Promise<{ inserted: number; skipped: number }> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const [existingRow] = await db
     .select({ n: sql<number>`count(*)::int` })
@@ -103,9 +103,9 @@ export async function seedDefaultQuotes(): Promise<{ inserted: number; skipped: 
 }
 
 export async function addQuote(formData: FormData): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const body = (formData.get('body') ?? '').toString().trim();
   if (!body) throw new Error('名言が入力されていません');

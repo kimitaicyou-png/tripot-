@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { lost_deals, deals } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const reasonSchema = z.object({
   deal_id: z.string().uuid(),
@@ -20,9 +20,10 @@ export type LostDealFormState = {
 };
 
 export async function getLostDealForDeal(dealId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return null;
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'read_self' });
+  if (!guard.ok) return null;
+  const { session } = guard;
+
   return db
     .select()
     .from(lost_deals)
@@ -40,9 +41,9 @@ export async function recordLostDeal(
   _prev: LostDealFormState,
   formData: FormData
 ): Promise<LostDealFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = reasonSchema.safeParse({
     deal_id: formData.get('deal_id'),

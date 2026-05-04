@@ -1,12 +1,11 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
-import { eq, and } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
-import { companies, notifications } from '@/db/schema';
+import { db, logAudit } from '@/lib/db';
+import { notifications } from '@/db/schema';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 import { buildKpiForCompany } from '@/lib/bridge/translator';
+import { requirePermission } from '@/lib/rbac';
 
 export type SendReportResult = {
   success: boolean;
@@ -16,11 +15,9 @@ export type SendReportResult = {
 };
 
 export async function sendMonthlyReportToHq(yearMonth: string): Promise<SendReportResult> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    return { success: false, message: '認証が必要です' };
-  }
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'monthly_report', action: 'send_to_hq' });
+  if (!guard.ok) return { success: false, message: guard.error };
+  const { session } = guard;
 
   const companyId = session.user.company_id;
 

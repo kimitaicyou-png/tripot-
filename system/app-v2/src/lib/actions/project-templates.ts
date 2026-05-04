@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { project_templates } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 
 const templateSchema = z.object({
@@ -20,9 +20,9 @@ export type ProjectTemplateFormState = {
 };
 
 export async function listProjectTemplates() {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
   return db
     .select()
     .from(project_templates)
@@ -39,9 +39,9 @@ export async function createProjectTemplate(
   _prev: ProjectTemplateFormState,
   formData: FormData
 ): Promise<ProjectTemplateFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = templateSchema.safeParse({
     name: formData.get('name'),
@@ -77,9 +77,9 @@ export async function updateProjectTemplate(
   _prev: ProjectTemplateFormState,
   formData: FormData
 ): Promise<ProjectTemplateFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = templateSchema.safeParse({
     name: formData.get('name'),
@@ -115,9 +115,9 @@ export async function updateProjectTemplate(
 }
 
 export async function deleteProjectTemplate(templateId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(project_templates)
@@ -141,9 +141,9 @@ export async function deleteProjectTemplate(templateId: string): Promise<void> {
 }
 
 export async function seedDefaultTemplates(): Promise<{ inserted: number; skipped: number }> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const seeds = TRIPOT_CONFIG.projectTemplates ?? [];
   if (seeds.length === 0) return { inserted: 0, skipped: 0 };

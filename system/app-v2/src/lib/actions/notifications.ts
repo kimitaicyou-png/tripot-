@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, sql, desc, or } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { notifications } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const createSchema = z.object({
   member_id: z.string().uuid().optional().nullable(),
@@ -22,9 +22,10 @@ export type NotificationFormState = {
 };
 
 export async function listNotificationsForMember(memberId: string, limit = 30) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
+
   return db
     .select()
     .from(notifications)
@@ -39,9 +40,10 @@ export async function listNotificationsForMember(memberId: string, limit = 30) {
 }
 
 export async function unreadCountForMember(memberId: string): Promise<number> {
-  const session = await auth();
-  if (!session?.user?.member_id) return 0;
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  if (!guard.ok) return 0;
+  const { session } = guard;
+
   const [row] = await db
     .select({ n: sql<number>`count(*)::int` })
     .from(notifications)
@@ -56,9 +58,9 @@ export async function unreadCountForMember(memberId: string): Promise<number> {
 }
 
 export async function markAsRead(notificationId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(notifications)
@@ -74,9 +76,9 @@ export async function markAsRead(notificationId: string): Promise<void> {
 }
 
 export async function markAllAsRead(): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(notifications)
@@ -106,9 +108,9 @@ export async function createNotification(
   _prev: NotificationFormState,
   formData: FormData
 ): Promise<NotificationFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = createSchema.safeParse({
     member_id: formData.get('member_id') || null,

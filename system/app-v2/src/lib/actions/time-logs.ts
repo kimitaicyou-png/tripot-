@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, sql, desc } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { time_logs, members } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const createSchema = z.object({
   production_card_id: z.string().uuid(),
@@ -24,9 +24,9 @@ export async function createTimeLog(
   _prev: TimeLogFormState,
   formData: FormData,
 ): Promise<TimeLogFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = createSchema.safeParse({
     production_card_id: cardId,
@@ -69,9 +69,9 @@ export async function createTimeLog(
 }
 
 export async function deleteTimeLog(timeLogId: string, cardId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const [deleted] = await db
     .delete(time_logs)
@@ -97,9 +97,9 @@ export async function deleteTimeLog(timeLogId: string, cardId: string): Promise<
 }
 
 export async function listTimeLogsForCard(cardId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({
@@ -122,9 +122,9 @@ export async function listTimeLogsForCard(cardId: string) {
 }
 
 export async function timeLogTotalsForCard(cardId: string): Promise<{ totalMinutes: number; logCount: number }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { totalMinutes: 0, logCount: 0 };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return { totalMinutes: 0, logCount: 0 };
+  const { session } = guard;
 
   const [row] = await db
     .select({

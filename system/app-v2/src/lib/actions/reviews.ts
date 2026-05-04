@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, desc } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { reviews, deliverables, members } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const REVIEW_STATUSES = ['pending', 'approved', 'rejected', 'revision'] as const;
 type ReviewStatus = (typeof REVIEW_STATUSES)[number];
@@ -27,9 +27,9 @@ export async function createReview(
   _prev: ReviewFormState,
   formData: FormData
 ): Promise<ReviewFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const deliverableIdRaw = formData.get('deliverable_id');
   const parsed = createSchema.safeParse({
@@ -74,9 +74,9 @@ export async function updateReviewStatus(
   cardId: string,
   status: ReviewStatus
 ): Promise<{ success: boolean; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   if (!REVIEW_STATUSES.includes(status)) return { success: false, error: '不正なステータス' };
 
@@ -102,9 +102,9 @@ export async function updateReviewStatus(
 }
 
 export async function listReviewsForCard(cardId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({

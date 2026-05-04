@@ -1,9 +1,9 @@
 'use server';
 
 import { eq, and, isNull, sql, or } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, setTenantContext } from '@/lib/db';
+import { db } from '@/lib/db';
 import { deals, customers, tasks, meetings, members } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 export type SearchHit = {
   kind: 'deal' | 'customer' | 'task' | 'meeting' | 'member';
@@ -20,9 +20,9 @@ function ilikeWrap(q: string): string {
 }
 
 export async function globalSearch(query: string): Promise<SearchHit[]> {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'read_self' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   const trimmed = query.trim();
   if (trimmed.length < 1) return [];

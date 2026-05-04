@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, desc } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { commitments } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const commitmentSchema = z.object({
   text: z.string().min(1, 'コミット内容は必須です').max(500),
@@ -20,9 +20,10 @@ export type CommitmentFormState = {
 };
 
 export async function listCommitmentsForMember(memberId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'commitment', action: 'read_self' });
+  if (!guard.ok) return [];
+  const { session } = guard;
+
   return db
     .select()
     .from(commitments)
@@ -40,9 +41,9 @@ export async function createCommitment(
   _prev: CommitmentFormState,
   formData: FormData
 ): Promise<CommitmentFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'commitment', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = commitmentSchema.safeParse({
     text: formData.get('text'),
@@ -78,9 +79,9 @@ export async function createCommitment(
 }
 
 export async function completeCommitment(commitmentId: string, memberId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'commitment', action: 'complete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(commitments)
@@ -107,9 +108,9 @@ export async function completeCommitment(commitmentId: string, memberId: string)
 }
 
 export async function deleteCommitment(commitmentId: string, memberId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'commitment', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .delete(commitments)

@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { production_cards, deals, bugs } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const STATUSES = ['requirements', 'designing', 'building', 'reviewing', 'delivered', 'cancelled'] as const;
 type ProductionStatus = (typeof STATUSES)[number];
@@ -26,9 +26,9 @@ export async function createProductionCard(
   _prev: ProductionFormState,
   formData: FormData
 ): Promise<ProductionFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = createSchema.safeParse({
     title: formData.get('title'),
@@ -67,9 +67,9 @@ export async function updateProductionCardStatus(
   cardId: string,
   status: ProductionStatus
 ): Promise<{ success: boolean; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   if (!STATUSES.includes(status)) return { success: false, error: '不正なステータス' };
 
@@ -111,9 +111,9 @@ export async function updateProductionCard(
   _prev: ProductionFormState,
   formData: FormData
 ): Promise<ProductionFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = updateSchema.safeParse({
     title: formData.get('title'),
@@ -151,9 +151,9 @@ export async function updateProductionCard(
 }
 
 export async function deleteProductionCard(cardId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(production_cards)
@@ -172,9 +172,9 @@ export async function deleteProductionCard(cardId: string): Promise<void> {
 }
 
 export async function listProductionCards() {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({
@@ -200,9 +200,9 @@ export async function listProductionCards() {
 }
 
 export async function bugCounts() {
-  const session = await auth();
-  if (!session?.user?.member_id) return { open: 0, inProgress: 0, critical: 0 };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return { open: 0, inProgress: 0, critical: 0 };
+  const { session } = guard;
 
   const [row] = await db
     .select({

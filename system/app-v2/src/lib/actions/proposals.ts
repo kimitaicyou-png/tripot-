@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, desc, sql } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { proposals } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const proposalSchema = z.object({
   deal_id: z.string().uuid(),
@@ -32,9 +32,9 @@ export async function createProposal(
   _prev: ProposalFormState,
   formData: FormData
 ): Promise<ProposalFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'proposal', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const slidesRaw = formData.get('slides');
   let slides: unknown[] = [];
@@ -89,9 +89,9 @@ export async function updateProposal(
   _prev: ProposalFormState,
   formData: FormData
 ): Promise<ProposalFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'proposal', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const slidesRaw = formData.get('slides');
   let slides: unknown[] | undefined;
@@ -128,9 +128,9 @@ export async function updateProposal(
 }
 
 export async function deleteProposal(proposalId: string, dealId?: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'proposal', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(proposals)
@@ -155,9 +155,9 @@ export async function updateProposalStatus(
   status: ProposalStatus,
   dealId?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'proposal', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   const allowed: ProposalStatus[] = ['draft', 'shared', 'won', 'lost', 'archived'];
   if (!allowed.includes(status)) return { success: false, error: '不正なステータス' };
@@ -194,9 +194,9 @@ export async function updateProposalSlides(
   dealId: string,
   rawJson: string
 ): Promise<SlidesUpdateResult> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'proposal', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   let parsed: unknown;
   try {
@@ -250,9 +250,9 @@ export async function updateProposalSlides(
 }
 
 export async function listProposalsForDeal(dealId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'proposal', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
   return db
     .select()
     .from(proposals)

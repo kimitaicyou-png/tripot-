@@ -1,9 +1,9 @@
 'use server';
 
 import { eq, and, gte, lte, sql, desc } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, setTenantContext } from '@/lib/db';
+import { db } from '@/lib/db';
 import { audit_logs, members } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 export type AuditFilter = {
   member_id?: string;
@@ -15,9 +15,9 @@ export type AuditFilter = {
 };
 
 export async function listAuditLogs(filter: AuditFilter = {}) {
-  const session = await auth();
-  if (!session?.user?.member_id) return { rows: [], total: 0 };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'audit_log', action: 'read' });
+  if (!guard.ok) return { rows: [], total: 0 };
+  const { session } = guard;
 
   const conditions = [eq(audit_logs.company_id, session.user.company_id)];
 
@@ -68,9 +68,10 @@ export async function listAuditLogs(filter: AuditFilter = {}) {
 }
 
 export async function listAuditableMembers() {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'audit_log', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
+
   return db
     .select({ id: members.id, name: members.name })
     .from(members)

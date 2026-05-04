@@ -4,9 +4,9 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { customers } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const customerSchema = z.object({
   name: z.string().min(1, '顧客名は必須です').max(200),
@@ -20,9 +20,9 @@ export type CustomerFormState = {
 };
 
 export async function createCustomer(_prev: CustomerFormState, formData: FormData): Promise<CustomerFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'customer', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = customerSchema.safeParse({
     name: formData.get('name'),
@@ -59,9 +59,9 @@ export async function updateCustomer(
   _prev: CustomerFormState,
   formData: FormData,
 ): Promise<CustomerFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'customer', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = customerSchema.safeParse({
     name: formData.get('name'),
@@ -95,9 +95,9 @@ export async function updateCustomer(
 }
 
 export async function deleteCustomer(customerId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'customer', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(customers)
@@ -138,11 +138,11 @@ export type BulkCreateCustomersResult = {
 export async function bulkCreateCustomers(
   rows: BulkCustomerRow[]
 ): Promise<BulkCreateCustomersResult> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    return { inserted: 0, skipped: 0, errors: [{ row: 0, message: '認証が必要です' }] };
+  const guard = await requirePermission({ resource: 'customer', action: 'create' });
+  if (!guard.ok) {
+    return { inserted: 0, skipped: 0, errors: [{ row: 0, message: guard.error }] };
   }
-  await setTenantContext(session.user.company_id);
+  const { session } = guard;
 
   const errors: BulkCreateCustomersResult['errors'] = [];
   const valid: Array<{

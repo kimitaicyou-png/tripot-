@@ -7,9 +7,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { tasks } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'タスク名は必須です').max(200),
@@ -25,9 +25,9 @@ export type TaskFormState = {
 };
 
 export async function createTask(_prev: TaskFormState, formData: FormData): Promise<TaskFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'task', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = taskSchema.safeParse({
     title: formData.get('title'),
@@ -63,9 +63,9 @@ export async function createTask(_prev: TaskFormState, formData: FormData): Prom
 }
 
 export async function toggleTaskStatus(taskId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'task', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const task = await db
     .select({ status: tasks.status, deal_id: tasks.deal_id })
@@ -107,9 +107,9 @@ export async function updateTask(
   _prev: TaskFormState,
   formData: FormData,
 ): Promise<TaskFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'task', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = taskUpdateSchema.safeParse({
     title: formData.get('title') ?? undefined,
@@ -149,9 +149,9 @@ export async function updateTask(
 }
 
 export async function deleteTask(taskId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'task', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(tasks)

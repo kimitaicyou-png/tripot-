@@ -2,10 +2,10 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { eq, and, gte, lte } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { eq, and } from 'drizzle-orm';
+import { db, logAudit } from '@/lib/db';
 import { budget_actuals } from '@/db/schema';
+import { requirePermission, type ActiveSession } from '@/lib/rbac';
 
 const actualSchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
@@ -25,9 +25,10 @@ export type BudgetActualFormState = {
 };
 
 export async function listBudgetActualsForYear(year: number) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'budget', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
+
   return db
     .select()
     .from(budget_actuals)
@@ -40,15 +41,12 @@ export async function listBudgetActualsForYear(year: number) {
     .orderBy(budget_actuals.month);
 }
 
-export async function upsertBudgetActual(
+async function _upsertBudgetActualWithSession(
+  session: ActiveSession,
   year: number,
   month: number,
   data: { revenue: number; cogs: number; sga: number; source?: string }
 ): Promise<{ inserted: boolean }> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
-
   const operating_profit = data.revenue - data.cogs - data.sga;
 
   const existing = await db
@@ -142,6 +140,16 @@ export async function upsertBudgetActual(
   return { inserted: true };
 }
 
+export async function upsertBudgetActual(
+  year: number,
+  month: number,
+  data: { revenue: number; cogs: number; sga: number; source?: string }
+): Promise<{ inserted: boolean }> {
+  const guard = await requirePermission({ resource: 'budget', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  return _upsertBudgetActualWithSession(guard.session, year, month, data);
+}
+
 const csvLineSchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
   month: z.coerce.number().int().min(1).max(12),
@@ -203,9 +211,9 @@ export async function importBudgetActualsFromCsv(
   _prev: BudgetActualFormState,
   formData: FormData
 ): Promise<BudgetActualFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'budget', action: 'import_actuals' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const csv = (formData.get('csv') ?? '').toString();
   if (!csv.trim()) {
@@ -222,7 +230,7 @@ export async function importBudgetActualsFromCsv(
   const years = new Set<number>();
 
   for (const row of rows) {
-    const result = await upsertBudgetActual(row.year, row.month, {
+    const result = await _upsertBudgetActualWithSession(session, row.year, row.month, {
       revenue: row.revenue,
       cogs: row.cogs,
       sga: row.sga,

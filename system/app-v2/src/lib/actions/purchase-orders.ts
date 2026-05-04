@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, desc, isNull } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { purchase_orders, vendors } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const createSchema = z.object({
   production_card_id: z.string().uuid(),
@@ -25,9 +25,9 @@ export async function createPurchaseOrder(
   _prev: PurchaseOrderFormState,
   formData: FormData
 ): Promise<PurchaseOrderFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const issuedOnRaw = formData.get('issued_on');
   const parsed = createSchema.safeParse({
@@ -69,9 +69,9 @@ export async function markPurchaseOrderDelivered(
   poId: string,
   cardId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   await db
     .update(purchase_orders)
@@ -95,9 +95,9 @@ export async function markPurchaseOrderPaid(
   poId: string,
   cardId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   await db
     .update(purchase_orders)
@@ -118,9 +118,9 @@ export async function markPurchaseOrderPaid(
 }
 
 export async function listPurchaseOrdersForCard(cardId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({
@@ -146,9 +146,9 @@ export async function listPurchaseOrdersForCard(cardId: string) {
 }
 
 export async function listVendorsForSelect() {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({ id: vendors.id, name: vendors.name })

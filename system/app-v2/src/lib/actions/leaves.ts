@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, gte, lte } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { leaves, members } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const leaveSchema = z.object({
   member_id: z.string().uuid(),
@@ -21,9 +21,9 @@ export type LeaveFormState = {
 };
 
 export async function listLeaves(rangeStart: string, rangeEnd: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({
@@ -51,9 +51,9 @@ export async function createLeave(
   _prev: LeaveFormState,
   formData: FormData
 ): Promise<LeaveFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = leaveSchema.safeParse({
     member_id: formData.get('member_id'),
@@ -91,9 +91,9 @@ export async function createLeave(
 }
 
 export async function deleteLeave(leaveId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .delete(leaves)

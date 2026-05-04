@@ -3,14 +3,14 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, sql } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { role_permissions } from '@/db/schema';
 import {
   ACTIONS_BY_RESOURCE,
   ROLES,
   type Role,
 } from '@/lib/role-permissions-meta';
+import { requirePermission } from '@/lib/rbac';
 
 const DEFAULT_MATRIX: Record<Role, Record<string, string[]>> = {
   president: Object.fromEntries(
@@ -45,9 +45,10 @@ export type PermissionFormState = {
 };
 
 export async function listRolePermissions() {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
+
   return db
     .select()
     .from(role_permissions)
@@ -58,10 +59,9 @@ export async function seedDefaultRolePermissions(): Promise<{
   inserted: number;
   skipped: number;
 }> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  if (session.user.role === 'member') throw new Error('権限がありません（president または hq_member のみ）');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const [existingRow] = await db
     .select({ n: sql<number>`count(*)::int` })
@@ -123,10 +123,9 @@ export async function updateRolePermission(
   action: string,
   allowed: 0 | 1
 ): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  if (session.user.role === 'member') throw new Error('権限がありません（president または hq_member のみ）');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const parsed = updateSchema.safeParse({ role, resource, action, allowed });
   if (!parsed.success) throw new Error('入力エラー');

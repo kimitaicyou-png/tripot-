@@ -9,9 +9,9 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { actions } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const actionSchema = z.object({
   type: z.enum(['call', 'meeting', 'proposal', 'email', 'visit', 'other']),
@@ -25,9 +25,9 @@ export type ActionFormState = {
 };
 
 export async function logActionEntry(_prev: ActionFormState, formData: FormData): Promise<ActionFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = actionSchema.safeParse({
     type: formData.get('type'),
@@ -83,9 +83,9 @@ export type BulkActionFormState = {
 export async function bulkLogActions(
   payload: { entries: Array<{ member_id: string; type: string; count: number }>; occurred_on?: string }
 ): Promise<BulkActionFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = bulkActionSchema.safeParse(payload);
   if (!parsed.success) {

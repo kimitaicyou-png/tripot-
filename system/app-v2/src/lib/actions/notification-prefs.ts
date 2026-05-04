@@ -2,14 +2,15 @@
 
 import { revalidatePath } from 'next/cache';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { notification_prefs } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 export async function listMyPreferences(memberId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
+
   return db
     .select()
     .from(notification_prefs)
@@ -27,9 +28,9 @@ export async function upsertPreference(
   channels: string[],
   isMuted: boolean
 ): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'member', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   if (memberId !== session.user.member_id && session.user.role === 'member') {
     throw new Error('他人の通知設定は変更できません');

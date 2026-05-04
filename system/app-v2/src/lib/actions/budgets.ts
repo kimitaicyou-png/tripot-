@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { budgets } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const budgetSchema = z.object({
   year: z.coerce.number().int().min(2000).max(2100),
@@ -21,9 +21,9 @@ export type BudgetFormState = {
 };
 
 export async function upsertBudget(_prev: BudgetFormState, formData: FormData): Promise<BudgetFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'budget', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = budgetSchema.safeParse({
     year: formData.get('year'),

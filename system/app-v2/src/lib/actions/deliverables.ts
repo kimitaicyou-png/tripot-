@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, desc } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { deliverables } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const createSchema = z.object({
   production_card_id: z.string().uuid(),
@@ -25,9 +25,9 @@ export async function createDeliverable(
   _prev: DeliverableFormState,
   formData: FormData
 ): Promise<DeliverableFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const fileUrlRaw = formData.get('file_url');
   const parsed = createSchema.safeParse({
@@ -67,9 +67,9 @@ export async function createDeliverable(
 }
 
 export async function listDeliverablesForCard(cardId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({

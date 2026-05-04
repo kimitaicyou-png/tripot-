@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, desc, sql } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { estimates } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -43,9 +43,9 @@ export async function createEstimate(
   _prev: EstimateFormState,
   formData: FormData
 ): Promise<EstimateFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'estimate', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const lineItemsRaw = formData.get('line_items');
   let lineItems: unknown = [];
@@ -103,9 +103,9 @@ export async function createEstimate(
 }
 
 export async function listEstimatesForDeal(dealId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'estimate', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
   return db
     .select()
     .from(estimates)
@@ -128,9 +128,9 @@ export async function updateEstimateStatus(
   dealId: string,
   status: 'draft' | 'sent' | 'accepted' | 'declined'
 ): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'estimate', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const parsed = statusUpdateSchema.safeParse({ status });
   if (!parsed.success) throw new Error('不正なステータスです');
@@ -165,9 +165,9 @@ export async function updateEstimateStatus(
 }
 
 export async function deleteEstimate(estimateId: string, dealId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'estimate', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(estimates)

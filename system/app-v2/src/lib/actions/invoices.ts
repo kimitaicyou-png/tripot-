@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, desc, sql } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { invoices, estimates } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const invoiceSchema = z.object({
   deal_id: z.string().uuid(),
@@ -29,9 +29,9 @@ export async function createInvoice(
   _prev: InvoiceFormState,
   formData: FormData
 ): Promise<InvoiceFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'invoice', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = invoiceSchema.safeParse({
     deal_id: formData.get('deal_id'),
@@ -77,9 +77,9 @@ export async function createInvoice(
 }
 
 export async function markInvoicePaid(invoiceId: string, dealId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'invoice', action: 'mark_paid' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(invoices)
@@ -101,9 +101,9 @@ export async function createInvoiceFromEstimate(
   estimateId: string,
   dealId: string
 ): Promise<{ invoiceId: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'invoice', action: 'create' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const estimate = await db
     .select({
@@ -181,9 +181,9 @@ export async function updateInvoiceStatus(
   dealId: string,
   status: 'draft' | 'issued' | 'sent' | 'paid' | 'overdue' | 'voided'
 ): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'invoice', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   const updateData: Record<string, unknown> = {
     status,
@@ -212,9 +212,9 @@ export async function updateInvoiceStatus(
 }
 
 export async function deleteInvoice(invoiceId: string, dealId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'invoice', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(invoices)
@@ -235,9 +235,9 @@ export async function deleteInvoice(invoiceId: string, dealId: string): Promise<
 }
 
 export async function listInvoicesForDeal(dealId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'invoice', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
   return db
     .select()
     .from(invoices)

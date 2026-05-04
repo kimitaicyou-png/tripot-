@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, desc } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { bugs, members } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const SEVERITIES = ['low', 'medium', 'high', 'critical'] as const;
 const STATUSES = ['open', 'in_progress', 'resolved', 'closed'] as const;
@@ -28,9 +28,9 @@ export async function createBug(
   _prev: BugFormState,
   formData: FormData
 ): Promise<BugFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = createSchema.safeParse({
     production_card_id: cardId,
@@ -72,9 +72,9 @@ export async function updateBugStatus(
   cardId: string,
   status: BugStatus
 ): Promise<{ success: boolean; error?: string }> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { success: false, error: '認証が必要です' };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  if (!guard.ok) return { success: false, error: guard.error };
+  const { session } = guard;
 
   if (!STATUSES.includes(status)) return { success: false, error: '不正なステータス' };
 
@@ -103,9 +103,9 @@ export async function updateBugStatus(
 }
 
 export async function listBugsForCard(cardId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({

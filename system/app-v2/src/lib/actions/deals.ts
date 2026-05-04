@@ -11,8 +11,7 @@ import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { deals, customers, members } from '@/db/schema';
 import { isNull, ilike, sql } from 'drizzle-orm';
 import { requirePermission } from '@/lib/rbac';
@@ -42,11 +41,11 @@ export type DealFormState = {
 };
 
 export async function createDeal(_prev: DealFormState, formData: FormData): Promise<DealFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    return { errors: { _form: ['認証が必要です'] } };
+  const guard = await requirePermission({ resource: 'deal', action: 'create' });
+  if (!guard.ok) {
+    return { errors: { _form: [guard.error] } };
   }
-  await setTenantContext(session.user.company_id);
+  const { session } = guard;
 
   const parsed = dealSchema.safeParse({
     title: formData.get('title'),
@@ -87,11 +86,11 @@ export async function createDeal(_prev: DealFormState, formData: FormData): Prom
 }
 
 export async function updateDeal(dealId: string, _prev: DealFormState, formData: FormData): Promise<DealFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    return { errors: { _form: ['認証が必要です'] } };
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) {
+    return { errors: { _form: [guard.error] } };
   }
-  await setTenantContext(session.user.company_id);
+  const { session } = guard;
 
   const parsed = dealSchema.partial().safeParse({
     title: formData.get('title') ?? undefined,
@@ -164,9 +163,9 @@ export async function updateDealTargetMeta(
   _prev: TargetMetaState,
   formData: FormData
 ): Promise<TargetMetaState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const targetRevenueRaw = String(formData.get('target_revenue') ?? '').trim();
   const targetGpRaw = String(formData.get('target_gp') ?? '').trim();
@@ -222,9 +221,9 @@ export async function updateDealRunningMeta(
   _prev: RunningMetaState,
   formData: FormData
 ): Promise<RunningMetaState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const nextRenewalDateRaw = String(formData.get('next_renewal_date') ?? '').trim();
   const autoRenew = formData.get('auto_renew') === 'on';
@@ -274,9 +273,9 @@ export async function updateDealInternalNote(
   _prev: InternalNoteState,
   formData: FormData
 ): Promise<InternalNoteState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const note = String(formData.get('internal_note') ?? '').slice(0, 4000);
 
@@ -345,11 +344,11 @@ export type BulkCreateDealsResult = {
 export async function bulkCreateDeals(
   rows: BulkDealRow[]
 ): Promise<BulkCreateDealsResult> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    return { inserted: 0, skipped: 0, errors: [{ row: 0, message: '認証が必要です' }] };
+  const guard = await requirePermission({ resource: 'deal', action: 'create' });
+  if (!guard.ok) {
+    return { inserted: 0, skipped: 0, errors: [{ row: 0, message: guard.error }] };
   }
-  await setTenantContext(session.user.company_id);
+  const { session } = guard;
 
   const allCustomers = await db
     .select({ id: customers.id, name: customers.name })
@@ -483,11 +482,11 @@ export async function updateDealExternalCost(
   _prev: ExternalCostState,
   formData: FormData
 ): Promise<ExternalCostState> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    return { errors: { _form: ['認証が必要です'] } };
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) {
+    return { errors: { _form: [guard.error] } };
   }
-  await setTenantContext(session.user.company_id);
+  const { session } = guard;
 
   const externalCostRaw = String(formData.get('external_cost') ?? '').trim();
   if (!/^\d+$/.test(externalCostRaw)) {

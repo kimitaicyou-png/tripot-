@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull, desc } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { deal_comments, members } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const schema = z.object({
   body: z.string().min(1, '本文は必須').max(2000),
@@ -21,9 +21,9 @@ export async function createDealComment(
   _prev: CommentFormState,
   formData: FormData
 ): Promise<CommentFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = schema.safeParse({
     body: formData.get('body'),
@@ -55,9 +55,9 @@ export async function createDealComment(
 }
 
 export async function deleteDealComment(commentId: string, dealId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(deal_comments)
@@ -82,9 +82,9 @@ export async function deleteDealComment(commentId: string, dealId: string): Prom
 }
 
 export async function listDealComments(dealId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'deal', action: 'read_self' });
+  if (!guard.ok) return [];
+  const { session } = guard;
 
   return db
     .select({

@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { meetings } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const meetingSchema = z.object({
   deal_id: z.string().uuid().optional().nullable(),
@@ -33,11 +33,9 @@ export async function createMeeting(
   _prev: MeetingFormState,
   formData: FormData
 ): Promise<MeetingFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    return { errors: { _form: ['認証が必要です'] } };
-  }
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'meeting', action: 'create' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = meetingSchema.safeParse({
     deal_id: formData.get('deal_id') || null,
@@ -90,11 +88,9 @@ export async function updateMeeting(
   _prev: MeetingFormState,
   formData: FormData
 ): Promise<MeetingFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    return { errors: { _form: ['認証が必要です'] } };
-  }
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'meeting', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const parsed = meetingSchema.partial().safeParse({
     type: formData.get('type') ?? undefined,
@@ -131,9 +127,9 @@ export async function updateMeeting(
 }
 
 export async function deleteMeeting(meetingId: string, dealId?: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'meeting', action: 'delete' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(meetings)
@@ -152,9 +148,9 @@ export async function deleteMeeting(meetingId: string, dealId?: string): Promise
 }
 
 export async function listMeetingsForDeal(dealId: string) {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'meeting', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
   return db
     .select()
     .from(meetings)

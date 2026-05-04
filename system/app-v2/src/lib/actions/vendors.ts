@@ -3,9 +3,9 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { eq, and, isNull } from 'drizzle-orm';
-import { auth } from '@/auth';
-import { db, logAudit, setTenantContext } from '@/lib/db';
+import { db, logAudit } from '@/lib/db';
 import { vendors } from '@/db/schema';
+import { requirePermission } from '@/lib/rbac';
 
 const vendorSchema = z.object({
   name: z.string().min(1, '会社名は必須です').max(200),
@@ -22,9 +22,9 @@ export type VendorFormState = {
 };
 
 export async function listVendors() {
-  const session = await auth();
-  if (!session?.user?.member_id) return [];
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  if (!guard.ok) return [];
+  const { session } = guard;
   return db
     .select()
     .from(vendors)
@@ -41,9 +41,9 @@ export async function createVendor(
   _prev: VendorFormState,
   formData: FormData
 ): Promise<VendorFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const skillsRaw = (formData.get('skills') ?? '').toString().trim();
   const skills = skillsRaw
@@ -90,9 +90,9 @@ export async function updateVendor(
   _prev: VendorFormState,
   formData: FormData
 ): Promise<VendorFormState> {
-  const session = await auth();
-  if (!session?.user?.member_id) return { errors: { _form: ['認証が必要です'] } };
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) return { errors: { _form: [guard.error] } };
+  const { session } = guard;
 
   const skillsRaw = (formData.get('skills') ?? '').toString().trim();
   const skills = skillsRaw
@@ -136,9 +136,9 @@ export async function updateVendor(
 }
 
 export async function deleteVendor(vendorId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) throw new Error('認証が必要です');
-  await setTenantContext(session.user.company_id);
+  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  if (!guard.ok) throw new Error(guard.error);
+  const { session } = guard;
 
   await db
     .update(vendors)
