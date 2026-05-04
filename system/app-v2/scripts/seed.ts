@@ -95,9 +95,9 @@ async function seed() {
 
   if (toki) {
     const dealSeeds = [
-      { title: 'A社向け 新サービス開発', stage: 'ordered' as const, amount: 5_000_000 },
-      { title: 'B社 営業支援システム導入', stage: 'proposing' as const, amount: 3_000_000 },
-      { title: 'C社 データ分析プラットフォーム', stage: 'paid' as const, amount: 8_000_000 },
+      { title: 'アクシス向け 新サービス開発', stage: 'ordered' as const, amount: 5_000_000 },
+      { title: 'ベルウッド工業 営業支援システム導入', stage: 'proposing' as const, amount: 3_000_000 },
+      { title: 'コスモテック データ分析プラットフォーム', stage: 'paid' as const, amount: 8_000_000 },
     ];
 
     for (const d of dealSeeds) {
