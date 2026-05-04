@@ -2,8 +2,8 @@
 
 - **Status**: Proposed (2026-05-04)
 - **Author**: 🌸 美桜（起案）
-- **Reviewer**: 🎩 セバス（監査）/ 🎖️ 夏美（戦略承認）/ 🍁 秋美（IR/監査整合性）
-- **Approver**: 隊長（destructive migration、明示承認必須）
+- **Reviewer**: 🎩 セバス（監査）/ 🍁 秋美（IR/監査整合性）
+- **Approver**: 美桜・夏美 同等権限で判断・執行（Phase B Updated 2026-05-04 17:22 隊長明示準拠、隊長は事後報告のみ）
 - **Source**: 栗尾 G-3 致命「監査ログ DB で本当に消せない化」（5/2 D-day 20turn ロープレ抽出）
 
 ---
