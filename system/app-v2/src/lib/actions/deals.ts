@@ -15,6 +15,7 @@ import { auth } from '@/auth';
 import { db, logAudit, setTenantContext } from '@/lib/db';
 import { deals, customers, members } from '@/db/schema';
 import { isNull, ilike, sql } from 'drizzle-orm';
+import { requirePermission } from '@/lib/rbac';
 
 const dealSchema = z.object({
   title: z.string().min(1, '案件名は必須です').max(200),
@@ -125,11 +126,11 @@ export async function updateDeal(dealId: string, _prev: DealFormState, formData:
 }
 
 export async function deleteDeal(dealId: string): Promise<void> {
-  const session = await auth();
-  if (!session?.user?.member_id) {
-    throw new Error('認証が必要です');
+  const guard = await requirePermission({ resource: 'deal', action: 'delete' });
+  if (!guard.ok) {
+    throw new Error(guard.error);
   }
-  await setTenantContext(session.user.company_id);
+  const { session } = guard;
 
   await db
     .update(deals)
