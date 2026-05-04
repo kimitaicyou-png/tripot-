@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { members, deals, customers, actions, tasks } from '@/db/schema';
 import { eq, and, sql, isNull, desc, gte } from 'drizzle-orm';
 import { getMemberColor, getMemberInitial } from '@/lib/member-color';
+import { MemberStatusToggle } from './_components/member-status-toggle';
 
 const STAGE_LABEL: Record<string, string> = {
   prospect: '見込み',
@@ -134,6 +135,10 @@ export default async function TeamMemberDetailPage({
   const color = getMemberColor(memberId);
   const initial = getMemberInitial(member.name);
 
+  // ADR-0011: 'member' role は member.deactivate なし → toggle 非表示
+  const canManageStatus =
+    session.user.role === 'president' || session.user.role === 'hq_member';
+
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4 flex items-center gap-4">
@@ -158,6 +163,13 @@ export default async function TeamMemberDetailPage({
             <p className="text-xs font-mono text-gray-500 mt-0.5">{member.email}</p>
           </div>
         </section>
+
+        <MemberStatusToggle
+          memberId={memberId}
+          memberName={member.name}
+          currentStatus={member.status as 'active' | 'pending' | 'inactive'}
+          canManage={canManageStatus && memberId !== session.user.member_id}
+        />
 
         <section className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="bg-white border border-gray-200 rounded-xl p-5">
