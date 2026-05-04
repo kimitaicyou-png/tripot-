@@ -22,7 +22,7 @@ export type VendorFormState = {
 };
 
 export async function listVendors() {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  const guard = await requirePermission({ resource: 'vendor', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
   return db
@@ -41,7 +41,7 @@ export async function createVendor(
   _prev: VendorFormState,
   formData: FormData
 ): Promise<VendorFormState> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  const guard = await requirePermission({ resource: 'vendor', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -90,7 +90,7 @@ export async function updateVendor(
   _prev: VendorFormState,
   formData: FormData
 ): Promise<VendorFormState> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  const guard = await requirePermission({ resource: 'vendor', action: 'update' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -136,7 +136,7 @@ export async function updateVendor(
 }
 
 export async function deleteVendor(vendorId: string): Promise<void> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  const guard = await requirePermission({ resource: 'vendor', action: 'delete' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 

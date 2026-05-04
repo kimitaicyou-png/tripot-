@@ -21,7 +21,7 @@ export type LeaveFormState = {
 };
 
 export async function listLeaves(rangeStart: string, rangeEnd: string) {
-  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  const guard = await requirePermission({ resource: 'leave', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
@@ -51,7 +51,7 @@ export async function createLeave(
   _prev: LeaveFormState,
   formData: FormData
 ): Promise<LeaveFormState> {
-  const guard = await requirePermission({ resource: 'member', action: 'create' });
+  const guard = await requirePermission({ resource: 'leave', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -91,7 +91,7 @@ export async function createLeave(
 }
 
 export async function deleteLeave(leaveId: string): Promise<void> {
-  const guard = await requirePermission({ resource: 'member', action: 'delete' });
+  const guard = await requirePermission({ resource: 'leave', action: 'delete' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 

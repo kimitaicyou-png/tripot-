@@ -7,7 +7,7 @@ import { bridge_notices, members } from '@/db/schema';
 import { requirePermission } from '@/lib/rbac';
 
 export async function listBridgeNotices() {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  const guard = await requirePermission({ resource: 'bridge_notice', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
@@ -29,7 +29,7 @@ export async function listBridgeNotices() {
 }
 
 export async function unackBridgeNoticesCount(): Promise<number> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  const guard = await requirePermission({ resource: 'bridge_notice', action: 'read' });
   if (!guard.ok) return 0;
   const { session } = guard;
 
@@ -47,7 +47,7 @@ export async function unackBridgeNoticesCount(): Promise<number> {
 }
 
 export async function acknowledgeBridgeNotice(noticeId: string): Promise<{ success: boolean; error?: string }> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  const guard = await requirePermission({ resource: 'bridge_notice', action: 'acknowledge' });
   if (!guard.ok) return { success: false, error: guard.error };
   const { session } = guard;
 

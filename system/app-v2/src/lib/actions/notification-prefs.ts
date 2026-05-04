@@ -7,7 +7,7 @@ import { notification_prefs } from '@/db/schema';
 import { requirePermission } from '@/lib/rbac';
 
 export async function listMyPreferences(memberId: string) {
-  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  const guard = await requirePermission({ resource: 'notification', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
@@ -28,7 +28,7 @@ export async function upsertPreference(
   channels: string[],
   isMuted: boolean
 ): Promise<void> {
-  const guard = await requirePermission({ resource: 'member', action: 'update' });
+  const guard = await requirePermission({ resource: 'notification', action: 'update' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 

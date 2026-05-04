@@ -25,7 +25,7 @@ export async function createPurchaseOrder(
   _prev: PurchaseOrderFormState,
   formData: FormData
 ): Promise<PurchaseOrderFormState> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'purchase_order', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -69,7 +69,7 @@ export async function markPurchaseOrderDelivered(
   poId: string,
   cardId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'purchase_order', action: 'mark_delivered' });
   if (!guard.ok) return { success: false, error: guard.error };
   const { session } = guard;
 
@@ -95,7 +95,7 @@ export async function markPurchaseOrderPaid(
   poId: string,
   cardId: string
 ): Promise<{ success: boolean; error?: string }> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'purchase_order', action: 'mark_paid' });
   if (!guard.ok) return { success: false, error: guard.error };
   const { session } = guard;
 
@@ -118,7 +118,7 @@ export async function markPurchaseOrderPaid(
 }
 
 export async function listPurchaseOrdersForCard(cardId: string) {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'purchase_order', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
@@ -146,7 +146,7 @@ export async function listPurchaseOrdersForCard(cardId: string) {
 }
 
 export async function listVendorsForSelect() {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'vendor', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 

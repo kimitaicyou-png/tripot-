@@ -23,7 +23,7 @@ export async function createTestCase(
   _prev: TestCaseFormState,
   formData: FormData
 ): Promise<TestCaseFormState> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'test_case', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -64,7 +64,7 @@ export async function recordTestRun(
   passed: boolean,
   result?: string
 ): Promise<{ success: boolean; error?: string }> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'test_case', action: 'update' });
   if (!guard.ok) return { success: false, error: guard.error };
   const { session } = guard;
 
@@ -91,7 +91,7 @@ export async function recordTestRun(
 }
 
 export async function listTestCasesForCard(cardId: string) {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'test_case', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
@@ -108,7 +108,7 @@ export async function listTestCasesForCard(cardId: string) {
 }
 
 export async function listChangeLogsForCard(cardId: string) {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'test_case', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 

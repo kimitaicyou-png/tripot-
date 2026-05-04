@@ -24,7 +24,7 @@ export async function createTimeLog(
   _prev: TimeLogFormState,
   formData: FormData,
 ): Promise<TimeLogFormState> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'time_log', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -69,7 +69,7 @@ export async function createTimeLog(
 }
 
 export async function deleteTimeLog(timeLogId: string, cardId: string): Promise<void> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'time_log', action: 'delete' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 
@@ -97,7 +97,7 @@ export async function deleteTimeLog(timeLogId: string, cardId: string): Promise<
 }
 
 export async function listTimeLogsForCard(cardId: string) {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'time_log', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
@@ -122,7 +122,7 @@ export async function listTimeLogsForCard(cardId: string) {
 }
 
 export async function timeLogTotalsForCard(cardId: string): Promise<{ totalMinutes: number; logCount: number }> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'time_log', action: 'read' });
   if (!guard.ok) return { totalMinutes: 0, logCount: 0 };
   const { session } = guard;
 

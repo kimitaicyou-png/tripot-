@@ -25,7 +25,7 @@ export async function createDeliverable(
   _prev: DeliverableFormState,
   formData: FormData
 ): Promise<DeliverableFormState> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'deliverable', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -67,7 +67,7 @@ export async function createDeliverable(
 }
 
 export async function listDeliverablesForCard(cardId: string) {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'deliverable', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 

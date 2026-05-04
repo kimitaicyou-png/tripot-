@@ -20,7 +20,7 @@ export type ProjectTemplateFormState = {
 };
 
 export async function listProjectTemplates() {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'read' });
+  const guard = await requirePermission({ resource: 'project_template', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
   return db
@@ -39,7 +39,7 @@ export async function createProjectTemplate(
   _prev: ProjectTemplateFormState,
   formData: FormData
 ): Promise<ProjectTemplateFormState> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  const guard = await requirePermission({ resource: 'project_template', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -77,7 +77,7 @@ export async function updateProjectTemplate(
   _prev: ProjectTemplateFormState,
   formData: FormData
 ): Promise<ProjectTemplateFormState> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  const guard = await requirePermission({ resource: 'project_template', action: 'update' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -115,7 +115,7 @@ export async function updateProjectTemplate(
 }
 
 export async function deleteProjectTemplate(templateId: string): Promise<void> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  const guard = await requirePermission({ resource: 'project_template', action: 'delete' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 
@@ -141,7 +141,7 @@ export async function deleteProjectTemplate(templateId: string): Promise<void> {
 }
 
 export async function seedDefaultTemplates(): Promise<{ inserted: number; skipped: number }> {
-  const guard = await requirePermission({ resource: 'company_settings', action: 'update' });
+  const guard = await requirePermission({ resource: 'project_template', action: 'seed' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 

@@ -7,9 +7,19 @@
  * src/lib/actions/role-permissions.ts の seedDefaultRolePermissions ロジックを
  * CLI で直接実行可能な形に移植（Server Action は auth 必要なので CLI 不可）。
  *
- * 13社展開時のテンプレ必須項目：本スクリプトを各社初期化時に走らせる。
+ * Phase 11-B 暫定マッピング正規化（2026-05-05）：
+ * RESOURCES 17 → 29 に拡張。12 新 resource の DEFAULT_MATRIX 追加済。
+ * 既に seed 済みの会社はスキップされる。
+ * 新 resource 行を追加したい場合は下記「既存会社への新 resource 追加手順」参照。
  *
  * 実行: set -a && source .env.local && set +a && npx tsx scripts/seed-rbac.ts
+ *
+ * 既存会社への新 resource 追加手順（Phase 11-B 以降）:
+ *   既存会社は既に role_permissions > 0 行でスキップされるため、
+ *   新 resource の行のみを個別追加する場合は以下:
+ *     psql $DATABASE_URL -c "DELETE FROM role_permissions WHERE company_id = '<company_id>';"
+ *     set -a && source .env.local && set +a && npx tsx scripts/seed-rbac.ts
+ *   ※ 既存のカスタム権限設定が消えることに注意。本番適用前に必ずバックアップ取得。
  */
 
 import { eq, sql } from 'drizzle-orm';
@@ -30,8 +40,17 @@ const DEFAULT_MATRIX: Record<Role, Record<string, string[]>> = {
   member: Object.fromEntries(
     Object.entries(ACTIONS_BY_RESOURCE).map(([res, acts]) => {
       if (res === 'budget' || res === 'monthly_report' || res === 'audit_log') return [res, []];
-      if (res === 'company_settings' || res === 'integration' || res === 'member') return [res, ['read']];
+      if (res === 'company_settings' || res === 'integration') return [res, ['read']];
+      if (res === 'member') return [res, ['read']];
       if (res === 'approval') return [res, ['request']];
+      if (res === 'bridge_notice') return [res, ['read']];
+      if (res === 'notification') return [res, ['read', 'mark_read', 'mark_all_read']];
+      if (res === 'purchase_order') return [res, ['read']];
+      if (res === 'leave') return [res, ['read', 'create']];
+      if (res === 'time_log') return [res, ['create', 'read']];
+      if (res === 'vendor') return [res, ['read']];
+      if (res === 'project_template') return [res, ['read']];
+      if (res === 'role_permission') return [res, ['read']];
       const filtered = acts.filter((a) => {
         if (a === 'read_all') return false;
         if (a === 'delete') return false;
@@ -43,7 +62,7 @@ const DEFAULT_MATRIX: Record<Role, Record<string, string[]>> = {
   ),
 };
 
-// 注: hq_member は member.deactivate を含まないので、ADR-0012 整合のため明示追加
+// hq_member は member.deactivate を含まないので ADR-0012 整合のため明示追加
 DEFAULT_MATRIX.hq_member.member = [
   ...(DEFAULT_MATRIX.hq_member.member ?? []),
   'deactivate',

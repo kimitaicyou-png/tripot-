@@ -22,7 +22,7 @@ export type NotificationFormState = {
 };
 
 export async function listNotificationsForMember(memberId: string, limit = 30) {
-  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  const guard = await requirePermission({ resource: 'notification', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
@@ -40,7 +40,7 @@ export async function listNotificationsForMember(memberId: string, limit = 30) {
 }
 
 export async function unreadCountForMember(memberId: string): Promise<number> {
-  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  const guard = await requirePermission({ resource: 'notification', action: 'read' });
   if (!guard.ok) return 0;
   const { session } = guard;
 
@@ -58,7 +58,7 @@ export async function unreadCountForMember(memberId: string): Promise<number> {
 }
 
 export async function markAsRead(notificationId: string): Promise<void> {
-  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  const guard = await requirePermission({ resource: 'notification', action: 'mark_read' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 
@@ -76,7 +76,7 @@ export async function markAsRead(notificationId: string): Promise<void> {
 }
 
 export async function markAllAsRead(): Promise<void> {
-  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  const guard = await requirePermission({ resource: 'notification', action: 'mark_all_read' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 
@@ -108,7 +108,7 @@ export async function createNotification(
   _prev: NotificationFormState,
   formData: FormData
 ): Promise<NotificationFormState> {
-  const guard = await requirePermission({ resource: 'member', action: 'update' });
+  const guard = await requirePermission({ resource: 'notification', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 

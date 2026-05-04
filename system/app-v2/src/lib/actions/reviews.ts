@@ -27,7 +27,7 @@ export async function createReview(
   _prev: ReviewFormState,
   formData: FormData
 ): Promise<ReviewFormState> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'review', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -74,7 +74,7 @@ export async function updateReviewStatus(
   cardId: string,
   status: ReviewStatus
 ): Promise<{ success: boolean; error?: string }> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'review', action: 'update' });
   if (!guard.ok) return { success: false, error: guard.error };
   const { session } = guard;
 
@@ -102,7 +102,7 @@ export async function updateReviewStatus(
 }
 
 export async function listReviewsForCard(cardId: string) {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'review', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 

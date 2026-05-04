@@ -16,6 +16,18 @@ export const RESOURCES = [
   'company_settings',
   'member',
   'integration',
+  'bridge_notice',
+  'notification',
+  'purchase_order',
+  'leave',
+  'time_log',
+  'vendor',
+  'project_template',
+  'bug',
+  'review',
+  'test_case',
+  'deliverable',
+  'role_permission',
 ] as const;
 
 export const ACTIONS_BY_RESOURCE: Record<string, string[]> = {
@@ -36,6 +48,18 @@ export const ACTIONS_BY_RESOURCE: Record<string, string[]> = {
   company_settings: ['read', 'update'],
   member: ['create', 'read', 'update', 'deactivate'],
   integration: ['connect', 'disconnect', 'read'],
+  bridge_notice: ['read', 'acknowledge'],
+  notification: ['read', 'create', 'update', 'mark_read', 'mark_all_read'],
+  purchase_order: ['create', 'read', 'mark_delivered', 'mark_paid'],
+  leave: ['read', 'create', 'delete'],
+  time_log: ['create', 'read', 'delete'],
+  vendor: ['create', 'read', 'update', 'delete'],
+  project_template: ['create', 'read', 'update', 'delete', 'seed'],
+  bug: ['create', 'read', 'update'],
+  review: ['create', 'read', 'update'],
+  test_case: ['create', 'read', 'update'],
+  deliverable: ['create', 'read'],
+  role_permission: ['read', 'update', 'seed'],
 };
 
 export type Role = 'president' | 'hq_member' | 'member';
@@ -59,6 +83,18 @@ export const RESOURCE_LABELS: Record<string, string> = {
   company_settings: '会社設定',
   member: 'メンバー',
   integration: '外部連携',
+  bridge_notice: '本部通知',
+  notification: '通知',
+  purchase_order: '発注',
+  leave: '休暇',
+  time_log: '工数記録',
+  vendor: 'ベンダー',
+  project_template: 'プロジェクトテンプレート',
+  bug: 'バグ',
+  review: 'レビュー',
+  test_case: 'テストケース',
+  deliverable: '成果物',
+  role_permission: 'ロール権限',
 };
 
 export const ACTION_LABELS: Record<string, string> = {
@@ -78,6 +114,11 @@ export const ACTION_LABELS: Record<string, string> = {
   complete: '完了',
   deactivate: '無効化',
   import_actuals: '実績取込',
+  acknowledge: '確認済にする',
+  mark_read: '既読にする',
+  mark_all_read: '全既読にする',
+  mark_delivered: '納品済にする',
+  seed: '初期データ投入',
 };
 
 export function getResourceList(): readonly string[] {

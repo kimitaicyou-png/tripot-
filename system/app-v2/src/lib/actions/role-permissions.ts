@@ -25,8 +25,17 @@ const DEFAULT_MATRIX: Record<Role, Record<string, string[]>> = {
   member: Object.fromEntries(
     Object.entries(ACTIONS_BY_RESOURCE).map(([res, acts]) => {
       if (res === 'budget' || res === 'monthly_report' || res === 'audit_log') return [res, []];
-      if (res === 'company_settings' || res === 'integration' || res === 'member') return [res, ['read']];
+      if (res === 'company_settings' || res === 'integration') return [res, ['read']];
+      if (res === 'member') return [res, ['read']];
       if (res === 'approval') return [res, ['request']];
+      if (res === 'bridge_notice') return [res, ['read']];
+      if (res === 'notification') return [res, ['read', 'mark_read', 'mark_all_read']];
+      if (res === 'purchase_order') return [res, ['read']];
+      if (res === 'leave') return [res, ['read', 'create']];
+      if (res === 'time_log') return [res, ['create', 'read']];
+      if (res === 'vendor') return [res, ['read']];
+      if (res === 'project_template') return [res, ['read']];
+      if (res === 'role_permission') return [res, ['read']];
       const filtered = acts.filter((a) => {
         if (a === 'read_all') return false;
         if (a === 'delete') return false;
@@ -45,7 +54,7 @@ export type PermissionFormState = {
 };
 
 export async function listRolePermissions() {
-  const guard = await requirePermission({ resource: 'member', action: 'read' });
+  const guard = await requirePermission({ resource: 'role_permission', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
@@ -59,7 +68,7 @@ export async function seedDefaultRolePermissions(): Promise<{
   inserted: number;
   skipped: number;
 }> {
-  const guard = await requirePermission({ resource: 'member', action: 'update' });
+  const guard = await requirePermission({ resource: 'role_permission', action: 'seed' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 
@@ -123,7 +132,7 @@ export async function updateRolePermission(
   action: string,
   allowed: 0 | 1
 ): Promise<void> {
-  const guard = await requirePermission({ resource: 'member', action: 'update' });
+  const guard = await requirePermission({ resource: 'role_permission', action: 'update' });
   if (!guard.ok) throw new Error(guard.error);
   const { session } = guard;
 

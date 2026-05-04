@@ -28,7 +28,7 @@ export async function createBug(
   _prev: BugFormState,
   formData: FormData
 ): Promise<BugFormState> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'bug', action: 'create' });
   if (!guard.ok) return { errors: { _form: [guard.error] } };
   const { session } = guard;
 
@@ -72,7 +72,7 @@ export async function updateBugStatus(
   cardId: string,
   status: BugStatus
 ): Promise<{ success: boolean; error?: string }> {
-  const guard = await requirePermission({ resource: 'production_card', action: 'update' });
+  const guard = await requirePermission({ resource: 'bug', action: 'update' });
   if (!guard.ok) return { success: false, error: guard.error };
   const { session } = guard;
 
@@ -103,7 +103,7 @@ export async function updateBugStatus(
 }
 
 export async function listBugsForCard(cardId: string) {
-  const guard = await requirePermission({ resource: 'production_card', action: 'read' });
+  const guard = await requirePermission({ resource: 'bug', action: 'read' });
   if (!guard.ok) return [];
   const { session } = guard;
 
