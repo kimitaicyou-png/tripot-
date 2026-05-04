@@ -18,6 +18,7 @@ import {
   text,
   bigint,
   integer,
+  numeric,
   date,
   timestamp,
   jsonb,
@@ -25,7 +26,7 @@ import {
   unique,
   index,
 } from 'drizzle-orm/pg-core';
-import { relations } from 'drizzle-orm';
+import { relations, sql } from 'drizzle-orm';
 
 /* ============================================================
  * Enums
@@ -178,6 +179,12 @@ export const deals = pgTable(
     ordered_at: date('ordered_at'),
     delivered_at: date('delivered_at'),
     paid_at: date('paid_at'),
+    // ADR-0010 P1-1 粗利表示（2026-05-04 Phase 2-A 適用済）
+    external_cost: bigint('external_cost', { mode: 'number' }).notNull().default(0), // 外注費・仕入原価・直接費（円、手動入力）
+    gross_profit: bigint('gross_profit', { mode: 'number' })
+      .generatedAlwaysAs(sql`COALESCE(amount, 0) - COALESCE(external_cost, 0)`),
+    gross_profit_rate: numeric('gross_profit_rate', { precision: 5, scale: 2 })
+      .generatedAlwaysAs(sql`CASE WHEN COALESCE(amount, 0) > 0 THEN ROUND((COALESCE(amount, 0) - COALESCE(external_cost, 0)) * 100.0 / COALESCE(amount, 1), 2) ELSE 0 END`),
     metadata: jsonb('metadata').default({}),
     created_at: timestamp('created_at', { withTimezone: true }).defaultNow().notNull(),
     updated_at: timestamp('updated_at', { withTimezone: true }).defaultNow().notNull(),
@@ -186,6 +193,8 @@ export const deals = pgTable(
   (t) => ({
     assigneeStageIdx: index('deals_assignee_stage_idx').on(t.assignee_id, t.stage),
     companyPaidIdx: index('deals_company_paid_idx').on(t.company_id, t.paid_at),
+    grossProfitIdx: index('deals_gross_profit_idx').on(t.company_id, t.gross_profit),
+    grossProfitRateIdx: index('deals_gross_profit_rate_idx').on(t.company_id, t.gross_profit_rate),
   })
 );
 

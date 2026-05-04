@@ -464,3 +464,50 @@ export async function bulkCreateDeals(
     errors,
   };
 }
+
+/* ============================================================
+ * ADR-0010 P1-1 粗利表示 — external_cost 更新 server action
+ * ============================================================
+ * gross_profit / gross_profit_rate は Generated Column のため
+ * external_cost のみ更新すれば DB 側で自動再計算される。
+ */
+
+export type ExternalCostState = {
+  errors?: { _form?: string[]; external_cost?: string[] };
+  success?: boolean;
+};
+
+export async function updateDealExternalCost(
+  dealId: string,
+  _prev: ExternalCostState,
+  formData: FormData
+): Promise<ExternalCostState> {
+  const session = await auth();
+  if (!session?.user?.member_id) {
+    return { errors: { _form: ['認証が必要です'] } };
+  }
+  await setTenantContext(session.user.company_id);
+
+  const externalCostRaw = String(formData.get('external_cost') ?? '').trim();
+  if (!/^\d+$/.test(externalCostRaw)) {
+    return { errors: { external_cost: ['外注費は0以上の整数で入力してください'] } };
+  }
+  const externalCost = Math.min(99_999_999_999, Number(externalCostRaw));
+
+  await db
+    .update(deals)
+    .set({ external_cost: externalCost })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.update_external_cost',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { external_cost: externalCost },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  return { success: true };
+}
