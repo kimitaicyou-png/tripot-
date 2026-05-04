@@ -19,6 +19,7 @@ import { LostDealSection } from './lost-deal-section';
 import { InternalNoteSection } from './internal-note-section';
 import { RunningSection } from './running-section';
 import { TargetSection } from './target-section';
+import { ExternalCostForm } from './external-cost-form';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   call: '電話',
@@ -55,6 +56,9 @@ export type DealOverview = {
   metadata: Record<string, unknown> | null;
   assignee_name: string | null;
   customer_name: string | null;
+  external_cost: number | null;
+  gross_profit: number | null;
+  gross_profit_rate: string | number | null;
 };
 
 export async function OverviewTab({ deal }: { deal: DealOverview }) {
@@ -108,6 +112,13 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
           </p>
         ) : null}
       </section>
+
+      <ExternalCostForm
+        dealId={dealId}
+        externalCost={deal.external_cost ?? 0}
+        grossProfit={deal.gross_profit ?? deal.amount ?? 0}
+        grossProfitRate={deal.gross_profit_rate}
+      />
 
       <NextActionSection dealId={dealId} />
 

@@ -66,6 +66,8 @@ export default async function DealsListPage() {
       assignee_name: members.name,
       customer_name: customers.name,
       updated_at: deals.updated_at,
+      gross_profit: deals.gross_profit,
+      gross_profit_rate: deals.gross_profit_rate,
     })
     .from(deals)
     .leftJoin(members, eq(deals.assignee_id, members.id))
@@ -189,6 +191,24 @@ export default async function DealsListPage() {
                           </span>
                         ) : null}
                       </span>
+                      {(() => {
+                        const rate = d.gross_profit_rate == null ? null : Number(d.gross_profit_rate);
+                        if (rate == null || (d.amount ?? 0) === 0) return null;
+                        const tone =
+                          rate >= 50
+                            ? 'bg-emerald-50 text-emerald-700'
+                            : rate >= 20
+                              ? 'bg-amber-50 text-amber-700'
+                              : 'bg-red-50 text-red-700';
+                        return (
+                          <span
+                            className={`hidden md:inline-flex items-center px-2 py-0.5 text-xs font-mono tabular-nums rounded-lg shrink-0 w-16 justify-center ${tone}`}
+                            title={`粗利 ${formatYen(d.gross_profit)} / 粗利率 ${rate.toFixed(2)}%`}
+                          >
+                            {rate.toFixed(1)}%
+                          </span>
+                        );
+                      })()}
                     </Link>
                   ))}
                 </div>

@@ -41,6 +41,7 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
     .select({
       revenue: sql<number>`COALESCE(SUM(${deals.amount}) FILTER (WHERE ${deals.stage} IN ('paid', 'invoiced')), 0)::int`,
       activeCount: sql<number>`COUNT(*) FILTER (WHERE ${deals.stage} IN ('proposing', 'ordered', 'in_production'))::int`,
+      grossProfit: sql<number>`COALESCE(SUM(${deals.gross_profit}) FILTER (WHERE ${deals.stage} IN ('paid', 'invoiced')), 0)::int`,
     })
     .from(deals)
     .where(and(eq(deals.assignee_id, memberId), eq(deals.company_id, companyId), isNull(deals.deleted_at)))
@@ -207,7 +208,7 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
           <MorningBrief memberId={memberId} />
         </div>
 
-        <section className="mt-8 grid grid-cols-2 gap-4 max-w-md">
+        <section className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
             <p className="text-xs text-gray-500">進行中の案件</p>
             <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{dealStats?.activeCount ?? 0}</p>
@@ -215,6 +216,12 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
           <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
             <p className="text-xs text-gray-500">残タスク</p>
             <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{taskCount}</p>
+          </div>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm col-span-2 md:col-span-1">
+            <p className="text-xs text-gray-500">粗利合計（入金確定）</p>
+            <p className="font-semibold text-3xl md:text-4xl text-emerald-700 mt-1 tabular-nums">
+              {formatYen(dealStats?.grossProfit ?? 0)}
+            </p>
           </div>
         </section>
 
