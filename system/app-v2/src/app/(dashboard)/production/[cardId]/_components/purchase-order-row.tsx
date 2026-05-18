@@ -4,6 +4,7 @@ import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { markPurchaseOrderDelivered, markPurchaseOrderPaid } from '@/lib/actions/purchase-orders';
+import { toast } from '@/components/ui/toaster';
 
 type Props = {
   id: string;
@@ -34,7 +35,7 @@ export function PurchaseOrderRow(props: Props) {
     startTransition(async () => {
       const result = await markPurchaseOrderDelivered(props.id, props.cardId);
       if (!result.success) {
-        alert(result.error ?? '更新失敗');
+        toast.error(result.error ?? '更新失敗');
         return;
       }
       router.refresh();
@@ -45,7 +46,7 @@ export function PurchaseOrderRow(props: Props) {
     startTransition(async () => {
       const result = await markPurchaseOrderPaid(props.id, props.cardId);
       if (!result.success) {
-        alert(result.error ?? '更新失敗');
+        toast.error(result.error ?? '更新失敗');
         return;
       }
       router.refresh();

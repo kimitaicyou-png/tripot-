@@ -4,6 +4,7 @@ import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { updateBugStatus } from '@/lib/actions/bugs';
+import { toast } from '@/components/ui/toaster';
 
 const SEVERITY_TONE: Record<string, string> = {
   low: 'text-gray-700',
@@ -46,7 +47,7 @@ export function BugRow(props: Props) {
     startTransition(async () => {
       const result = await updateBugStatus(props.id, props.cardId, status as 'open' | 'in_progress' | 'resolved' | 'closed');
       if (!result.success) {
-        alert(result.error ?? '更新失敗');
+        toast.error(result.error ?? '更新失敗');
         return;
       }
       router.refresh();

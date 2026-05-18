@@ -4,6 +4,7 @@ import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { updateReviewStatus } from '@/lib/actions/reviews';
+import { toast } from '@/components/ui/toaster';
 
 const STATUS_TONE: Record<string, string> = {
   pending: 'text-gray-500',
@@ -50,7 +51,7 @@ export function ReviewRow(props: Props) {
         status as 'pending' | 'approved' | 'rejected' | 'revision'
       );
       if (!result.success) {
-        alert(result.error ?? '更新失敗');
+        toast.error(result.error ?? '更新失敗');
         return;
       }
       router.refresh();

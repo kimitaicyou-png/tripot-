@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { Check, X } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { updateProposalStatus, type ProposalStatus } from '@/lib/actions/proposals';
+import { toast } from '@/components/ui/toaster';
 
 const TRANSITIONS: Record<ProposalStatus, ProposalStatus[]> = {
   draft: ['shared', 'archived'],
@@ -61,7 +62,7 @@ export function ProposalStatusActions({
     startTransition(async () => {
       const result = await updateProposalStatus(proposalId, status, dealId);
       if (!result.success) {
-        alert(result.error ?? '更新に失敗しました');
+        toast.error(result.error ?? '更新に失敗しました');
         return;
       }
       router.refresh();

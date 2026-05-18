@@ -4,6 +4,7 @@ import { useTransition } from 'react';
 import { useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { updateProductionCardStatus } from '@/lib/actions/production';
+import { toast } from '@/components/ui/toaster';
 
 const STATUS_FLOW: Record<string, string[]> = {
   requirements: ['designing', 'cancelled'],
@@ -49,7 +50,7 @@ export function ProductionStatusButton({
     startTransition(async () => {
       const result = await updateProductionCardStatus(cardId, status as 'requirements' | 'designing' | 'building' | 'reviewing' | 'delivered' | 'cancelled');
       if (!result.success) {
-        alert(result.error ?? '更新に失敗しました');
+        toast.error(result.error ?? '更新に失敗しました');
         return;
       }
       router.refresh();

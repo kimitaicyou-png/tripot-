@@ -2,6 +2,7 @@
 
 import { useTransition } from 'react';
 import { decideApproval } from '@/lib/actions/approvals';
+import { toast } from '@/components/ui/toaster';
 
 export function DecideButtons({ approvalId }: { approvalId: string }) {
   const [pending, startTransition] = useTransition();
@@ -11,7 +12,7 @@ export function DecideButtons({ approvalId }: { approvalId: string }) {
       try {
         await decideApproval(approvalId, decision);
       } catch (e) {
-        alert(e instanceof Error ? e.message : '操作に失敗しました');
+        toast.error(e instanceof Error ? e.message : '操作に失敗しました');
       }
     });
   }
