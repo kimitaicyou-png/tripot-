@@ -38,7 +38,10 @@ export type BridgeAlert = {
 const ORDERED_STAGES = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'paid'] as const;
 const SILENCE_DAYS = 30;
 const STUCK_DAYS = 14;
-const GROSS_MARGIN_RATIO = 0.3;
+// 粗利は deals.gross_profit (generated column: amount - external_cost) を使用。
+// 旧 GROSS_MARGIN_RATIO = 0.3 固定計算は経営判断（粗利→営業利益→売上）の数字 path を
+// 嘘で運用していたため 2026-05-19 廃止。秋美一次ソース調査 2026-05-18 23:10 JST。
+// 営業利益は販管費が MF クラウド接続未実装のため当面 ratio 近似のまま（CLAUDE.md 未実装課題と整合）。
 const OPERATING_MARGIN_RATIO = 0.6;
 
 export function parsePeriod(period: string): { year: number; month: number; start: Date; end: Date } | null {
@@ -67,6 +70,9 @@ export async function buildKpiForCompany(params: {
       db
         .select({
           revenue: sql<number>`COALESCE(SUM(${deals.amount}) FILTER (WHERE ${deals.paid_at} >= ${start} AND ${deals.paid_at} <= ${end}), 0)::int`,
+          // 粗利は deals.gross_profit (generated: amount - external_cost) の実値を使う。
+          // 旧実装は revenue × 0.3 固定で経営判断に嘘の数字を流していた。
+          grossProfitActual: sql<number>`COALESCE(SUM(${deals.gross_profit}) FILTER (WHERE ${deals.paid_at} >= ${start} AND ${deals.paid_at} <= ${end}), 0)::int`,
           activeDeals: sql<number>`COUNT(*) FILTER (WHERE ${deals.stage} IN ('proposing', 'ordered', 'in_production'))::int`,
           closedDeals: sql<number>`COUNT(*) FILTER (WHERE ${deals.stage} IN ('paid', 'invoiced'))::int`,
         })
@@ -112,6 +118,10 @@ export async function buildKpiForCompany(params: {
         )
         .limit(1)
         .then((rows) => rows[0]),
+      // silence = 顧客に紐づく案件への直近 SILENCE_DAYS 接触ゼロを判定する。
+      // 旧実装は customers.id（顧客 UUID）と actions.deal_id（案件 UUID）を比較していて
+      // 異なる概念の UUID 同士を突き合わせていた → ほぼ全顧客が沈黙判定される設計バグ。
+      // 2026-05-19 修正、deals JOIN actions の NOT EXISTS で正規化。
       db
         .select({ n: sql<number>`count(*)::int` })
         .from(customers)
@@ -119,11 +129,13 @@ export async function buildKpiForCompany(params: {
           and(
             eq(customers.company_id, params.companyId),
             isNull(customers.deleted_at),
-            sql`${customers.id} NOT IN (
-              SELECT ${actions.deal_id} FROM ${actions}
-              WHERE ${actions.company_id} = ${params.companyId}
-                AND ${actions.deal_id} IS NOT NULL
-                AND ${actions.occurred_at} >= NOW() - INTERVAL '${sql.raw(String(SILENCE_DAYS))} days'
+            sql`NOT EXISTS (
+              SELECT 1 FROM ${deals} d
+              JOIN ${actions} a ON a.deal_id = d.id
+              WHERE d.customer_id = ${customers.id}
+                AND d.deleted_at IS NULL
+                AND a.company_id = ${params.companyId}
+                AND a.occurred_at >= NOW() - INTERVAL '${sql.raw(String(SILENCE_DAYS))} days'
             )`
           )
         )
@@ -149,7 +161,7 @@ export async function buildKpiForCompany(params: {
     ]);
 
   const revenue = revenueRow?.revenue ?? 0;
-  const grossProfit = Math.round(revenue * GROSS_MARGIN_RATIO);
+  const grossProfit = revenueRow?.grossProfitActual ?? 0;
   const operatingProfit = Math.round(grossProfit * OPERATING_MARGIN_RATIO);
   const revenueTarget = budgetRow?.target ?? 0;
   const revenueProgressPct = revenueTarget > 0 ? Math.round((revenue / revenueTarget) * 100) : 0;
