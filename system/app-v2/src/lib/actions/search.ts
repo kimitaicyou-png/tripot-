@@ -1,12 +1,31 @@
 'use server';
 
-import { eq, and, isNull, sql, or } from 'drizzle-orm';
+import { eq, and, isNull, sql, or, desc } from 'drizzle-orm';
 import { db } from '@/lib/db';
-import { deals, customers, tasks, meetings, members } from '@/db/schema';
+import {
+  deals,
+  customers,
+  tasks,
+  meetings,
+  members,
+  actions,
+  proposals,
+  estimates,
+  invoices,
+} from '@/db/schema';
 import { requirePermission } from '@/lib/rbac';
 
 export type SearchHit = {
-  kind: 'deal' | 'customer' | 'task' | 'meeting' | 'member';
+  kind:
+    | 'deal'
+    | 'customer'
+    | 'task'
+    | 'meeting'
+    | 'member'
+    | 'action'
+    | 'proposal'
+    | 'estimate'
+    | 'invoice';
   id: string;
   title: string;
   subtitle?: string;
@@ -30,7 +49,17 @@ export async function globalSearch(query: string): Promise<SearchHit[]> {
   const pattern = ilikeWrap(trimmed);
   const companyId = session.user.company_id;
 
-  const [dealRows, customerRows, taskRows, meetingRows, memberRows] = await Promise.all([
+  const [
+    dealRows,
+    customerRows,
+    taskRows,
+    meetingRows,
+    memberRows,
+    actionRows,
+    proposalRows,
+    estimateRows,
+    invoiceRows,
+  ] = await Promise.all([
     db
       .select({
         id: deals.id,
@@ -121,6 +150,73 @@ export async function globalSearch(query: string): Promise<SearchHit[]> {
         )
       )
       .limit(LIMIT_PER_KIND),
+    db
+      .select({
+        id: actions.id,
+        type: actions.type,
+        note: actions.note,
+        deal_id: actions.deal_id,
+        occurred_at: actions.occurred_at,
+      })
+      .from(actions)
+      .where(
+        and(
+          eq(actions.company_id, companyId),
+          sql`${actions.note} ILIKE ${pattern}`
+        )
+      )
+      .orderBy(desc(actions.occurred_at))
+      .limit(LIMIT_PER_KIND),
+    db
+      .select({
+        id: proposals.id,
+        title: proposals.title,
+        deal_id: proposals.deal_id,
+      })
+      .from(proposals)
+      .where(
+        and(
+          eq(proposals.company_id, companyId),
+          isNull(proposals.deleted_at),
+          sql`${proposals.title} ILIKE ${pattern}`
+        )
+      )
+      .limit(LIMIT_PER_KIND),
+    db
+      .select({
+        id: estimates.id,
+        title: estimates.title,
+        deal_id: estimates.deal_id,
+        total: estimates.total,
+      })
+      .from(estimates)
+      .where(
+        and(
+          eq(estimates.company_id, companyId),
+          isNull(estimates.deleted_at),
+          sql`${estimates.title} ILIKE ${pattern}`
+        )
+      )
+      .limit(LIMIT_PER_KIND),
+    db
+      .select({
+        id: invoices.id,
+        invoice_number: invoices.invoice_number,
+        deal_id: invoices.deal_id,
+        status: invoices.status,
+      })
+      .from(invoices)
+      .where(
+        and(
+          eq(invoices.company_id, companyId),
+          isNull(invoices.deleted_at),
+          or(
+            sql`${invoices.invoice_number} ILIKE ${pattern}`,
+            sql`CAST(${invoices.id} AS TEXT) ILIKE ${pattern}`
+          )
+        )
+      )
+      .limit(LIMIT_PER_KIND),
   ]);
 
   const hits: SearchHit[] = [
@@ -158,6 +254,34 @@ export async function globalSearch(query: string): Promise<SearchHit[]> {
       title: m.name,
       subtitle: m.email,
       href: `/team/${m.id}`,
+    })),
+    ...actionRows.map<SearchHit>((a) => ({
+      kind: 'action',
+      id: a.id,
+      title: a.note?.slice(0, 60) ?? `(${a.type})`,
+      subtitle: `${a.type} / ${new Date(a.occurred_at).toLocaleDateString('ja-JP')}`,
+      href: a.deal_id ? `/deals/${a.deal_id}` : '/home',
+    })),
+    ...proposalRows.map<SearchHit>((p) => ({
+      kind: 'proposal',
+      id: p.id,
+      title: p.title,
+      subtitle: p.deal_id ? '案件に紐付き' : '案件未紐付',
+      href: p.deal_id ? `/deals/${p.deal_id}?tab=proposals` : '/deals',
+    })),
+    ...estimateRows.map<SearchHit>((e) => ({
+      kind: 'estimate',
+      id: e.id,
+      title: e.title,
+      subtitle: `¥${(e.total ?? 0).toLocaleString('ja-JP')}`,
+      href: e.deal_id ? `/deals/${e.deal_id}?tab=estimates` : '/deals',
+    })),
+    ...invoiceRows.map<SearchHit>((i) => ({
+      kind: 'invoice',
+      id: i.id,
+      title: i.invoice_number ?? i.id.slice(0, 8),
+      subtitle: `請求書 (${i.status})`,
+      href: i.deal_id ? `/deals/${i.deal_id}?tab=invoices` : '/deals',
     })),
   ];
 

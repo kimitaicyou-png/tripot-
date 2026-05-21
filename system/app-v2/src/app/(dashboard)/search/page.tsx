@@ -50,7 +50,8 @@ export default async function SearchPage({
 
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
         <p className="text-sm text-gray-700">
-          案件 / 顧客 / タスク / 議事録 / メンバー を一括検索（部分一致、ILIKE）。
+          案件 / 顧客 / タスク / 議事録 / メンバー / 行動履歴 / 提案書 / 見積 / 請求書 を
+          一括検索（部分一致、ILIKE）。
         </p>
 
         <form action="/search" className="flex gap-2">
