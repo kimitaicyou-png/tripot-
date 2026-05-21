@@ -14,11 +14,8 @@ import { WelcomeFirstSteps } from './_components/welcome-first-steps';
 import type { Brief } from './_components/morning-brief';
 import { getLatestAiJobForMember } from '@/lib/ai/jobs';
 import { pickQuoteForMember } from '@/lib/actions/quotes';
+import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export default async function MemberHomePage({
   params,

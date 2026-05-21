@@ -1,6 +1,4 @@
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
+import { formatYen } from '@/lib/format';
 
 export function VsBudgetCard({
   targetRevenue,

@@ -1,8 +1,5 @@
 import { StatCard } from '@/components/ui/stat-card';
-
-function formatMan(value: number | null): string {
-  return `${Math.round((value ?? 0) / 10000).toLocaleString('ja-JP')}万`;
-}
+import { formatMan } from '@/lib/format';
 
 export function MonthlyKpiCards({
   ordered,

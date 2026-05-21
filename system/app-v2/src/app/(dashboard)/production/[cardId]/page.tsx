@@ -32,6 +32,7 @@ import { ReviewForm } from './_components/review-form';
 import { ReviewRow } from './_components/review-row';
 import { TimeLogForm } from './_components/time-log-form';
 import { TimeLogRow } from './_components/time-log-row';
+import { formatYen } from '@/lib/format';
 
 function formatHours(minutes: number): string {
   if (minutes === 0) return '0時間';
@@ -50,10 +51,6 @@ const STATUS_LABEL: Record<string, string> = {
   delivered: '納品済',
   cancelled: 'キャンセル',
 };
-
-function formatYen(v: number | null): string {
-  return `¥${(v ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export default async function ProductionCardDetailPage({
   params,

@@ -4,6 +4,7 @@ import { useState } from 'react';
 import { Bot, RotateCcw, User2 } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
+import { formatYen } from '@/lib/format';
 
 type Category =
   | 'development'
@@ -65,10 +66,6 @@ const CATEGORY_BADGE: Record<Category, string> = {
   negotiation: 'bg-amber-50 text-amber-800 border-amber-200',
   other: 'bg-gray-100 text-gray-700 border-gray-200',
 };
-
-function formatYen(value: number): string {
-  return `¥${value.toLocaleString('ja-JP')}`;
-}
 
 export function AiWorkOptimizerSection({ cardId }: { cardId: string }) {
   const [data, setData] = useState<OptimizeResult | null>(null);

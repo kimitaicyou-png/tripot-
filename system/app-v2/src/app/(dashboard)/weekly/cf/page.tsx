@@ -8,6 +8,7 @@ import { WeeklyTabs } from '../_components/tabs';
 import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue, StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
+import { formatYen } from '@/lib/format';
 
 const STAGE_WEIGHT: Record<string, number> = {
   prospect: 0.1,
@@ -38,10 +39,6 @@ const STAGE_COLOR: Record<string, string> = {
   acceptance: 'bg-pink-400',
   invoiced: 'bg-rose-400',
 };
-
-function formatYen(value: number): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 function startOfWeek(d: Date): Date {
   const out = new Date(d);

@@ -19,6 +19,7 @@ import { useDroppable, useDraggable } from '@dnd-kit/core';
 import { CSS } from '@dnd-kit/utilities';
 import { updateProductionCardStatus } from '@/lib/actions/production';
 import { toast } from '@/components/ui/toaster';
+import { formatYen } from '@/lib/format';
 
 type ProductionStatus = 'requirements' | 'designing' | 'building' | 'reviewing' | 'delivered' | 'cancelled';
 
@@ -49,10 +50,6 @@ const STATUS_GROUPS: StatusGroup[] = [
   { key: 'delivered', label: '納品済', headerClass: 'text-emerald-700 bg-emerald-50', borderClass: 'border-emerald-200' },
   { key: 'cancelled', label: 'キャンセル', headerClass: 'text-gray-500 bg-gray-50', borderClass: 'border-gray-200' },
 ];
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export function ProductionKanban({ initialCards }: { initialCards: Card[] }) {
   const router = useRouter();

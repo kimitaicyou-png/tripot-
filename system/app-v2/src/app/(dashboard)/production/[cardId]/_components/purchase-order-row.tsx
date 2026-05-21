@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { ChevronRight } from 'lucide-react';
 import { markPurchaseOrderDelivered, markPurchaseOrderPaid } from '@/lib/actions/purchase-orders';
 import { toast } from '@/components/ui/toaster';
+import { formatYen } from '@/lib/format';
 
 type Props = {
   id: string;
@@ -17,10 +18,6 @@ type Props = {
   paid_on: string | null;
   created_at: Date | string;
 };
-
-function formatYen(v: number | null): string {
-  return `¥${(v ?? 0).toLocaleString('ja-JP')}`;
-}
 
 function formatDate(v: string | null): string {
   if (!v) return '—';

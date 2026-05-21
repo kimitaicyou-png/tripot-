@@ -1,10 +1,6 @@
 import { getAttackPlanForDeal } from '@/lib/actions/attack-plans';
 import { AttackForm } from './attack-form';
-
-function formatYen(value: number | null | undefined): string {
-  if (!value) return '—';
-  return `¥${value.toLocaleString('ja-JP')}`;
-}
+import { formatYenOrDash } from '@/lib/format';
 
 export async function AttackSection({ dealId }: { dealId: string }) {
   const plan = await getAttackPlanForDeal(dealId);
@@ -30,7 +26,7 @@ export async function AttackSection({ dealId }: { dealId: string }) {
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">予算想定</p>
-            <p className="font-mono tabular-nums text-gray-900">{formatYen(plan.budget_estimate)}</p>
+            <p className="font-mono tabular-nums text-gray-900">{formatYenOrDash(plan.budget_estimate)}</p>
           </div>
           <div>
             <p className="text-xs text-gray-500 mb-1">最終更新</p>

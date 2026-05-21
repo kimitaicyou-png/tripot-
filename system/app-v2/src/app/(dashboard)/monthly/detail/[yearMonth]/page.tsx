@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue, StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
+import { formatYen, formatMan } from '@/lib/format';
 
 const STAGE_LABEL: Record<string, string> = {
   prospect: '見込み',
@@ -33,14 +34,6 @@ const STAGE_COLOR: Record<string, string> = {
   paid: 'bg-emerald-50 text-emerald-700',
   lost: 'bg-red-50 text-red-700',
 };
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
-
-function formatMan(value: number | null): string {
-  return `${Math.round((value ?? 0) / 10000).toLocaleString('ja-JP')}万`;
-}
 
 function parseYearMonth(s: string): { year: number; month: number } | null {
   const m = /^(\d{4})-(\d{2})$/.exec(s);

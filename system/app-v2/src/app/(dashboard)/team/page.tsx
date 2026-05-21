@@ -10,16 +10,13 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { OverloadAlertCard } from './_components/overload-alert-card';
+import { formatYen } from '@/lib/format';
 
 const ROLE_LABEL: Record<string, string> = {
   president: '社長',
   hq_member: '本部メンバー',
   member: 'メンバー',
 };
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export default async function TeamPage() {
   const session = await auth();

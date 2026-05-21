@@ -7,6 +7,7 @@ import { members, deals, customers, actions, tasks } from '@/db/schema';
 import { eq, and, sql, isNull, desc, gte } from 'drizzle-orm';
 import { getMemberColor, getMemberInitial } from '@/lib/member-color';
 import { MemberStatusToggle } from './_components/member-status-toggle';
+import { formatYen } from '@/lib/format';
 
 const STAGE_LABEL: Record<string, string> = {
   prospect: '見込み',
@@ -37,10 +38,6 @@ const ROLE_LABEL: Record<string, string> = {
   hq_member: '本部メンバー',
   member: 'メンバー',
 };
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export default async function TeamMemberDetailPage({
   params,

@@ -289,8 +289,8 @@ createTask 等）にも同様にテストを書ける。
 
 ## 共通 helper
 
-- `src/lib/format.ts`: formatYen / formatMan / formatShortYen / formatPercent / formatRate
-  （31 ファイルで重複定義されていた format 関数の集約、段階移行中）
+- `src/lib/format.ts`: formatYen / formatYenOrDash / formatMan / formatShortYen / formatPercent / formatRate
+  （旧 31 ファイルの重複定義を全面集約済み、新規実装も本 helper を使用）
 - `src/lib/ai/jobs.ts`: getLatestAiJobForDeal / getLatestAiJobForMember
 - `src/lib/deals/stage-advance.ts`: maybeAdvanceDealStage（自動進行 7 段の共通エンジン）
 - `src/lib/deals/stage-requirements.ts`: getStageRequirements / isStageAdvancement
@@ -343,7 +343,6 @@ vercel deploy --prod --yes
 - **MoneyForward Cloud 接続**（販管費実績の自動取得、設計済：`docs/MONEYFORWARD_INTEGRATION.md`、env 投入待ち）
 - iOS Safari 音声認識の精度確認・Whisper API への切替検討
 - 1Password CLI 経由でローカル env 同期
-- format helpers の段階移行（31 ファイルの重複削除）
 
 ## 完了済み（参照）
 
@@ -357,6 +356,7 @@ vercel deploy --prod --yes
 - vitest 基盤（86 テスト：純粋関数 59 + DB-mock 17 + 監査ロジック 10）
 - ページネーション 3 ページ（/deals + /customers + /tasks、各 50 件/ページ）
 - /customers 検索 + /tasks フィルタ SQL 化 + /search 9 種拡張
+- format helpers 全面集約（formatYen/Man/ShortYen/YenOrDash、旧 31 ファイルの重複ゼロ達成）
 
 ## トラブルシューティング
 

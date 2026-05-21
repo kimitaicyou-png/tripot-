@@ -14,6 +14,12 @@ export function formatYen(value: number | null | undefined): string {
   return `¥${value.toLocaleString('ja-JP')}`;
 }
 
+/** formatYen の dash variant：null/undefined/0 のとき "—" を返す（attack-section 等で使用）。 */
+export function formatYenOrDash(value: number | null | undefined): string {
+  if (!value) return '—';
+  return `¥${value.toLocaleString('ja-JP')}`;
+}
+
 /** 1,234万 形式（万円単位、千区切り）。0 は 0万。 */
 export function formatMan(value: number | null | undefined): string {
   return `${Math.round((value ?? 0) / 10000).toLocaleString('ja-JP')}万`;

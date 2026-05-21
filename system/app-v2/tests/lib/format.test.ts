@@ -1,6 +1,7 @@
 import { describe, expect, test } from 'vitest';
 import {
   formatYen,
+  formatYenOrDash,
   formatMan,
   formatShortYen,
   formatPercent,
@@ -31,6 +32,24 @@ describe('formatYen', () => {
   });
   test('100 億単位 → 千区切り維持', () => {
     expect(formatYen(99_999_999_999)).toBe('¥99,999,999,999');
+  });
+});
+
+describe('formatYenOrDash', () => {
+  test('正の整数 → ¥ 千区切り', () => {
+    expect(formatYenOrDash(1234567)).toBe('¥1,234,567');
+  });
+  test('0 → —（dash）', () => {
+    expect(formatYenOrDash(0)).toBe('—');
+  });
+  test('null → —', () => {
+    expect(formatYenOrDash(null)).toBe('—');
+  });
+  test('undefined → —', () => {
+    expect(formatYenOrDash(undefined)).toBe('—');
+  });
+  test('1 → ¥1（0 以外は ¥ 表示）', () => {
+    expect(formatYenOrDash(1)).toBe('¥1');
   });
 });
 

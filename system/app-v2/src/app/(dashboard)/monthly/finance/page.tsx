@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue, StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
+import { formatYen } from '@/lib/format';
 
 const SGA_CODES = ['6110', '6210', '6310', '6410', '6510', '6610', '6710', '6810'];
 const FIXED_CATEGORIES = [
@@ -21,10 +22,6 @@ const FIXED_CATEGORIES = [
   { code: '6710', label: '減価償却費' },
   { code: '6810', label: 'その他販管費' },
 ];
-
-function formatYen(v: number | null): string {
-  return `¥${(v ?? 0).toLocaleString('ja-JP')}`;
-}
 
 function pct(v: number): string {
   return `${(v >= 0 ? '+' : '')}${(v * 100).toFixed(1)}%`;
