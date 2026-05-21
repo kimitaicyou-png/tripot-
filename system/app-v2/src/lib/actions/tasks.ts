@@ -58,6 +58,18 @@ export async function createTask(_prev: TaskFormState, formData: FormData): Prom
     metadata: { title: parsed.data.title },
   });
 
+  // 思想実装：タスクが deal 紐づきで作成された瞬間、案件が「受注」段ならば
+  // 「制作中」へ自動進行（後退しないルールにより ordered の時のみ進む）
+  if (parsed.data.deal_id) {
+    await maybeAdvanceDealStage({
+      dealId: parsed.data.deal_id,
+      companyId: session.user.company_id,
+      memberId: session.user.member_id,
+      targetStage: 'in_production',
+      triggeredBy: 'task.created',
+    });
+  }
+
   revalidatePath('/tasks');
   if (parsed.data.deal_id) revalidatePath(`/deals/${parsed.data.deal_id}`);
   return { success: true };
