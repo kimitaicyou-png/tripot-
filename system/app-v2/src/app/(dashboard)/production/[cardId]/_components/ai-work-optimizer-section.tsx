@@ -154,34 +154,37 @@ export function AiWorkOptimizerSection({ cardId }: { cardId: string }) {
       </div>
 
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500">タスク数</p>
-          <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
+        <div className="border border-gray-200 rounded-lg p-4 overflow-hidden">
+          <p className="text-xs text-gray-500 truncate">タスク数</p>
+          <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums truncate">
             {data.summary.task_count}
           </p>
         </div>
-        <div className="border border-gray-200 rounded-lg p-4">
-          <p className="text-xs text-gray-500">元工数</p>
-          <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
+        <div className="border border-gray-200 rounded-lg p-4 overflow-hidden">
+          <p className="text-xs text-gray-500 truncate">元工数</p>
+          <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums truncate">
             {data.summary.total_original_hours}h
           </p>
         </div>
-        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50">
-          <p className="text-xs text-blue-700">最適化後</p>
-          <p className="font-semibold text-3xl text-blue-700 mt-1 tabular-nums">
+        <div className="border border-blue-200 rounded-lg p-4 bg-blue-50 overflow-hidden">
+          <p className="text-xs text-blue-700 truncate">最適化後</p>
+          <p className="font-semibold text-3xl text-blue-700 mt-1 tabular-nums truncate">
             {data.summary.total_optimized_hours}h
           </p>
-          <p className="text-xs text-blue-600 mt-1">
+          <p className="text-xs text-blue-600 mt-1 truncate">
             {data.summary.overall_reduction_rate}% 削減
           </p>
         </div>
-        <div className="border border-amber-200 rounded-lg p-4 bg-amber-50">
-          <p className="text-xs text-amber-800">予算削減効果</p>
-          <p className="font-semibold text-3xl text-amber-700 mt-1 tabular-nums tracking-tight">
+        <div className="border border-amber-200 rounded-lg p-4 bg-amber-50 overflow-hidden">
+          <p className="text-xs text-amber-800 truncate">予算削減効果</p>
+          <p
+            className="font-semibold text-2xl md:text-3xl text-amber-700 mt-1 tabular-nums tracking-tight truncate"
+            title={formatYen(data.summary.cost_saving_yen)}
+          >
             {formatYen(data.summary.cost_saving_yen)}
           </p>
-          <p className="text-xs text-amber-700 mt-1">
-            {data.summary.total_reduction_hours}h 削減 × {formatYen(data.hourly_rate_yen)}/h
+          <p className="text-xs text-amber-700 mt-1 truncate">
+            {data.summary.total_reduction_hours}h × {formatYen(data.hourly_rate_yen)}/h
           </p>
         </div>
       </div>
