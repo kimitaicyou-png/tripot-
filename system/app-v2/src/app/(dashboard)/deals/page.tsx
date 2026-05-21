@@ -1,5 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { LayoutGrid, List } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, members, customers } from '@/db/schema';
@@ -8,6 +9,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
+import { DealsKanban } from './_components/deals-kanban';
 
 const STAGE_LABEL: Record<string, string> = {
   prospect: '見込み',
@@ -50,9 +52,16 @@ function formatYen(value: number | null): string {
   return `¥${value.toLocaleString('ja-JP')}`;
 }
 
-export default async function DealsListPage() {
+export default async function DealsListPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ view?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
+
+  const { view } = await searchParams;
+  const isKanban = view !== 'list'; // デフォルト Kanban、?view=list でリスト
 
   const PAGE_LIMIT = 200;
   const rows = await db
@@ -110,7 +119,33 @@ export default async function DealsListPage() {
           </>
         }
         actions={
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
+            <div className="inline-flex items-center bg-gray-100 rounded-lg p-0.5">
+              <Link
+                href="/deals?view=kanban"
+                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-150 ${
+                  isKanban
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                aria-pressed={isKanban}
+              >
+                <LayoutGrid className="w-3.5 h-3.5" />
+                Kanban
+              </Link>
+              <Link
+                href="/deals?view=list"
+                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-150 ${
+                  !isKanban
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                aria-pressed={!isKanban}
+              >
+                <List className="w-3.5 h-3.5" />
+                リスト
+              </Link>
+            </div>
             <Link
               href="/deals/import"
               className="inline-flex items-center gap-1 px-4 py-2 text-sm border border-gray-200 rounded text-gray-700 hover:text-gray-900 hover:border-gray-900 transition-colors"
@@ -153,7 +188,15 @@ export default async function DealsListPage() {
               <StatCard label="進行中の案件" value={totalActive} sub={`全${rows.length}件中`} big />
             </section>
 
-            {grouped.map((g) => (
+            {isKanban ? (
+              <DealsKanban
+                deals={rows.map((d) => ({
+                  ...d,
+                  updated_at: d.updated_at instanceof Date ? d.updated_at : new Date(d.updated_at),
+                }))}
+              />
+            ) : (
+              grouped.map((g) => (
               <section key={g.stage}>
                 <SectionHeading
                   eyebrow={g.stage.toUpperCase()}
@@ -213,7 +256,8 @@ export default async function DealsListPage() {
                   ))}
                 </div>
               </section>
-            ))}
+              ))
+            )}
           </>
         )}
       </div>
