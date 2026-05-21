@@ -9,6 +9,7 @@ import { SummarizeMeetingButton } from './summarize-meeting-button';
 import { GenerateTasksFromMeetingButton } from './generate-tasks-from-meeting-button';
 import { GenerateRequirementButton } from './generate-requirement-button';
 import { GenerateSitemapButton } from './generate-sitemap-button';
+import { MarkAcceptanceButton } from './mark-acceptance-button';
 
 type Need = { tag: string; priority: 'high' | 'medium' | 'low'; context: string };
 
@@ -127,9 +128,20 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
 
                 {/* AI アクション領域：縦並びで各ボタンが独立、展開時も他を押さない */}
                 <div className="pt-4 border-t border-gray-100 space-y-3">
-                  <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
-                    AI アクション
-                  </p>
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                      AI アクション
+                    </p>
+                    <MarkAcceptanceButton
+                      dealId={dealId}
+                      meetingId={m.id}
+                      alreadyMarked={
+                        typeof (m.metadata as Record<string, unknown> | null)?.is_acceptance === 'boolean'
+                          ? Boolean((m.metadata as Record<string, unknown>).is_acceptance)
+                          : false
+                      }
+                    />
+                  </div>
                   {m.raw_text && (
                     <div>
                       <SummarizeMeetingButton meetingId={m.id} hasSummary={Boolean(m.summary)} />

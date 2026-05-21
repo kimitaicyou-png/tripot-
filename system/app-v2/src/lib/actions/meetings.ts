@@ -2,10 +2,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { eq, and, isNull } from 'drizzle-orm';
+import { eq, and, isNull, sql } from 'drizzle-orm';
 import { db, logAudit } from '@/lib/db';
 import { meetings } from '@/db/schema';
 import { requirePermission } from '@/lib/rbac';
+import { maybeAdvanceDealStage } from '@/lib/deals/stage-advance';
 
 const meetingSchema = z.object({
   deal_id: z.string().uuid().optional().nullable(),
@@ -145,6 +146,60 @@ export async function deleteMeeting(meetingId: string, dealId?: string): Promise
   });
 
   if (dealId) revalidatePath(`/deals/${dealId}`);
+}
+
+/**
+ * 議事録を「検収議事録」としてマークし、案件ステージを acceptance へ自動進行。
+ *
+ * 隊長思想 (2026-05-20)「行動 → 自動でステージ」の delivered → acceptance 段の実装。
+ * meetings.type enum を拡張せず、metadata.is_acceptance フラグで対応（migration 不要）。
+ *
+ * deal.stage が delivered の時のみ acceptance に進む（後退しないルール）。
+ */
+export async function markMeetingAsAcceptance(
+  meetingId: string,
+  dealId: string
+): Promise<{ ok: boolean; error?: string }> {
+  const guard = await requirePermission({ resource: 'meeting', action: 'update' });
+  if (!guard.ok) return { ok: false, error: guard.error };
+  const { session } = guard;
+
+  // 議事録 metadata に is_acceptance: true をマージ
+  // jsonb_build_object('is_acceptance', true) を既存 metadata に jsonb || で結合
+  await db
+    .update(meetings)
+    .set({
+      metadata: sql`COALESCE(${meetings.metadata}, '{}'::jsonb) || jsonb_build_object('is_acceptance', true, 'marked_acceptance_at', to_jsonb(NOW()::text))`,
+      updated_at: new Date(),
+    })
+    .where(
+      and(
+        eq(meetings.id, meetingId),
+        eq(meetings.company_id, session.user.company_id),
+        isNull(meetings.deleted_at)
+      )
+    );
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'meeting.marked_acceptance',
+    resource_type: 'meeting',
+    resource_id: meetingId,
+    metadata: { deal_id: dealId },
+  });
+
+  // deal.stage = 'delivered' のときのみ acceptance に進む（後退しないルール）
+  await maybeAdvanceDealStage({
+    dealId,
+    companyId: session.user.company_id,
+    memberId: session.user.member_id,
+    targetStage: 'acceptance',
+    triggeredBy: 'meeting.marked_acceptance',
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  return { ok: true };
 }
 
 export async function listMeetingsForDeal(dealId: string) {
