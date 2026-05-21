@@ -10,6 +10,7 @@ import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ProductionCreateForm } from './_components/production-create-form';
 import { ProductionKanban } from './_components/production-kanban';
+import { ProductionEffortSummary } from './_components/production-effort-summary';
 
 type ProductionStatus = 'requirements' | 'designing' | 'building' | 'reviewing' | 'delivered' | 'cancelled';
 
@@ -35,6 +36,20 @@ export default async function ProductionPage() {
 
   const totalActive = cards.filter((c) => c.status !== 'delivered' && c.status !== 'cancelled').length;
   const totalDelivered = cards.filter((c) => c.status === 'delivered').length;
+
+  // 工数予実（進行中カード対象）
+  const activeCards = cards.filter(
+    (c) => c.status !== 'delivered' && c.status !== 'cancelled',
+  );
+  const totalEstimated = activeCards.reduce((s, c) => s + (c.estimated_cost ?? 0), 0);
+  const totalActual = activeCards.reduce((s, c) => s + (c.actual_cost ?? 0), 0);
+  const buildingCount = activeCards.filter((c) => c.status === 'building').length;
+  const now = Date.now();
+  const overdueCount = activeCards.filter((c) => {
+    if (!c.started_at) return false;
+    const startedMs = new Date(c.started_at).getTime();
+    return now - startedMs > 14 * 24 * 60 * 60 * 1000; // 14 日以上経過
+  }).length;
 
   const kanbanCards = cards.map((c) => ({
     id: c.id,
@@ -93,12 +108,22 @@ export default async function ProductionPage() {
             cta={{ label: '案件一覧へ', href: '/deals' }}
           />
         ) : (
-          <section>
-            <p className="text-xs text-gray-500 mb-3">
-              カードをドラッグして列間で移動するとステータスが自動更新されます
-            </p>
-            <ProductionKanban initialCards={kanbanCards} />
-          </section>
+          <>
+            {activeCards.length > 0 && (
+              <ProductionEffortSummary
+                totalEstimated={totalEstimated}
+                totalActual={totalActual}
+                overdueCount={overdueCount}
+                buildingCount={buildingCount}
+              />
+            )}
+            <section>
+              <p className="text-xs text-gray-500 mb-3">
+                カードをドラッグして列間で移動するとステータスが自動更新されます
+              </p>
+              <ProductionKanban initialCards={kanbanCards} />
+            </section>
+          </>
         )}
       </div>
     </main>
