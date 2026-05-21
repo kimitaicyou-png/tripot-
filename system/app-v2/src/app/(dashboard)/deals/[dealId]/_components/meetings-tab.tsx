@@ -7,6 +7,7 @@ import { MeetingForm } from './meeting-form';
 import { ProposalFromMeetingButton } from './proposal-from-meeting-button';
 import { SummarizeMeetingButton } from './summarize-meeting-button';
 import { GenerateTasksFromMeetingButton } from './generate-tasks-from-meeting-button';
+import { GenerateRequirementButton } from './generate-requirement-button';
 
 type Need = { tag: string; priority: 'high' | 'medium' | 'low'; context: string };
 
@@ -80,10 +81,11 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                       {new Date(m.occurred_at).toLocaleString('ja-JP')}
                     </p>
                   </div>
-                  <div className="flex items-center gap-2 shrink-0">
+                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
                     {m.raw_text && (
                       <SummarizeMeetingButton meetingId={m.id} hasSummary={Boolean(m.summary)} />
                     )}
+                    <GenerateRequirementButton dealId={dealId} meetingId={m.id} />
                     <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
                     <GenerateTasksFromMeetingButton meetingId={m.id} />
                   </div>
