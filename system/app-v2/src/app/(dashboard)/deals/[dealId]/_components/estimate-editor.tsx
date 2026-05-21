@@ -2,7 +2,7 @@
 
 import { useState, useTransition, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { X, Plus } from 'lucide-react';
+import { X, Plus, Sparkles, Loader2 } from 'lucide-react';
 import { createEstimate } from '@/lib/actions/estimates';
 import { FormField, TextInput, Button, FormActions } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -38,6 +38,7 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
   const [validUntil, setValidUntil] = useState('');
   const [lines, setLines] = useState<LineItem[]>([emptyLine()]);
   const [submitting, setSubmitting] = useState(false);
+  const [aiGenerating, setAiGenerating] = useState(false);
 
   const subtotal = useMemo(
     () => lines.reduce((s, l) => s + (Number.isFinite(l.amount) ? l.amount : 0), 0),
@@ -67,6 +68,54 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
 
   function removeLine(idx: number) {
     setLines((prev) => (prev.length === 1 ? prev : prev.filter((_, i) => i !== idx)));
+  }
+
+  async function handleGenerateWithAi() {
+    if (aiGenerating) return;
+    setAiGenerating(true);
+    try {
+      const res = await fetch('/api/ai/generate-estimate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ deal_id: dealId }),
+      });
+      const json = await res.json();
+      if (!res.ok) {
+        const msg =
+          typeof json?.message === 'string'
+            ? json.message
+            : typeof json?.error === 'string'
+              ? json.error
+              : 'AI 生成に失敗しました';
+        toast.error('AI 生成失敗', { description: msg });
+        return;
+      }
+      const aiItems = Array.isArray(json?.items) ? (json.items as LineItem[]) : [];
+      if (aiItems.length === 0) {
+        toast.error('AI 生成失敗', { description: '明細が空でした' });
+        return;
+      }
+      setLines(
+        aiItems.map((i) => ({
+          description: String(i.description ?? ''),
+          quantity: Number(i.quantity ?? 0),
+          unit_price: Number(i.unit_price ?? 0),
+          amount: calcAmount(Number(i.quantity ?? 0), Number(i.unit_price ?? 0)),
+        }))
+      );
+      if (!title.trim() && typeof json.suggested_title === 'string') {
+        setTitle(json.suggested_title);
+      }
+      const usedCount = typeof json.meetings_used === 'number' ? json.meetings_used : 0;
+      toast.success('AI で明細を生成しました', {
+        description: `${aiItems.length}行・議事録${usedCount}件参照。内容を確認して保存してください`,
+      });
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : '通信失敗';
+      toast.error('AI 生成失敗', { description: msg });
+    } finally {
+      setAiGenerating(false);
+    }
   }
 
   async function handleSubmit() {
@@ -147,7 +196,28 @@ export function EstimateEditorButton({ dealId }: { dealId: string }) {
           </div>
 
           <div>
-            <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">明細</p>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs uppercase tracking-widest text-gray-500">明細</p>
+              <button
+                type="button"
+                onClick={handleGenerateWithAi}
+                disabled={aiGenerating || submitting}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-gray-900 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed"
+                aria-label="案件情報と直近議事録から明細をAI生成"
+              >
+                {aiGenerating ? (
+                  <>
+                    <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    生成中…
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="w-3.5 h-3.5" />
+                    AI で明細を生成
+                  </>
+                )}
+              </button>
+            </div>
             <div className="space-y-2">
               {lines.map((line, idx) => (
                 <div
