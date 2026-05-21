@@ -6,9 +6,9 @@ import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 
-type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
+export type RiskLevel = 'low' | 'medium' | 'high' | 'critical';
 
-type RiskScore = {
+export type RiskScore = {
   score: number;
   level: RiskLevel;
   reasons: string[];
@@ -51,8 +51,14 @@ const LEVEL_SCORE_COLOR: Record<RiskLevel, string> = {
   critical: 'text-red-700',
 };
 
-export function RiskScoreSection({ dealId }: { dealId: string }) {
-  const [data, setData] = useState<RiskScore | null>(null);
+export function RiskScoreSection({
+  dealId,
+  initialData,
+}: {
+  dealId: string;
+  initialData?: RiskScore | null;
+}) {
+  const [data, setData] = useState<RiskScore | null>(initialData ?? null);
   const [running, setRunning] = useState(false);
 
   async function handleAssess() {

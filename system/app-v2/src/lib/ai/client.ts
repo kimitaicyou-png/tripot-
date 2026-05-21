@@ -57,6 +57,11 @@ type CallOptions = {
 };
 
 async function startJob(ctx: AiCallContext, model: string, input: unknown): Promise<string> {
+  // dealId を input に _deal_id として埋め込み、後で deal 単位の最新ジョブ検索を可能にする
+  // （ai_jobs に deal_id 専用カラム追加すると migration 必要、jsonb 検索で代替）
+  const enrichedInput = ctx.dealId
+    ? { ...(input as Record<string, unknown>), _deal_id: ctx.dealId }
+    : input;
   const [row] = await db
     .insert(ai_jobs)
     .values({
@@ -66,7 +71,7 @@ async function startJob(ctx: AiCallContext, model: string, input: unknown): Prom
       provider: 'anthropic',
       model,
       status: 'running',
-      input: input as Record<string, unknown>,
+      input: enrichedInput as Record<string, unknown>,
       started_at: new Date(),
     })
     .returning({ id: ai_jobs.id });

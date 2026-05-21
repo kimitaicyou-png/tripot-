@@ -9,6 +9,7 @@ import { TaskCheckbox } from '../../../tasks/task-checkbox';
 import { TaskQuickAdd } from '@/components/task-quick-add';
 import { LogActionButton } from '@/components/log-action-button';
 import { deleteDeal } from '@/lib/actions/deals';
+import { getLatestAiJobForDeal } from '@/lib/ai/jobs';
 import { NextActionSection } from './next-action-section';
 import { RiskScoreSection } from './risk-score-section';
 import { EmailDraftButton } from './email-draft-button';
@@ -67,6 +68,18 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
 
   const dealId = deal.id;
 
+  // 過去の risk-score AI ジョブを取得（あれば即表示、無ければ RiskScoreSection が「リスク分析」ボタン表示）
+  const latestRiskJob = await getLatestAiJobForDeal<{
+    score: number;
+    level: string;
+    reasons: string[];
+    recommended_actions: string[];
+  }>({
+    dealId,
+    jobType: 'risk-score',
+    companyId: session.user.company_id,
+  });
+
   const [dealTasks, dealActions] = await Promise.all([
     db
       .select({
@@ -121,7 +134,20 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
 
       <NextActionSection dealId={dealId} />
 
-      <RiskScoreSection dealId={dealId} />
+      <RiskScoreSection
+        dealId={dealId}
+        initialData={
+          latestRiskJob
+            ? {
+                score: Number(latestRiskJob.output.score),
+                level: latestRiskJob.output.level as 'low' | 'medium' | 'high' | 'critical',
+                reasons: latestRiskJob.output.reasons,
+                recommended_actions: latestRiskJob.output.recommended_actions,
+                generated_at: latestRiskJob.finishedAt.toISOString(),
+              }
+            : null
+        }
+      />
 
       <AttackSection dealId={dealId} />
 
