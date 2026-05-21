@@ -8,9 +8,11 @@ import { eq, and, sql, isNull, gte, lte } from 'drizzle-orm';
 import { BudgetEditor } from './_components/budget-editor';
 import { ActualsImportDialog } from './_components/actuals-import-dialog';
 import { BudgetAlertButton } from './_components/budget-alert-button';
+import { YearlyPlSummary } from './_components/yearly-pl-summary';
 import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
+import { getYearlyMonthlyOpex } from '@/lib/actions/monthly-opex';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
@@ -42,7 +44,7 @@ export default async function BudgetPage({
 
   const lastYear = year - 1;
 
-  const [budgetRows, actuals, lastYearActuals] = await Promise.all([
+  const [budgetRows, actuals, lastYearActuals, grossProfitActuals, opexMap] = await Promise.all([
     db
       .select()
       .from(budgets)
@@ -76,7 +78,37 @@ export default async function BudgetPage({
           eq(budget_actuals.year, lastYear)
         )
       ),
+    // 粗利の年間集計（generated column の sum、入金確定 + 請求済）
+    db
+      .select({
+        gross_profit: sql<number>`COALESCE(SUM(${deals.gross_profit}), 0)::int`,
+      })
+      .from(deals)
+      .where(
+        and(
+          eq(deals.company_id, session.user.company_id),
+          isNull(deals.deleted_at),
+          sql`${deals.stage} IN ('paid', 'invoiced')`,
+          gte(deals.paid_at, yearStart.toISOString().slice(0, 10)),
+          lte(deals.paid_at, yearEnd.toISOString().slice(0, 10)),
+        ),
+      )
+      .then((rows) => rows[0]),
+    getYearlyMonthlyOpex(year),
   ]);
+
+  // 年間 P/L サマリー集計
+  const totalTargetGrossProfit = budgetRows.reduce(
+    (s, b) => s + (b.target_gross_profit ?? 0),
+    0,
+  );
+  const totalTargetOperatingProfit = budgetRows.reduce(
+    (s, b) => s + (b.target_operating_profit ?? 0),
+    0,
+  );
+  const totalActualGrossProfit = grossProfitActuals?.gross_profit ?? 0;
+  const totalOpex = Array.from(opexMap.values()).reduce((s, v) => s + v, 0);
+  const totalActualOperatingProfit = totalActualGrossProfit - totalOpex;
 
   const actualMap = new Map<number, number>();
   for (const a of actuals) actualMap.set(a.month, a.revenue);
@@ -147,6 +179,19 @@ export default async function BudgetPage({
               </span>
             </>
           }
+        />
+
+        {/* 年間 P/L 予実サマリー（売上 + 粗利 + 営業利益、思想直結） */}
+        <YearlyPlSummary
+          year={year}
+          totalTargetRevenue={totalTarget}
+          totalActualRevenue={totalActual}
+          totalTargetGrossProfit={totalTargetGrossProfit}
+          totalActualGrossProfit={totalActualGrossProfit}
+          totalTargetOperatingProfit={totalTargetOperatingProfit}
+          totalActualOperatingProfit={totalActualOperatingProfit}
+          totalOpex={totalOpex}
+          opexMonths={opexMap.size}
         />
 
         <section className="bg-white border border-gray-200 rounded-xl p-6 shadow-sm">

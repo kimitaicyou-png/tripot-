@@ -94,3 +94,33 @@ export async function getMonthlyOpex(yearMonth: string): Promise<number> {
   const v = opexMap[yearMonth];
   return typeof v === 'number' ? v : 0;
 }
+
+/**
+ * 年内 12 ヶ月分の monthly_opex を Map<month, amount> で返す。
+ * budget page の年間 P/L サマリー用。1 クエリで companies.config を引き、メモリで month 分解。
+ */
+export async function getYearlyMonthlyOpex(year: number): Promise<Map<number, number>> {
+  const session = await auth();
+  const map = new Map<number, number>();
+  if (!session?.user?.member_id) return map;
+
+  const row = await db
+    .select({ config: companies.config })
+    .from(companies)
+    .where(eq(companies.id, session.user.company_id))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!row) return map;
+  const config = row.config as Record<string, unknown> | null;
+  if (!config || typeof config !== 'object') return map;
+  const opexMap = (config as { monthly_opex?: Record<string, unknown> }).monthly_opex;
+  if (!opexMap || typeof opexMap !== 'object') return map;
+
+  for (let month = 1; month <= 12; month++) {
+    const ym = `${year}-${String(month).padStart(2, '0')}`;
+    const v = opexMap[ym];
+    if (typeof v === 'number' && v > 0) map.set(month, v);
+  }
+  return map;
+}
