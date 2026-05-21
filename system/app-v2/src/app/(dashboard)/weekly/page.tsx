@@ -10,10 +10,7 @@ import { WeeklyTotals } from './_components/weekly-totals';
 import { WeeklyRevenueCards } from './_components/weekly-revenue-cards';
 import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue } from '@/components/ui/stat-card';
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
+import { formatYen } from '@/lib/format';
 
 type SearchParams = { focus?: string };
 

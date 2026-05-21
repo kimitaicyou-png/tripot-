@@ -16,6 +16,7 @@ import {
   type DragStartEvent,
 } from '@dnd-kit/core';
 import { updateDealStage } from '@/lib/actions/deals';
+import { formatYen, formatShortYen } from '@/lib/format';
 import { toast } from '@/components/ui/toaster';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
 
@@ -46,18 +47,6 @@ type DealItem = {
   gross_profit: number | null;
   gross_profit_rate: string | number | null;
 };
-
-function formatYen(value: number | null | undefined): string {
-  if (!value) return '¥0';
-  return `¥${value.toLocaleString('ja-JP')}`;
-}
-
-function formatShortYen(value: number | null | undefined): string {
-  if (!value) return '¥0';
-  if (value >= 10_000_000) return `¥${(value / 10_000_000).toFixed(1)}千万`;
-  if (value >= 10_000) return `¥${Math.round(value / 10_000)}万`;
-  return `¥${value.toLocaleString('ja-JP')}`;
-}
 
 function DealCard({
   deal,

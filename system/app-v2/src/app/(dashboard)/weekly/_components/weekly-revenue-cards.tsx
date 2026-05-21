@@ -9,13 +9,7 @@
  * - 今週新規パイプライン：created_at が直近 7 日（ロスト除く）
  */
 
-function formatYen(value: number): string {
-  return `¥${value.toLocaleString('ja-JP')}`;
-}
-
-function formatMan(value: number): string {
-  return `${Math.round(value / 10000).toLocaleString('ja-JP')}万`;
-}
+import { formatYen, formatMan } from '@/lib/format';
 
 type CardProps = {
   label: string;

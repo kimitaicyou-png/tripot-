@@ -8,13 +8,7 @@
  * MF 接続後は actual_opex は MF transactions から自動算出に置換される。
  */
 
-function formatYen(value: number | null | undefined): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
-
-function formatMan(value: number | null | undefined): string {
-  return `${Math.round((value ?? 0) / 10000).toLocaleString('ja-JP')}万`;
-}
+import { formatYen, formatMan } from '@/lib/format';
 
 function rateColor(rate: number): string {
   if (rate >= 100) return 'text-emerald-700';

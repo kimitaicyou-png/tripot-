@@ -9,13 +9,7 @@
  * MF 接続後は actual_opex に置換予定。
  */
 
-function formatMan(value: number): string {
-  return `${Math.round(value / 10000).toLocaleString('ja-JP')}万`;
-}
-
-function formatYen(value: number): string {
-  return `¥${value.toLocaleString('ja-JP')}`;
-}
+import { formatYen, formatMan } from '@/lib/format';
 
 function rateColor(rate: number): string {
   if (rate >= 100) return 'text-emerald-700';

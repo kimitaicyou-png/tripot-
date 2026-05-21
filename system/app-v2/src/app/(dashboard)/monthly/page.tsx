@@ -13,11 +13,8 @@ import { MonthlyKpiCards } from './_components/monthly-kpi-cards';
 import { PlVsTargetCards } from './_components/pl-vs-target-cards';
 import { OpexInputForm } from './_components/opex-input-form';
 import { getMonthlyOpex } from '@/lib/actions/monthly-opex';
+import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../coaris.config';
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export default async function MonthlyPage() {
   const session = await auth();

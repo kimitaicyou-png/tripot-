@@ -11,6 +11,7 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DealsKanban } from './_components/deals-kanban';
 import { KanbanFilters } from './_components/kanban-filters';
+import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../coaris.config';
 
 const STAGE_LABEL: Record<string, string> = {
@@ -48,11 +49,6 @@ const STAGE_ORDER: readonly string[] = [
   'paid',
   'lost',
 ];
-
-function formatYen(value: number | null): string {
-  if (!value) return '¥0';
-  return `¥${value.toLocaleString('ja-JP')}`;
-}
 
 function getPeriodStart(period: string): Date | null {
   const now = new Date();

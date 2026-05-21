@@ -13,14 +13,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { getYearlyMonthlyOpex } from '@/lib/actions/monthly-opex';
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
-
-function formatMan(value: number | null): string {
-  return `${Math.round((value ?? 0) / 10000).toLocaleString('ja-JP')}万`;
-}
+import { formatYen, formatMan } from '@/lib/format';
 
 const MONTH_LABEL = ['1月', '2月', '3月', '4月', '5月', '6月', '7月', '8月', '9月', '10月', '11月', '12月'];
 
