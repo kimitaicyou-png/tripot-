@@ -7,19 +7,19 @@ import { toast } from '@/components/ui/toaster';
 import { Sparkles, RotateCcw, Lightbulb, AlertTriangle, AlertOctagon } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 
-type FocusItem = {
+export type FocusItem = {
   title: string;
   why: string;
   suggested_action: string;
   deal_id?: string | null;
 };
 
-type AlertItem = {
+export type AlertItem = {
   severity: 'info' | 'warning' | 'critical';
   message: string;
 };
 
-type Brief = {
+export type Brief = {
   focus: FocusItem[];
   alerts: AlertItem[];
   message: string;
@@ -43,9 +43,19 @@ const ALERT_ICON_COLOR: Record<AlertItem['severity'], string> = {
   critical: 'text-red-600',
 };
 
-export function MorningBrief({ memberId }: { memberId: string }) {
-  const [brief, setBrief] = useState<Brief | null>(null);
-  const [generatedAt, setGeneratedAt] = useState<string | null>(null);
+export function MorningBrief({
+  memberId,
+  initialBrief,
+  initialGeneratedAt,
+}: {
+  memberId: string;
+  initialBrief?: Brief | null;
+  initialGeneratedAt?: string | null;
+}) {
+  const [brief, setBrief] = useState<Brief | null>(initialBrief ?? null);
+  const [generatedAt, setGeneratedAt] = useState<string | null>(
+    initialGeneratedAt ?? null,
+  );
   const [running, setRunning] = useState(false);
 
   async function handleGenerate() {

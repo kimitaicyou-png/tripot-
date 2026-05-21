@@ -11,6 +11,8 @@ import { RevenueTrendCard } from './_components/revenue-trend-card';
 import { FunnelCard } from './_components/funnel-card';
 import { SilentCustomersCard } from './_components/silent-customers-card';
 import { WelcomeFirstSteps } from './_components/welcome-first-steps';
+import type { Brief } from './_components/morning-brief';
+import { getLatestAiJobForMember } from '@/lib/ai/jobs';
 import { pickQuoteForMember } from '@/lib/actions/quotes';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
 
@@ -133,7 +135,7 @@ export default async function MemberHomePage({
   const monthStart = new Date(currentYear, currentMonth - 1, 1);
   const monthEnd = new Date(currentYear, currentMonth, 0);
 
-  const [budgetRow, monthRevenueRow, weekTrendRows, funnelRows] = await Promise.all([
+  const [budgetRow, monthRevenueRow, weekTrendRows, funnelRows, latestMorningBriefJob] = await Promise.all([
     db
       .select({ target: budgets.target_revenue })
       .from(budgets)
@@ -192,6 +194,11 @@ export default async function MemberHomePage({
         )
       )
       .groupBy(deals.stage),
+    getLatestAiJobForMember<Brief>({
+      memberId,
+      jobType: 'morning-brief',
+      companyId,
+    }),
   ]);
 
   const targetRevenue = budgetRow?.target ?? 0;
@@ -269,7 +276,13 @@ export default async function MemberHomePage({
         )}
 
         <div className="mt-12">
-          <MorningBrief memberId={memberId} />
+          <MorningBrief
+            memberId={memberId}
+            initialBrief={latestMorningBriefJob?.output ?? null}
+            initialGeneratedAt={
+              latestMorningBriefJob?.finishedAt.toISOString() ?? null
+            }
+          />
         </div>
 
         <section className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
