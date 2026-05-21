@@ -97,9 +97,12 @@ export default async function CustomerDetailPage({
       </header>
 
       <div className="px-6 py-8 max-w-3xl mx-auto space-y-6">
-        <section className="bg-white border border-gray-200 rounded-xl p-6">
-          <p className="text-xs text-gray-500">入金累計</p>
-          <p className="font-semibold text-5xl text-gray-900 tracking-tight tabular-nums mt-1">
+        <section className="bg-white border border-gray-200 rounded-xl p-6 overflow-hidden">
+          <p className="text-xs text-gray-500 truncate">入金累計</p>
+          <p
+            className="font-semibold text-3xl md:text-5xl text-gray-900 tracking-tight tabular-nums mt-1 truncate"
+            title={formatYen(totalRevenue)}
+          >
             {formatYen(totalRevenue)}
           </p>
         </section>

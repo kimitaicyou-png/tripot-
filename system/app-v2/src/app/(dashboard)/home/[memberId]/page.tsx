@@ -236,17 +236,24 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
         </div>
 
         <section className="mt-8 grid grid-cols-2 md:grid-cols-3 gap-4 max-w-2xl">
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p className="text-xs text-gray-500">進行中の案件</p>
-            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{dealStats?.activeCount ?? 0}</p>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm overflow-hidden">
+            <p className="text-xs text-gray-500 truncate">進行中の案件</p>
+            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums truncate">
+              {dealStats?.activeCount ?? 0}
+            </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
-            <p className="text-xs text-gray-500">残タスク</p>
-            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums">{taskCount}</p>
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm overflow-hidden">
+            <p className="text-xs text-gray-500 truncate">残タスク</p>
+            <p className="font-semibold text-4xl text-gray-900 mt-1 tabular-nums truncate">
+              {taskCount}
+            </p>
           </div>
-          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm col-span-2 md:col-span-1">
-            <p className="text-xs text-gray-500">粗利合計（入金確定）</p>
-            <p className="font-semibold text-3xl md:text-4xl text-emerald-700 mt-1 tabular-nums">
+          <div className="bg-white border border-gray-200 rounded-xl p-5 shadow-sm col-span-2 md:col-span-1 overflow-hidden">
+            <p className="text-xs text-gray-500 truncate">粗利合計（入金確定）</p>
+            <p
+              className="font-semibold text-2xl md:text-3xl text-emerald-700 mt-1 tabular-nums truncate"
+              title={formatYen(dealStats?.grossProfit ?? 0)}
+            >
               {formatYen(dealStats?.grossProfit ?? 0)}
             </p>
           </div>
