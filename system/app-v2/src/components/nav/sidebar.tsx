@@ -4,6 +4,7 @@ import { signOut } from '@/auth';
 import { TRIPOT_CONFIG } from '../../../coaris.config';
 import { getMemberColor, getMemberInitial } from '@/lib/member-color';
 import { unreadCountForMember } from '@/lib/actions/notifications';
+import { pendingApprovalCountForMember } from '@/lib/actions/approvals';
 import {
   Home,
   Briefcase,
@@ -64,7 +65,10 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
   const memberId = user.member_id;
   const initial = getMemberInitial(user.name ?? '');
   const color = getMemberColor(memberId);
-  const unreadCount = await unreadCountForMember(memberId);
+  const [unreadCount, pendingApprovalCount] = await Promise.all([
+    unreadCountForMember(memberId),
+    pendingApprovalCountForMember(),
+  ]);
 
   return (
     <aside className="hidden md:flex md:w-60 md:flex-col bg-[#1a1f36] text-white h-screen sticky top-0">
@@ -101,6 +105,10 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
               {section.items.map((item) => {
                 const href = item.href === '/home' ? `/home/${memberId}` : item.href;
                 const Icon = item.icon;
+                const badgeCount =
+                  item.href === '/approval' && pendingApprovalCount > 0
+                    ? pendingApprovalCount
+                    : 0;
                 return (
                   <Link
                     key={item.href}
@@ -108,7 +116,12 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
                     className="flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-white/80 hover:bg-white/5 hover:text-white active:scale-[0.98] transition-all duration-150"
                   >
                     <Icon className="w-5 h-5 shrink-0" />
-                    <span className="font-medium">{item.label}</span>
+                    <span className="font-medium flex-1">{item.label}</span>
+                    {badgeCount > 0 && (
+                      <span className="text-xs font-medium tabular-nums text-amber-700 bg-amber-50 px-2 py-0.5 rounded-full shrink-0">
+                        {badgeCount}
+                      </span>
+                    )}
                   </Link>
                 );
               })}

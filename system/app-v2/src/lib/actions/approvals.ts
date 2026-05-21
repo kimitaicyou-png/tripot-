@@ -102,3 +102,31 @@ export async function requestApproval(
   if (parsed.data.deal_id) revalidatePath(`/deals/${parsed.data.deal_id}`);
   return { success: true };
 }
+
+import { ne, sql } from "drizzle-orm";
+import { auth } from "@/auth";
+
+/**
+ * 自分（メンバー）が承認すべき pending approval の件数を返す。
+ * Sidebar の Approval menu バッジ用、軽量カウントクエリ。
+ *
+ * ロジック：requester ≠ 自分 かつ status="pending" の件数。
+ * president / hq_member は他人の申請を承認する立場。
+ */
+export async function pendingApprovalCountForMember(): Promise<number> {
+  const session = await auth();
+  if (!session?.user?.member_id) return 0;
+  const row = await db
+    .select({ count: sql<number>`COUNT(*)::int` })
+    .from(approvals)
+    .where(
+      and(
+        eq(approvals.company_id, session.user.company_id),
+        eq(approvals.status, "pending"),
+        ne(approvals.requester_id, session.user.member_id),
+      ),
+    )
+    .then((rows) => rows[0]);
+  return row?.count ?? 0;
+}
+
