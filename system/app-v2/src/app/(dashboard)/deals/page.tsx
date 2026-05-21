@@ -83,13 +83,21 @@ export default async function DealsListPage({
     assignee?: string;
     period?: string;
     sort?: string;
+    page?: string;
   }>;
 }) {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
 
-  const { view, assignee, period = 'all', sort = 'updated_desc' } = await searchParams;
+  const { view, assignee, period = 'all', sort = 'updated_desc', page: pageStr } = await searchParams;
   const isKanban = view !== 'list';
+
+  // ページネーション（List view のみ有効、Kanban は全件 = フィルタで絞る）
+  const PAGE_SIZE = 50;
+  const KANBAN_LIMIT = 300;
+  const requestedPage = Math.max(1, Number(pageStr) || 1);
+  const offset = isKanban ? 0 : (requestedPage - 1) * PAGE_SIZE;
+  const queryLimit = isKanban ? KANBAN_LIMIT : PAGE_SIZE;
 
   // フィルタ条件構築
   const whereConditions: SQL[] = [
@@ -118,8 +126,7 @@ export default async function DealsListPage({
     }
   })();
 
-  const PAGE_LIMIT = 200;
-  const [rowsRaw, memberOptions] = await Promise.all([
+  const [rowsRaw, memberOptions, filteredCountRow] = await Promise.all([
     db
       .select({
         id: deals.id,
@@ -140,7 +147,8 @@ export default async function DealsListPage({
       .leftJoin(customers, eq(deals.customer_id, customers.id))
       .where(and(...whereConditions))
       .orderBy(orderBy)
-      .limit(PAGE_LIMIT),
+      .limit(queryLimit)
+      .offset(offset),
     db
       .select({ id: members.id, name: members.name })
       .from(members)
@@ -148,7 +156,17 @@ export default async function DealsListPage({
         and(eq(members.company_id, session.user.company_id), isNull(members.deleted_at))
       )
       .orderBy(members.name),
+    // フィルタ後の総件数（ページネーション計算用）
+    db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(deals)
+      .where(and(...whereConditions))
+      .then((r) => r[0]),
   ]);
+
+  const filteredTotal = filteredCountRow?.count ?? 0;
+  const totalPages = isKanban ? 1 : Math.max(1, Math.ceil(filteredTotal / PAGE_SIZE));
+  const currentPage = isKanban ? 1 : Math.min(requestedPage, totalPages);
 
   // cf_weighted_desc は メモリソート
   const rows =
@@ -169,7 +187,7 @@ export default async function DealsListPage({
     .from(deals)
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((r) => r[0]?.count ?? 0);
-  const isPartialList = rows.length >= PAGE_LIMIT && totalDealsCount > PAGE_LIMIT;
+  const isPartialList = isKanban && rows.length >= KANBAN_LIMIT && filteredTotal > KANBAN_LIMIT;
   const hasActiveFilter = Boolean(assignee) || period !== 'all';
 
   const totalActive = rows.filter((d) =>
@@ -256,10 +274,10 @@ export default async function DealsListPage({
         {isPartialList && (
           <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
             <p className="text-sm text-amber-900">
-              <span className="font-semibold">表示件数の上限に達しています。</span>{' '}
-              該当 <span className="font-mono tabular-nums">{totalDealsCount}</span> 件中、最新{' '}
-              <span className="font-mono tabular-nums">{PAGE_LIMIT}</span> 件のみ表示中。
-              フィルタや検索で絞り込んでください。
+              <span className="font-semibold">Kanban の表示件数上限に達しています。</span>{' '}
+              該当 <span className="font-mono tabular-nums">{filteredTotal}</span> 件中、最新{' '}
+              <span className="font-mono tabular-nums">{KANBAN_LIMIT}</span> 件のみ表示中。
+              フィルタで絞り込むかリスト view（ページネーション付き）に切り替えてください。
             </p>
           </div>
         )}
@@ -362,6 +380,65 @@ export default async function DealsListPage({
                   </div>
                 </section>
               ))
+            )}
+
+            {/* ページネーション（List view のみ） */}
+            {!isKanban && totalPages > 1 && (
+              <nav
+                className="flex items-center justify-between gap-3 pt-4 border-t border-gray-200"
+                aria-label="ページネーション"
+              >
+                <p className="text-xs text-gray-600">
+                  {(currentPage - 1) * PAGE_SIZE + 1}–
+                  {Math.min(currentPage * PAGE_SIZE, filteredTotal)} / 全{' '}
+                  <span className="font-mono tabular-nums text-gray-900">{filteredTotal}</span> 件
+                </p>
+                <div className="flex items-center gap-2">
+                  {currentPage > 1 ? (
+                    <Link
+                      href={(() => {
+                        const p = new URLSearchParams();
+                        if (view) p.set('view', view);
+                        if (assignee) p.set('assignee', assignee);
+                        if (period !== 'all') p.set('period', period);
+                        if (sort !== 'updated_desc') p.set('sort', sort);
+                        if (currentPage - 1 > 1) p.set('page', String(currentPage - 1));
+                        return `/deals${p.toString() ? `?${p.toString()}` : ''}`;
+                      })()}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 active:scale-[0.98]"
+                    >
+                      ← 前へ
+                    </Link>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-300 border border-gray-100 rounded-lg">
+                      ← 前へ
+                    </span>
+                  )}
+                  <span className="font-mono tabular-nums text-xs text-gray-700 px-2">
+                    {currentPage} / {totalPages}
+                  </span>
+                  {currentPage < totalPages ? (
+                    <Link
+                      href={(() => {
+                        const p = new URLSearchParams();
+                        if (view) p.set('view', view);
+                        if (assignee) p.set('assignee', assignee);
+                        if (period !== 'all') p.set('period', period);
+                        if (sort !== 'updated_desc') p.set('sort', sort);
+                        p.set('page', String(currentPage + 1));
+                        return `/deals?${p.toString()}`;
+                      })()}
+                      className="inline-flex items-center gap-1 px-3 py-1.5 text-xs font-medium text-gray-700 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 active:scale-[0.98]"
+                    >
+                      次へ →
+                    </Link>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-300 border border-gray-100 rounded-lg">
+                      次へ →
+                    </span>
+                  )}
+                </div>
+              </nav>
             )}
           </>
         )}
