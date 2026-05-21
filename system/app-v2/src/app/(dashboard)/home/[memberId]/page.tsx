@@ -10,6 +10,7 @@ import { RevenueAchievementCard } from './_components/revenue-achievement-card';
 import { RevenueTrendCard } from './_components/revenue-trend-card';
 import { FunnelCard } from './_components/funnel-card';
 import { SilentCustomersCard } from './_components/silent-customers-card';
+import { WelcomeFirstSteps } from './_components/welcome-first-steps';
 import { pickQuoteForMember } from '@/lib/actions/quotes';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
 
@@ -59,6 +60,29 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
       )
     )
     .then((rows) => rows[0]?.count ?? 0);
+
+  // 初日メンバー判定：自分の進行中案件 0 件 && 残タスク 0 件のとき、
+  // 通常ホーム（巨大 ¥0 + KPI 群）の代わりに「最初の 3 ステップ」を出す。
+  // tripot 固有の業務フロー（顧客 → 案件 → 議事録 AI）に絞った導線を提示。
+  const isFirstDayView = (dealStats?.activeCount ?? 0) === 0 && taskCount === 0;
+  if (isFirstDayView) {
+    return (
+      <main className="min-h-screen bg-gray-50">
+        <header className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <p className="text-sm text-gray-700">{member.name} のホーム</p>
+            <p className="text-xs font-mono text-gray-500">
+              {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
+            </p>
+          </div>
+        </header>
+        <div className="px-6 py-10 max-w-5xl mx-auto pb-32 md:pb-12">
+          <WelcomeFirstSteps memberName={member.name} />
+        </div>
+        <LogActionButton />
+      </main>
+    );
+  }
 
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - 6);
