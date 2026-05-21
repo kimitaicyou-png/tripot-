@@ -1,9 +1,12 @@
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { eq } from 'drizzle-orm';
 import Anthropic from '@anthropic-ai/sdk';
 import { auth } from '@/auth';
-import { setTenantContext } from '@/lib/db';
+import { db, logAudit, setTenantContext } from '@/lib/db';
+import { ai_jobs, ai_usage } from '@/db/schema';
 import { CHAT_TOOLS, executeToolCall } from '@/lib/ai/chat-tools';
+import { calculateCost } from '@/lib/ai/cost';
 
 const requestSchema = z.object({
   message: z.string().min(1).max(2000),
@@ -60,7 +63,28 @@ export async function POST(request: Request) {
 
   let finalText = '';
   let iterations = 0;
+  let totalTokensIn = 0;
+  let totalTokensOut = 0;
   const toolCallLog: Array<{ name: string; input: unknown; ok: boolean }> = [];
+
+  // ai_jobs に running 状態で 1 件作成、最後に成功/失敗で update
+  // セバス指摘 (2026-05-20)「chat だけ lib/ai/client.ts を経由していない、
+  // コスト記録と監査証跡が取れていない」への対応。tool use loop で client.ts の
+  // 標準 callText/callJson に乗らないため、本 route 内で直接 ai_jobs/ai_usage を扱う。
+  const [jobRow] = await db
+    .insert(ai_jobs)
+    .values({
+      company_id: session.user.company_id,
+      member_id: session.user.member_id,
+      job_type: 'chat',
+      provider: 'anthropic',
+      model: MODEL,
+      status: 'running',
+      input: { message: parsed.data.message } as Record<string, unknown>,
+      started_at: new Date(),
+    })
+    .returning({ id: ai_jobs.id });
+  const jobId = jobRow!.id;
 
   try {
     while (iterations < MAX_ITERATIONS) {
@@ -73,6 +97,10 @@ export async function POST(request: Request) {
         messages,
       });
 
+      // usage 累積（各 iteration 毎）
+      totalTokensIn += response.usage.input_tokens;
+      totalTokensOut += response.usage.output_tokens;
+
       // Collect text blocks
       for (const block of response.content) {
         if (block.type === 'text') {
@@ -81,19 +109,15 @@ export async function POST(request: Request) {
       }
 
       if (response.stop_reason !== 'tool_use') {
-        // 終端
         break;
       }
 
-      // Tool use blocks → execute → return tool_result
       const toolUseBlocks = response.content.filter(
         (b): b is Anthropic.ToolUseBlock => b.type === 'tool_use'
       );
 
-      // Append assistant message (with tool_use blocks)
       messages.push({ role: 'assistant', content: response.content });
 
-      // Execute tools and build user message with tool_result blocks
       const toolResultContent: Anthropic.ToolResultBlockParam[] = [];
       for (const tu of toolUseBlocks) {
         const result = await executeToolCall(
@@ -117,13 +141,76 @@ export async function POST(request: Request) {
       finalText = '回答生成に失敗しました（ツール呼出 上限到達）。質問を簡潔にしてもう一度お試しください。';
     }
 
+    const reply = finalText.trim() || '回答が空でした。質問をもう一度お願いします。';
+    const usage = calculateCost(MODEL, totalTokensIn, totalTokensOut);
+
+    // ai_usage に集計済 1 件、ai_jobs を succeeded に更新、audit_logs に記録
+    await Promise.all([
+      db.insert(ai_usage).values({
+        company_id: session.user.company_id,
+        member_id: session.user.member_id,
+        job_id: jobId,
+        provider: 'anthropic',
+        model: MODEL,
+        tokens_in: usage.tokensIn,
+        tokens_out: usage.tokensOut,
+        cost_micro_usd: usage.costMicroUsd,
+      }),
+      db
+        .update(ai_jobs)
+        .set({
+          status: 'succeeded',
+          output: { reply, iterations, tool_calls: toolCallLog } as Record<string, unknown>,
+          finished_at: new Date(),
+        })
+        .where(eq(ai_jobs.id, jobId)),
+      logAudit({
+        member_id: session.user.member_id,
+        company_id: session.user.company_id,
+        action: 'chat.completed',
+        resource_type: 'ai_job',
+        resource_id: jobId,
+        metadata: {
+          iterations,
+          tool_call_count: toolCallLog.length,
+          tokens_in: usage.tokensIn,
+          tokens_out: usage.tokensOut,
+          cost_micro_usd: usage.costMicroUsd,
+        },
+      }),
+    ]);
+
     return NextResponse.json({
-      reply: finalText.trim() || '回答が空でした。質問をもう一度お願いします。',
+      reply,
       iterations,
       tool_calls: toolCallLog,
+      usage,
     });
   } catch (err) {
     const message = err instanceof Error ? err.message : 'unknown error';
+    // 失敗時も ai_jobs と audit_logs に記録、usage は集計分を残す
+    await db
+      .update(ai_jobs)
+      .set({
+        status: 'failed',
+        output: null,
+        error: message,
+        finished_at: new Date(),
+      })
+      .where(eq(ai_jobs.id, jobId));
+    if (totalTokensIn > 0 || totalTokensOut > 0) {
+      const usage = calculateCost(MODEL, totalTokensIn, totalTokensOut);
+      await db.insert(ai_usage).values({
+        company_id: session.user.company_id,
+        member_id: session.user.member_id,
+        job_id: jobId,
+        provider: 'anthropic',
+        model: MODEL,
+        tokens_in: usage.tokensIn,
+        tokens_out: usage.tokensOut,
+        cost_micro_usd: usage.costMicroUsd,
+      });
+    }
     return NextResponse.json(
       { error: 'ai_error', message, iterations, tool_calls: toolCallLog },
       { status: 502 }
