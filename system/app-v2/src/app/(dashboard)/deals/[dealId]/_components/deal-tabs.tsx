@@ -1,7 +1,10 @@
 'use client';
 
-import { useState, type ReactNode } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
+import { useSearchParams } from 'next/navigation';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+
+const VALID_TABS = ['overview', 'meetings', 'proposals', 'estimates', 'invoices', 'resources'];
 
 type Counts = {
   meetings: number;
@@ -30,7 +33,18 @@ export function DealTabs({
   invoices: ReactNode;
   resources: ReactNode;
 }) {
-  const [tab, setTab] = useState(initialTab);
+  const searchParams = useSearchParams();
+  const queryTab = searchParams.get('tab');
+  const [tab, setTab] = useState(
+    queryTab && VALID_TABS.includes(queryTab) ? queryTab : initialTab
+  );
+
+  useEffect(() => {
+    if (queryTab && VALID_TABS.includes(queryTab) && queryTab !== tab) {
+      setTab(queryTab);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [queryTab]);
 
   return (
     <Tabs value={tab} onValueChange={setTab} defaultValue={initialTab} className="w-full">

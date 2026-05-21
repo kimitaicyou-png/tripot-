@@ -68,29 +68,21 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
               return (
               <li
                 key={m.id}
-                className="bg-white border border-gray-200 rounded-xl p-5 space-y-3"
+                className="bg-white border border-gray-200 rounded-xl p-5 space-y-4"
               >
-                <div className="flex items-start justify-between gap-3">
-                  <div className="flex-1 min-w-0">
-                    <p className="inline-flex items-center gap-1.5 text-sm text-gray-900 font-medium">
-                      <Icon className="w-4 h-4" />
-                      {TYPE_LABEL[m.type] ?? m.type}
-                      {m.title ? <span className="ml-1 text-gray-700">— {m.title}</span> : null}
-                    </p>
-                    <p className="text-xs font-mono text-gray-500 mt-0.5">
-                      {new Date(m.occurred_at).toLocaleString('ja-JP')}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0 flex-wrap">
-                    {m.raw_text && (
-                      <SummarizeMeetingButton meetingId={m.id} hasSummary={Boolean(m.summary)} />
-                    )}
-                    <GenerateRequirementButton dealId={dealId} meetingId={m.id} />
-                    <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
-                    <GenerateTasksFromMeetingButton meetingId={m.id} />
-                  </div>
+                {/* ヘッダー：種類アイコン + タイトル + 日時のみ（ボタン無し、重なり回避） */}
+                <div className="min-w-0">
+                  <p className="inline-flex items-center gap-1.5 text-sm text-gray-900 font-medium flex-wrap">
+                    <Icon className="w-4 h-4 shrink-0" />
+                    <span>{TYPE_LABEL[m.type] ?? m.type}</span>
+                    {m.title ? <span className="text-gray-700">— {m.title}</span> : null}
+                  </p>
+                  <p className="text-xs font-mono text-gray-500 mt-0.5">
+                    {new Date(m.occurred_at).toLocaleString('ja-JP')}
+                  </p>
                 </div>
 
+                {/* 要約 */}
                 {m.summary && (
                   <div className="border-l-2 border-gray-200 pl-3">
                     <p className="text-xs uppercase tracking-widest text-gray-500 mb-1">要約</p>
@@ -98,6 +90,7 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                   </div>
                 )}
 
+                {/* needs */}
                 {Array.isArray(m.needs) && m.needs.length > 0 && (
                   <div>
                     <p className="text-xs uppercase tracking-widest text-gray-500 mb-2">
@@ -114,6 +107,7 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                   </div>
                 )}
 
+                {/* 議事録本文（折りたたみ） */}
                 {m.raw_text && (
                   <details className="group">
                     <summary className="text-xs text-gray-700 cursor-pointer hover:text-gray-900 list-none">
@@ -129,6 +123,27 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                     <p className="mt-2 text-sm text-gray-700 whitespace-pre-wrap">{m.raw_text}</p>
                   </details>
                 )}
+
+                {/* AI アクション領域：縦並びで各ボタンが独立、展開時も他を押さない */}
+                <div className="pt-4 border-t border-gray-100 space-y-3">
+                  <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
+                    AI アクション
+                  </p>
+                  {m.raw_text && (
+                    <div>
+                      <SummarizeMeetingButton meetingId={m.id} hasSummary={Boolean(m.summary)} />
+                    </div>
+                  )}
+                  <div>
+                    <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
+                  </div>
+                  <div>
+                    <GenerateTasksFromMeetingButton meetingId={m.id} />
+                  </div>
+                  <div>
+                    <GenerateRequirementButton dealId={dealId} meetingId={m.id} />
+                  </div>
+                </div>
               </li>
               );
             })}
