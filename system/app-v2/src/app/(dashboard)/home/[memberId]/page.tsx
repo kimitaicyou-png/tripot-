@@ -18,12 +18,20 @@ function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
 }
 
-export default async function MemberHomePage({ params }: { params: Promise<{ memberId: string }> }) {
+export default async function MemberHomePage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ memberId: string }>;
+  searchParams: Promise<{ welcome?: string }>;
+}) {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
 
   const companyId = session.user.company_id;
   const { memberId } = await params;
+  const { welcome: welcomeOverride } = await searchParams;
+  const forceWelcome = welcomeOverride === '1';
 
   if (memberId !== session.user.member_id && session.user.role === 'member') {
     redirect(`/home/${session.user.member_id}`);
@@ -62,18 +70,34 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
     .then((rows) => rows[0]?.count ?? 0);
 
   // 初日メンバー判定：自分の進行中案件 0 件 && 残タスク 0 件のとき、
-  // 通常ホーム（巨大 ¥0 + KPI 群）の代わりに「最初の 3 ステップ」を出す。
+  // または ?welcome=1 で強制（経験者でも改めて見られる）。
   // tripot 固有の業務フロー（顧客 → 案件 → 議事録 AI）に絞った導線を提示。
-  const isFirstDayView = (dealStats?.activeCount ?? 0) === 0 && taskCount === 0;
+  const isFirstDayView =
+    forceWelcome || ((dealStats?.activeCount ?? 0) === 0 && taskCount === 0);
   if (isFirstDayView) {
     return (
       <main className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between gap-3 flex-wrap">
             <p className="text-sm text-gray-700">{member.name} のホーム</p>
-            <p className="text-xs font-mono text-gray-500">
-              {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
-            </p>
+            <div className="flex items-center gap-3">
+              {forceWelcome && (
+                <a
+                  href={`/home/${memberId}`}
+                  className="text-xs text-gray-700 hover:text-gray-900 underline decoration-gray-300 hover:decoration-gray-900"
+                >
+                  通常ホームに戻る
+                </a>
+              )}
+              <p className="text-xs font-mono text-gray-500">
+                {new Date().toLocaleDateString('ja-JP', {
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  weekday: 'short',
+                })}
+              </p>
+            </div>
           </div>
         </header>
         <div className="px-6 py-10 max-w-5xl mx-auto pb-32 md:pb-12">
@@ -193,11 +217,24 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
   return (
     <main className="min-h-screen bg-gray-50">
       <header className="bg-white border-b border-gray-200 px-6 py-4">
-        <div className="flex items-center justify-between">
+        <div className="flex items-center justify-between gap-3 flex-wrap">
           <p className="text-sm text-gray-700">{member.name} のホーム</p>
-          <p className="text-xs font-mono text-gray-500">
-            {new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric', weekday: 'short' })}
-          </p>
+          <div className="flex items-center gap-3">
+            <a
+              href={`/home/${memberId}?welcome=1`}
+              className="text-xs text-gray-500 hover:text-gray-900 underline decoration-gray-300 hover:decoration-gray-900"
+            >
+              最初の 3 ステップを見る
+            </a>
+            <p className="text-xs font-mono text-gray-500">
+              {new Date().toLocaleDateString('ja-JP', {
+                year: 'numeric',
+                month: 'long',
+                day: 'numeric',
+                weekday: 'short',
+              })}
+            </p>
+          </div>
         </div>
       </header>
 
