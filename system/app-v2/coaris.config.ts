@@ -43,6 +43,10 @@ export type StageDef = {
   /** weekly/cf 確度モデル：このステージの加重係数（0-1） */
   cashflowWeight: number;
   isTerminal?: boolean;
+  /** このステージで何をすべきか（縦型 Stepper の各行に併記、ガイダンス文章）。
+   *  経営哲学「行動 → 自動でステージが進む」の入口、初日メンバーの迷い解消用。
+   */
+  guidance?: string;
 };
 
 /** ロール権限 */
@@ -242,15 +246,15 @@ export const TRIPOT_CONFIG: CompanyConfig = {
     ],
   },
   stages: [
-    { key: 'prospect', label: '見込み', badgeClass: 'bg-slate-100 text-slate-700', order: 10, cashflowWeight: 0.1 },
-    { key: 'proposing', label: '提案中', badgeClass: 'bg-blue-100 text-blue-800', order: 20, cashflowWeight: 0.3 },
-    { key: 'ordered', label: '受注', badgeClass: 'bg-amber-100 text-amber-800', order: 30, cashflowWeight: 0.7 },
-    { key: 'in_production', label: '制作中', badgeClass: 'bg-purple-100 text-purple-800', order: 40, cashflowWeight: 0.8 },
-    { key: 'delivered', label: '納品済', badgeClass: 'bg-cyan-100 text-cyan-800', order: 50, cashflowWeight: 0.9 },
-    { key: 'acceptance', label: '検収', badgeClass: 'bg-teal-100 text-teal-800', order: 60, cashflowWeight: 0.95 },
-    { key: 'invoiced', label: '請求済', badgeClass: 'bg-indigo-100 text-indigo-800', order: 70, cashflowWeight: 0.95 },
-    { key: 'paid', label: '入金済', badgeClass: 'bg-green-100 text-green-800', order: 80, cashflowWeight: 1.0, isTerminal: true },
-    { key: 'lost', label: '失注', badgeClass: 'bg-red-100 text-red-800', order: 999, cashflowWeight: 0, isTerminal: true },
+    { key: 'prospect', label: '見込み', badgeClass: 'bg-slate-100 text-slate-700', order: 10, cashflowWeight: 0.1, guidance: '商談を入れて議事録を 1 件残す。AI が顧客ニーズを抽出します。' },
+    { key: 'proposing', label: '提案中', badgeClass: 'bg-blue-100 text-blue-800', order: 20, cashflowWeight: 0.3, guidance: '提案書・見積書を AI 生成 → 送付。見積が承諾されると自動で「受注」に進みます。' },
+    { key: 'ordered', label: '受注', badgeClass: 'bg-amber-100 text-amber-800', order: 30, cashflowWeight: 0.7, guidance: '受注金額を確定。AI がタスクを生成、制作カンバンへ。' },
+    { key: 'in_production', label: '制作中', badgeClass: 'bg-purple-100 text-purple-800', order: 40, cashflowWeight: 0.8, guidance: 'タスクを消化。全完了で「納品済」へ。external_cost（外注費）を入れると粗利が自動計算されます。' },
+    { key: 'delivered', label: '納品済', badgeClass: 'bg-cyan-100 text-cyan-800', order: 50, cashflowWeight: 0.9, guidance: '納品物の link を添付して顧客に確認。検収待ち。' },
+    { key: 'acceptance', label: '検収', badgeClass: 'bg-teal-100 text-teal-800', order: 60, cashflowWeight: 0.95, guidance: '検収完了。請求書を発行すると自動で「請求済」へ。' },
+    { key: 'invoiced', label: '請求済', badgeClass: 'bg-indigo-100 text-indigo-800', order: 70, cashflowWeight: 0.95, guidance: '入金待ち。CF 予測に反映済。' },
+    { key: 'paid', label: '入金済', badgeClass: 'bg-green-100 text-green-800', order: 80, cashflowWeight: 1.0, isTerminal: true, guidance: '案件完了。粗利が PL/CF 実績に確定計上されました。' },
+    { key: 'lost', label: '失注', badgeClass: 'bg-red-100 text-red-800', order: 999, cashflowWeight: 0, isTerminal: true, guidance: '失注理由を記録。ファネル改善材料として活用します。' },
   ],
   roles: [
     { key: 'president', label: '代表', description: '全社俯瞰・最終決裁・予算策定' },

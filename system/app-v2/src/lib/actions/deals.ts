@@ -511,3 +511,76 @@ export async function updateDealExternalCost(
   revalidatePath(`/deals/${dealId}`);
   return { success: true };
 }
+
+
+const stageEnum = z.enum([
+  "prospect",
+  "proposing",
+  "ordered",
+  "in_production",
+  "delivered",
+  "acceptance",
+  "invoiced",
+  "paid",
+  "lost",
+]);
+
+export type UpdateStageResult =
+  | { ok: true }
+  | { ok: false; error: string };
+
+/**
+ * 案件ステージを手動で更新する Server Action。
+ *
+ * InlineStageChanger（バッジクリック → dropdown）の保存先。
+ * 隊長指摘 (2026-05-20)「動線の中にステージがどうしたら変わるのか」への直接の応答：
+ * 案件詳細から 1 クリックでステージを動かせる動線を確保する。
+ *
+ * Phase 2 で実装する自動連動（書類 status → deal.stage）と並行運用：
+ * 自動連動の対象外ケース（手動オーバーライド・例外運用）はここを経由する。
+ */
+export async function updateDealStage(
+  dealId: string,
+  stage: string
+): Promise<UpdateStageResult> {
+  const guard = await requirePermission({ resource: "deal", action: "update" });
+  if (!guard.ok) {
+    return { ok: false, error: guard.error };
+  }
+  const { session } = guard;
+
+  const parsed = stageEnum.safeParse(stage);
+  if (!parsed.success) {
+    return { ok: false, error: "invalid_stage" };
+  }
+
+  const current = await db
+    .select({ stage: deals.stage })
+    .from(deals)
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!current) {
+    return { ok: false, error: "deal_not_found" };
+  }
+
+  await db
+    .update(deals)
+    .set({ stage: parsed.data, updated_at: new Date() })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: "deal.stage_manual_change",
+    resource_type: "deal",
+    resource_id: dealId,
+    metadata: { from: current.stage, to: parsed.data, source: "inline_stage_changer" },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  revalidatePath("/deals");
+  return { ok: true };
+}
+

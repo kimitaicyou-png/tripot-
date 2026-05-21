@@ -5,7 +5,6 @@ import { ArrowLeft } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, members, customers, meetings, proposals, estimates, invoices, deal_contracts, deal_artifacts, deal_comments } from '@/db/schema';
-import { TRIPOT_CONFIG } from '../../../../../coaris.config';
 import { DealTabs } from './_components/deal-tabs';
 import { OverviewTab } from './_components/overview-tab';
 import { MeetingsTab } from './_components/meetings-tab';
@@ -13,6 +12,10 @@ import { ProposalsTab } from './_components/proposals-tab';
 import { EstimatesTab } from './_components/estimates-tab';
 import { InvoicesTab } from './_components/invoices-tab';
 import { ResourcesTab } from './_components/resources-tab';
+import { StageStepper } from './_components/stage-stepper';
+import { NextStageChecklist } from './_components/next-stage-checklist';
+import { InlineStageChanger } from './_components/inline-stage-changer';
+import { getStageRequirements } from '@/lib/deals/stage-requirements';
 
 export default async function DealDetailPage({ params }: { params: Promise<{ dealId: string }> }) {
   const session = await auth();
@@ -125,9 +128,11 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
 
   if (!deal) notFound();
 
-  const stageDef = TRIPOT_CONFIG.stages.find((s) => s.key === deal.stage);
-  const stageLabel = stageDef?.label ?? deal.stage;
-  const stageBadge = stageDef?.badgeClass ?? 'bg-slate-100 text-slate-700';
+  const stageRequirements = await getStageRequirements(
+    dealId,
+    session.user.company_id,
+    deal.stage
+  );
 
   const resourceCount =
     (contractsRow[0]?.n ?? 0) +
@@ -150,12 +155,13 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
           案件一覧
         </Link>
         <h1 className="text-lg font-semibold text-gray-900 truncate flex-1">{deal.title}</h1>
-        <span
-          className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-lg ${stageBadge}`}
-        >
-          {stageLabel}
-        </span>
+        <InlineStageChanger dealId={dealId} currentStage={deal.stage} />
       </header>
+
+      <div className="px-6 py-6 max-w-5xl mx-auto space-y-4">
+        <StageStepper currentStage={deal.stage} />
+        <NextStageChecklist dealId={dealId} data={stageRequirements} />
+      </div>
 
       <DealTabs
         counts={counts}

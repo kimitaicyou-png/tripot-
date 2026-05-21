@@ -9,7 +9,6 @@ import { TaskCheckbox } from '../../../tasks/task-checkbox';
 import { TaskQuickAdd } from '@/components/task-quick-add';
 import { LogActionButton } from '@/components/log-action-button';
 import { deleteDeal } from '@/lib/actions/deals';
-import { TRIPOT_CONFIG } from '../../../../../../coaris.config';
 import { NextActionSection } from './next-action-section';
 import { RiskScoreSection } from './risk-score-section';
 import { EmailDraftButton } from './email-draft-button';
@@ -93,10 +92,6 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
       .limit(20),
   ]);
 
-  const stageDef = TRIPOT_CONFIG.stages.find((s) => s.key === deal.stage);
-  const stageLabel = stageDef?.label ?? deal.stage;
-  const stageBadge = stageDef?.badgeClass ?? 'bg-slate-100 text-slate-700';
-
   const handleDelete = deleteDeal.bind(null, dealId);
 
   return (
@@ -127,14 +122,6 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
       <AttackSection dealId={dealId} />
 
       <section className="bg-white border border-gray-200 rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
-        <div>
-          <p className="text-xs text-gray-500 mb-1">ステージ</p>
-          <span
-            className={`inline-flex items-center px-2 py-0.5 text-xs font-medium rounded-lg ${stageBadge}`}
-          >
-            {stageLabel}
-          </span>
-        </div>
         <div>
           <p className="text-xs text-gray-500 mb-1">担当</p>
           <p className="text-gray-900 font-medium">{deal.assignee_name ?? '—'}</p>
