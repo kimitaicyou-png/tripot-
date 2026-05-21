@@ -1,5 +1,6 @@
 import { ClipboardList, ChevronRight, ChevronDown } from 'lucide-react';
 import { listEstimatesForDeal } from '@/lib/actions/estimates';
+import { formatYen } from '@/lib/format';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { EstimateEditorButton } from './estimate-editor';
@@ -21,10 +22,6 @@ const STATUS_TONE: Record<string, 'neutral' | 'info' | 'up' | 'down' | 'default'
 };
 
 type LineItem = { description: string; quantity: number; unit_price: number; amount: number };
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export async function EstimatesTab({ dealId }: { dealId: string }) {
   const items = await listEstimatesForDeal(dealId);

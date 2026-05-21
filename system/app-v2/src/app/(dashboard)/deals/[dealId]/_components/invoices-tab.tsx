@@ -1,5 +1,6 @@
 import { Receipt } from 'lucide-react';
 import { listInvoicesForDeal } from '@/lib/actions/invoices';
+import { formatYen } from '@/lib/format';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { InvoiceStatusActions } from './invoice-status-actions';
@@ -21,10 +22,6 @@ const STATUS_TONE: Record<string, 'neutral' | 'info' | 'up' | 'down' | 'accent' 
   overdue: 'down',
   voided: 'default',
 };
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export async function InvoicesTab({ dealId }: { dealId: string }) {
   const items = await listInvoicesForDeal(dealId);

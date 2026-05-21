@@ -10,6 +10,7 @@ import { TaskQuickAdd } from '@/components/task-quick-add';
 import { LogActionButton } from '@/components/log-action-button';
 import { deleteDeal } from '@/lib/actions/deals';
 import { getLatestAiJobForDeal } from '@/lib/ai/jobs';
+import { formatYen } from '@/lib/format';
 import { NextActionSection } from './next-action-section';
 import { RiskScoreSection } from './risk-score-section';
 import { EmailDraftButton } from './email-draft-button';
@@ -39,10 +40,6 @@ const ACTION_TYPE_ICON: Record<string, LucideIcon> = {
   visit: Footprints,
   other: FileEdit,
 };
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export type DealOverview = {
   id: string;

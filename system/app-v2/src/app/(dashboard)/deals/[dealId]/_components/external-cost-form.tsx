@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Check, Pencil, Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { updateDealExternalCost, type ExternalCostState } from '@/lib/actions/deals';
+import { formatYen } from '@/lib/format';
 import { toast } from '@/components/ui/toaster';
 
 const initialState: ExternalCostState = {};
@@ -25,10 +26,6 @@ type BudgetResult = {
   suggested_external_cost: number;
   generated_at: string;
 };
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export function ExternalCostForm({
   dealId,
