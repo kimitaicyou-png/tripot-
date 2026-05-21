@@ -197,10 +197,13 @@ tool use multi-turn loop のため `route.ts` 内で直接 `ai_jobs`/`ai_usage` 
 | `chat` | 営業支援チャット（tool use: DB query） | message |
 | `summarize-meeting` | 議事録 → 要約 + needs 抽出 | meeting_id |
 | `generate-requirement` | 議事録 → 要件定義（機能/非機能/質問/次手） | meeting_id |
+| `generate-sitemap` | 議事録 → サイトマップ（depth + path + purpose） | meeting_id |
 | `generate-proposal` | 議事録 → 提案書スライド | meeting_id |
 | `generate-estimate` | 案件 + 議事録 → 見積明細（5〜10行） | deal_id |
+| `generate-budget` | 案件最新見積 → 予測原価 + 粗利率 | deal_id |
 | `generate-tasks` | 議事録 → タスク（5〜12個 + 工数） | meeting_id |
 | `generate-email` | 案件 → メール下書き | deal_id |
+| `import-reply` | メール / Slack 返信 → 行動ログ構造化 | reply_text + channel + deal_id |
 | `morning-brief` | 朝の優先 3 件 + アラート | member_id |
 | `next-action` | 案件 → 次の一手 | deal_id |
 | `optimize-work` | 制作要件 → 工数最適化 | card_id |
@@ -211,6 +214,56 @@ tool use multi-turn loop のため `route.ts` 内で直接 `ai_jobs`/`ai_usage` 
 
 全ルートが `ai_jobs` / `ai_usage` テーブルに記録（chat も含む）。
 `/settings/ai-usage` で集計を確認可能。
+
+### AI 結果の自動再表示（`lib/ai/jobs.ts`）
+
+`getLatestAiJobForDeal({ dealId, jobType, companyId })` / `getLatestAiJobForMember()`
+で過去成功 job の output を取得し、Server Component で取得 → Client Component に
+initialData として渡すパターン。毎回ボタン押し直しを廃止。
+
+適用済：
+- 案件詳細の `risk-score` / `next-action`（OverviewTab → 自動表示）
+- ホームの `morning-brief`（自動表示）
+
+新規 AI route を追加した場合：
+- `client.ts:startJob` で `input` jsonb に `_deal_id` が自動埋め込みされる（dealId 渡し時）
+- 案件 単位なら `getLatestAiJobForDeal`、member 単位なら `getLatestAiJobForMember`
+
+## 予実 view（PL/CF 直結）
+
+| ページ | 表示内容 |
+|---|---|
+| `/home/[memberId]` | 当人の売上・粗利・進行案件・morning-brief 自動表示・WelcomeFirstSteps 切替可（`?welcome=1`） |
+| `/weekly` | 会社累計売上 + 今週入金/受注/新規パイプライン + メンバー行動量 grid |
+| `/monthly` | 売上 vs 予算 + 粗利/営業利益/CF 加重予実 + 販管費手動入力 |
+| `/budget` | 年間月別売上 + 前年比較 + **年間 P/L 予実サマリー（売上 + 粗利 + 営業利益）** |
+| `/team` | メンバー別売上ランキング（金/銀/銅）+ 直近 7 日行動量内訳 |
+| `/production` | 制作 Kanban + **工数予実サマリー（予算 vs 実績 + 遅延 14d 超）** |
+| `/deals` | Kanban（DnD）+ List 切替、フィルタ（担当/期間/ソート/CF 加重） |
+| `/tasks` | フィルタタブ（全/期限切れ/今日/7日/案件未紐付） |
+| `/search` | 9 種一括検索（案件/顧客/タスク/議事録/メンバー/行動/提案/見積/請求） |
+
+販管費の手動入力（MF 接続前の仮実装）：
+- `companies.config.monthly_opex[YYYY-MM]` jsonb に保存（migration 不要）
+- `/monthly` から president / hq_member が入力
+- `/budget` の年間 P/L サマリーが自動で取得
+
+## テスト基盤（vitest）
+
+`vitest.config.ts` + `tests/lib/**/*.test.ts`（純粋関数中心）。
+
+```sh
+npm run test          # 1 回実行
+npm run test:watch    # ファイル変更で再実行
+npm run test:coverage # v8 coverage
+```
+
+設置済：
+- `tests/lib/deals/stage-requirements.test.ts`（isStageAdvancement 17 件、後退しないルール）
+- `tests/lib/ai/cost.test.ts`（calculateCost 9 件、モデル別単価）
+- `tests/lib/member-color.test.ts`（決定論性 8 件）
+
+DB 依存 server action は次フェーズで `vi.mock('@/lib/db')` で対応予定。
 
 ## データレイヤ
 
