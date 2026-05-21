@@ -151,19 +151,25 @@ tripot/
 （PL/CF 実績確定）
 ```
 
-### ステージ自動進行（5 段）
+### ステージ自動進行（7 段、全自動経路完成）
 
 `lib/deals/stage-advance.ts` の `maybeAdvanceDealStage()` で実装。
 「後退しないルール」（TRIPOT_CONFIG.stages.order 比較）で安全。
 
-| トリガー | 遷移先 |
-|---|---|
-| proposal.status='shared' | proposing |
-| estimate.status='accepted' | ordered |
-| tasks 全 done | delivered |
-| invoice.status='issued' or 'sent' | invoiced |
-| invoice.status='paid' | paid |
-| lost_deal 記録 | lost（既存 `recordLostDeal`） |
+| トリガー | 遷移先 | triggered_by |
+|---|---|---|
+| proposal.status='shared' | proposing | proposal.shared |
+| estimate.status='accepted' | ordered | estimate.accepted |
+| task.create（deal 紐づき） | in_production | task.created |
+| tasks 全 done | delivered | tasks.all_completed |
+| meeting マーク済 + delivered | acceptance | meeting.marked_acceptance |
+| invoice.status='issued' or 'sent' | invoiced | invoice.issued/sent |
+| invoice.status='paid' | paid | invoice.paid |
+| lost_deal 記録 | lost | （recordLostDeal 別フロー） |
+
+ステージ 9 段のうち、prospect → proposing のみ手動オーバーライド（商談だけで進める用）。
+他は全て書類 / タスク / 議事録マークの「行動」で自動進行する。
+営業メンバーがステージを手で動かす場面はほぼゼロ。
 
 ### 案件 stage 9 段
 
