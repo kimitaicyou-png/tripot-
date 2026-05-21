@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import type { Route } from 'next';
-import { Users, Briefcase, FileText, Sparkles, ArrowRight } from 'lucide-react';
+import { Users, Briefcase, FileText, Sparkles, ArrowRight, BarChart3 } from 'lucide-react';
 
 /**
  * tripot 初日メンバー向けウェルカム画面。
@@ -21,12 +21,16 @@ export function WelcomeFirstSteps({ memberName }: { memberName: string }) {
         <h1 className="font-semibold text-3xl md:text-4xl text-gray-900 tracking-tight mt-2">
           ようこそ。
           <br className="md:hidden" />
-          最初の 1 案件、ここから 2 分で立ち上がります。
+          毎日の行動だけで、全部が見えるようになります。
         </h1>
         <p className="text-sm text-gray-700 mt-4 leading-relaxed">
-          tripot は受託開発の営業フローを 1 本に通します。
-          顧客 → 案件 → 議事録 → AI が提案・見積の叩き台を作る → 受注 → 制作 → 請求。
-          まずは入口の 3 ステップだけ。完璧じゃなくて大丈夫、後で全部直せます。
+          tripot の使い方はシンプルです。
+          <strong className="text-gray-900 font-semibold">初期設定を 1 回 + 毎日の行動管理</strong>
+          だけ。集計・報告書づくり・会議資料の作成は一切ありません。
+          あなたの今日の行動が、自動で週次・月次・コアリスHD 全体の数字 → PL/CF 予実まで上がります。
+        </p>
+        <p className="text-sm text-gray-700 mt-3 leading-relaxed">
+          まずは入口の 3 ステップ、合計 2 分。完璧じゃなくて大丈夫、後で全部直せます。
         </p>
       </div>
 
@@ -111,12 +115,64 @@ export function WelcomeFirstSteps({ memberName }: { memberName: string }) {
         </li>
       </ol>
 
-      {/* ヒント帯 */}
-      <div className="mt-8 bg-gray-50 border border-gray-200 rounded-xl p-5">
+      {/* 思想図：行動 → 週次 → 月次 → コアリスHD → PL/CF */}
+      <div className="mt-10 bg-white border border-gray-200 rounded-xl p-6">
+        <div className="flex items-start gap-3 mb-5">
+          <BarChart3 className="w-5 h-5 text-gray-700 shrink-0 mt-0.5" />
+          <div>
+            <p className="text-sm font-semibold text-gray-900">tripot の思想：行動が自動で経営数字になる</p>
+            <p className="text-sm text-gray-700 mt-1.5 leading-relaxed">
+              あなたが毎日やる「行動ログ・議事録・タスク完了」が、そのまま週次レポート・
+              月次の粗利と予実・コアリスHD 全社の PL/CF 予実まで自動で流れます。
+              <strong className="text-gray-900 font-semibold">集計・転記・報告書作成はゼロ</strong>。
+            </p>
+          </div>
+        </div>
+
+        <ol className="space-y-2.5 pl-0">
+          <li className="flex items-center gap-3">
+            <span className="font-mono text-xs tabular-nums text-gray-400 w-12 shrink-0">毎日</span>
+            <span className="text-sm text-gray-900">あなたの行動（電話・商談・議事録・タスク）</span>
+          </li>
+          <li className="flex items-center gap-3 text-gray-400 pl-12">
+            <span className="text-xs">↓ 自動集計</span>
+          </li>
+          <li className="flex items-center gap-3">
+            <span className="font-mono text-xs tabular-nums text-gray-400 w-12 shrink-0">週次</span>
+            <Link href={'/weekly' as Route} className="text-sm text-gray-900 underline decoration-gray-300 hover:decoration-gray-900">
+              週次レポート（会議準備ゼロ）
+            </Link>
+          </li>
+          <li className="flex items-center gap-3 text-gray-400 pl-12">
+            <span className="text-xs">↓ 自動集計</span>
+          </li>
+          <li className="flex items-center gap-3">
+            <span className="font-mono text-xs tabular-nums text-gray-400 w-12 shrink-0">月次</span>
+            <Link href={'/monthly' as Route} className="text-sm text-gray-900 underline decoration-gray-300 hover:decoration-gray-900">
+              月次（粗利・予実）
+            </Link>
+          </li>
+          <li className="flex items-center gap-3 text-gray-400 pl-12">
+            <span className="text-xs">↓ 自動集計</span>
+          </li>
+          <li className="flex items-center gap-3">
+            <span className="font-mono text-xs tabular-nums text-gray-400 w-12 shrink-0">全社</span>
+            <span className="text-sm text-gray-900">コアリスHD 全体の数字 → PL / CF 予実</span>
+          </li>
+        </ol>
+
+        <p className="text-xs text-gray-500 mt-5 leading-relaxed">
+          左メニューの「経営」「組織」セクションから、いつでも上流の数字を見に行けます。
+          経営層・本部・現場、誰がいつ見ても同じ最新値。
+        </p>
+      </div>
+
+      {/* AI ヒント */}
+      <div className="mt-6 bg-gray-50 border border-gray-200 rounded-xl p-5">
         <div className="flex items-start gap-3">
           <Sparkles className="w-5 h-5 text-gray-700 shrink-0 mt-0.5" />
           <div>
-            <p className="text-sm font-semibold text-gray-900">tripot の特徴：AI が叩き台を作ります</p>
+            <p className="text-sm font-semibold text-gray-900">もう 1 つ：AI が叩き台を作ります</p>
             <p className="text-sm text-gray-700 mt-1.5 leading-relaxed">
               議事録を 1 本貼れば、見積（5〜7 行の明細 + 工数 + 単価）も提案書も
               AI が下書きします。ゼロから書く時間を、確認と仕上げに使えます。
