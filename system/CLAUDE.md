@@ -258,13 +258,14 @@ npm run test:watch    # ファイル変更で再実行
 npm run test:coverage # v8 coverage
 ```
 
-設置済（**累計 79 テスト全通過**）：
+設置済（**累計 86 テスト全通過**）：
 - `tests/lib/deals/stage-requirements.test.ts`（isStageAdvancement 17 件、後退しないルール）
 - `tests/lib/deals/stage-advance.test.ts`（maybeAdvanceDealStage 10 件、自動進行境界網羅）
 - `tests/lib/ai/cost.test.ts`（calculateCost 9 件、モデル別単価）
 - `tests/lib/member-color.test.ts`（決定論性 8 件）
 - `tests/lib/format.test.ts`（formatYen/formatMan/formatShortYen/formatPercent/formatRate 25 件）
 - `tests/lib/actions/monthly-opex.test.ts`（DB-mock pattern 10 件）
+- `tests/lib/actions/deals.test.ts`（updateDealStage 7 件、手動オーバーライド境界）
 
 ### DB-依存 server action の mock パターン（確立済）
 
@@ -341,7 +342,6 @@ vercel deploy --prod --yes
 
 - **MoneyForward Cloud 接続**（販管費実績の自動取得、設計済：`docs/MONEYFORWARD_INTEGRATION.md`、env 投入待ち）
 - iOS Safari 音声認識の精度確認・Whisper API への切替検討
-- ページネーション（現状最新 200 件のみ表示）
 - 1Password CLI 経由でローカル env 同期
 - format helpers の段階移行（31 ファイルの重複削除）
 
@@ -354,7 +354,9 @@ vercel deploy --prod --yes
 - 録音 + 文字起こし（Web Speech API、Chrome/Safari/Edge）
 - 議事録 → 検収マーク UI（delivered → acceptance 連動）
 - WelcomeFirstSteps + 経験者用切替トグル
-- vitest 基盤（34 純粋関数テスト）
+- vitest 基盤（86 テスト：純粋関数 59 + DB-mock 17 + 監査ロジック 10）
+- ページネーション 3 ページ（/deals + /customers + /tasks、各 50 件/ページ）
+- /customers 検索 + /tasks フィルタ SQL 化 + /search 9 種拡張
 
 ## トラブルシューティング
 
