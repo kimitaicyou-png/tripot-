@@ -19,6 +19,7 @@ import { InternalNoteSection } from './internal-note-section';
 import { RunningSection } from './running-section';
 import { TargetSection } from './target-section';
 import { ExternalCostForm } from './external-cost-form';
+import { ImportReplyButton } from './import-reply-button';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   call: '電話',
@@ -179,7 +180,10 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
             行動履歴{' '}
             <span className="text-xs text-gray-500 font-normal">{dealActions.length}件</span>
           </h3>
-          <LogActionButton dealId={dealId} variant="inline" />
+          <div className="flex items-center gap-2 flex-wrap">
+            <ImportReplyButton dealId={dealId} />
+            <LogActionButton dealId={dealId} variant="inline" />
+          </div>
         </div>
         {dealActions.length === 0 ? (
           <p className="text-sm text-gray-700">まだ行動が記録されていません</p>
