@@ -1,8 +1,11 @@
 'use client';
 
-import { useActionState, useEffect, useRef, useState } from 'react';
+import { useActionState, useEffect, useRef, useState, useTransition } from 'react';
+import { useRouter } from 'next/navigation';
+import { CheckCircle2 } from 'lucide-react';
 import { createMeeting, type MeetingFormState } from '@/lib/actions/meetings';
 import { FormField, TextInput, Select, Button, FormActions } from '@/components/ui/form';
+import { toast } from '@/components/ui/toaster';
 import { VoiceInputButton } from '@/components/voice-input-button';
 
 const TYPE_OPTIONS = [
@@ -18,15 +21,32 @@ const initialState: MeetingFormState = {};
 
 export function MeetingForm({ dealId }: { dealId: string }) {
   const [state, formAction, pending] = useActionState(createMeeting, initialState);
+  const router = useRouter();
+  const [, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
   const [rawText, setRawText] = useState('');
+  const [savedAt, setSavedAt] = useState<Date | null>(null);
 
   useEffect(() => {
     if (state.success && formRef.current) {
+      const snapshotRows = rawText
+        .split('\n')
+        .filter((l) => l.trim().length > 0).length;
       formRef.current.reset();
       setRawText('');
+      setSavedAt(new Date());
+      toast.success('議事録を記録しました', {
+        description:
+          snapshotRows > 0
+            ? `${snapshotRows} 行の本文を保存、下の一覧に追加されました`
+            : '下の一覧に追加されました',
+      });
+      startTransition(() => router.refresh());
+    } else if (state.errors?._form) {
+      toast.error('記録に失敗', { description: state.errors._form.join(' / ') });
     }
-  }, [state.success]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state]);
 
   function appendTranscript(text: string) {
     setRawText((prev) => (prev ? prev + '\n' + text : text));
@@ -55,7 +75,7 @@ export function MeetingForm({ dealId }: { dealId: string }) {
 
       <FormField
         label="本文・メモ"
-        hint="話した内容を箇条書き or 自由記述で。マイクで録音するとブラウザが自動で文字に起こします。AI が要約・ニーズ抽出・要件定義・提案・見積まで作ります"
+        hint="マイクで録音するとブラウザが自動で文字起こしします。AI が要約・ニーズ抽出・要件定義・提案・見積まで作ります"
       >
         <div className="space-y-2">
           <VoiceInputButton onTranscript={appendTranscript} disabled={pending} />
@@ -73,8 +93,14 @@ export function MeetingForm({ dealId }: { dealId: string }) {
       {state.errors?._form && (
         <p className="text-xs text-red-700">{state.errors._form.join(' / ')}</p>
       )}
-      {state.success && (
-        <p className="text-xs text-emerald-700">記録しました</p>
+
+      {savedAt && (
+        <div className="rounded-lg bg-emerald-50 border border-emerald-200 px-3 py-2 flex items-center gap-2">
+          <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
+          <p className="text-sm text-emerald-800">
+            記録しました（{savedAt.toLocaleTimeString('ja-JP')}）— 下の「これまでの議事録」一覧に追加されています
+          </p>
+        </div>
       )}
 
       <FormActions>
