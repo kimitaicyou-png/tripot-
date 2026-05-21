@@ -15,6 +15,7 @@ import { ResourcesTab } from './_components/resources-tab';
 import { StageStepper } from './_components/stage-stepper';
 import { NextStageChecklist } from './_components/next-stage-checklist';
 import { InlineStageChanger } from './_components/inline-stage-changer';
+import { StageBar } from './_components/stage-bar';
 import { getStageRequirements } from '@/lib/deals/stage-requirements';
 
 export default async function DealDetailPage({ params }: { params: Promise<{ dealId: string }> }) {
@@ -158,9 +159,16 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
         <InlineStageChanger dealId={dealId} currentStage={deal.stage} />
       </header>
 
-      <div className="px-6 py-6 max-w-5xl mx-auto space-y-4">
-        <StageStepper currentStage={deal.stage} />
-        <NextStageChecklist dealId={dealId} data={stageRequirements} />
+      <div className="px-6 py-4 max-w-5xl mx-auto">
+        <details className="group bg-white border border-gray-200 rounded-xl">
+          <summary className="cursor-pointer list-none px-5 py-3 hover:bg-gray-50 active:scale-[0.998] transition-all duration-150 rounded-xl">
+            <StageBar currentStage={deal.stage} requirements={stageRequirements} />
+          </summary>
+          <div className="px-5 pb-5 pt-2 space-y-4 border-t border-gray-100">
+            <StageStepper currentStage={deal.stage} />
+            <NextStageChecklist dealId={dealId} data={stageRequirements} />
+          </div>
+        </details>
       </div>
 
       <DealTabs
