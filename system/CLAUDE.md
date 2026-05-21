@@ -258,12 +258,41 @@ npm run test:watch    # ファイル変更で再実行
 npm run test:coverage # v8 coverage
 ```
 
-設置済：
+設置済（**累計 79 テスト全通過**）：
 - `tests/lib/deals/stage-requirements.test.ts`（isStageAdvancement 17 件、後退しないルール）
+- `tests/lib/deals/stage-advance.test.ts`（maybeAdvanceDealStage 10 件、自動進行境界網羅）
 - `tests/lib/ai/cost.test.ts`（calculateCost 9 件、モデル別単価）
 - `tests/lib/member-color.test.ts`（決定論性 8 件）
+- `tests/lib/format.test.ts`（formatYen/formatMan/formatShortYen/formatPercent/formatRate 25 件）
+- `tests/lib/actions/monthly-opex.test.ts`（DB-mock pattern 10 件）
 
-DB 依存 server action は次フェーズで `vi.mock('@/lib/db')` で対応予定。
+### DB-依存 server action の mock パターン（確立済）
+
+```ts
+const { dbMock, authMock, logAuditMock } = vi.hoisted(() => ({...}));
+
+vi.mock('@/lib/db', () => ({ db: dbMock, logAudit: logAuditMock }));
+vi.mock('@/auth', () => ({ auth: authMock }));
+vi.mock('next/cache', () => ({ revalidatePath: vi.fn() }));
+
+function makeDbChain(resolved: unknown) {
+  return {
+    from / where / limit / set / values / returning / ...: vi.fn().mockReturnThis(),
+    then: (cb) => Promise.resolve(cb(resolved)),
+  };
+}
+```
+
+このパターンで他の server action（updateDealStage / markMeetingAsAcceptance /
+createTask 等）にも同様にテストを書ける。
+
+## 共通 helper
+
+- `src/lib/format.ts`: formatYen / formatMan / formatShortYen / formatPercent / formatRate
+  （31 ファイルで重複定義されていた format 関数の集約、段階移行中）
+- `src/lib/ai/jobs.ts`: getLatestAiJobForDeal / getLatestAiJobForMember
+- `src/lib/deals/stage-advance.ts`: maybeAdvanceDealStage（自動進行 7 段の共通エンジン）
+- `src/lib/deals/stage-requirements.ts`: getStageRequirements / isStageAdvancement
 
 ## データレイヤ
 
@@ -314,7 +343,7 @@ vercel deploy --prod --yes
 - iOS Safari 音声認識の精度確認・Whisper API への切替検討
 - ページネーション（現状最新 200 件のみ表示）
 - 1Password CLI 経由でローカル env 同期
-- DB-依存 server action の vitest mock テスト（vi.mock('@/lib/db')）
+- format helpers の段階移行（31 ファイルの重複削除）
 
 ## 完了済み（参照）
 
