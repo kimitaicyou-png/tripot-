@@ -8,6 +8,7 @@ import { ProposalFromMeetingButton } from './proposal-from-meeting-button';
 import { SummarizeMeetingButton } from './summarize-meeting-button';
 import { GenerateTasksFromMeetingButton } from './generate-tasks-from-meeting-button';
 import { GenerateRequirementButton } from './generate-requirement-button';
+import { GenerateSitemapButton } from './generate-sitemap-button';
 
 type Need = { tag: string; priority: 'high' | 'medium' | 'low'; context: string };
 
@@ -142,6 +143,9 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                   </div>
                   <div>
                     <GenerateRequirementButton dealId={dealId} meetingId={m.id} />
+                  </div>
+                  <div>
+                    <GenerateSitemapButton meetingId={m.id} />
                   </div>
                 </div>
               </li>
