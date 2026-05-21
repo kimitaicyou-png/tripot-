@@ -6,6 +6,7 @@ import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { db, logAudit } from '@/lib/db';
 import { proposals } from '@/db/schema';
 import { requirePermission } from '@/lib/rbac';
+import { maybeAdvanceDealStage } from '@/lib/deals/stage-advance';
 
 const proposalSchema = z.object({
   deal_id: z.string().uuid(),
@@ -166,7 +167,7 @@ export async function updateProposalStatus(
     .update(proposals)
     .set({ status, updated_at: new Date() })
     .where(and(eq(proposals.id, proposalId), eq(proposals.company_id, session.user.company_id)))
-    .returning({ id: proposals.id });
+    .returning({ id: proposals.id, deal_id: proposals.deal_id });
 
   if (!updated) return { success: false, error: '提案書が見つかりません' };
 
@@ -178,6 +179,18 @@ export async function updateProposalStatus(
     resource_id: proposalId,
     metadata: { new_status: status },
   });
+
+  // 思想実装：提案書を顧客に共有（shared）した瞬間、案件ステージを「提案中」へ自動進行
+  // recordLostDeal と同じパターン、後退しないルール（TRIPOT_CONFIG.stages.order）で安全
+  if (status === 'shared' && updated.deal_id) {
+    await maybeAdvanceDealStage({
+      dealId: updated.deal_id,
+      companyId: session.user.company_id,
+      memberId: session.user.member_id,
+      targetStage: 'proposing',
+      triggeredBy: 'proposal.shared',
+    });
+  }
 
   if (dealId) revalidatePath(`/deals/${dealId}`);
   return { success: true };

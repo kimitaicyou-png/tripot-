@@ -6,6 +6,7 @@ import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { db, logAudit } from '@/lib/db';
 import { estimates } from '@/db/schema';
 import { requirePermission } from '@/lib/rbac';
+import { maybeAdvanceDealStage } from '@/lib/deals/stage-advance';
 
 const lineItemSchema = z.object({
   description: z.string(),
@@ -160,6 +161,17 @@ export async function updateEstimateStatus(
     resource_type: 'estimate',
     resource_id: estimateId,
   });
+
+  // 思想実装：見積が顧客から承諾（accepted）された瞬間、案件ステージを「受注」へ自動進行
+  if (parsed.data.status === 'accepted') {
+    await maybeAdvanceDealStage({
+      dealId,
+      companyId: session.user.company_id,
+      memberId: session.user.member_id,
+      targetStage: 'ordered',
+      triggeredBy: 'estimate.accepted',
+    });
+  }
 
   revalidatePath(`/deals/${dealId}`);
 }

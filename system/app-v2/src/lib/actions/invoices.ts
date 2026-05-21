@@ -6,6 +6,7 @@ import { eq, and, isNull, desc, sql } from 'drizzle-orm';
 import { db, logAudit } from '@/lib/db';
 import { invoices, estimates } from '@/db/schema';
 import { requirePermission } from '@/lib/rbac';
+import { maybeAdvanceDealStage } from '@/lib/deals/stage-advance';
 
 const invoiceSchema = z.object({
   deal_id: z.string().uuid(),
@@ -92,6 +93,16 @@ export async function markInvoicePaid(invoiceId: string, dealId: string): Promis
     action: 'invoice.paid',
     resource_type: 'invoice',
     resource_id: invoiceId,
+  });
+
+  // 思想実装：入金確認の瞬間、案件ステージを「入金済」へ自動進行
+  // → 粗利が PL/CF 実績に確定計上される
+  await maybeAdvanceDealStage({
+    dealId,
+    companyId: session.user.company_id,
+    memberId: session.user.member_id,
+    targetStage: 'paid',
+    triggeredBy: 'invoice.paid',
   });
 
   revalidatePath(`/deals/${dealId}`);
@@ -207,6 +218,27 @@ export async function updateInvoiceStatus(
     resource_type: 'invoice',
     resource_id: invoiceId,
   });
+
+  // 思想実装：請求書 status に応じて案件ステージを自動進行
+  // - issued / sent → 「請求済」（CF 予測に反映）
+  // - paid → 「入金済」（PL/CF 実績確定）
+  if (status === 'issued' || status === 'sent') {
+    await maybeAdvanceDealStage({
+      dealId,
+      companyId: session.user.company_id,
+      memberId: session.user.member_id,
+      targetStage: 'invoiced',
+      triggeredBy: `invoice.${status}`,
+    });
+  } else if (status === 'paid') {
+    await maybeAdvanceDealStage({
+      dealId,
+      companyId: session.user.company_id,
+      memberId: session.user.member_id,
+      targetStage: 'paid',
+      triggeredBy: 'invoice.paid',
+    });
+  }
 
   revalidatePath(`/deals/${dealId}`);
 }
