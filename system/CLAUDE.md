@@ -310,13 +310,22 @@ vercel deploy --prod --yes
 
 ## 未実装・今後の課題
 
-- MoneyForward クラウド API 接続（販管費実績の自動取得）
-- Kanban ドラッグ&ドロップ（dnd-kit、現状は表示のみ）
-- delivered → acceptance の自動進行（検収議事録 type 判定が必要）
-- ordered → in_production の自動進行（production_card 作成時 or タスク追加時）
+- **MoneyForward Cloud 接続**（販管費実績の自動取得、設計済：`docs/MONEYFORWARD_INTEGRATION.md`、env 投入待ち）
 - iOS Safari 音声認識の精度確認・Whisper API への切替検討
 - ページネーション（現状最新 200 件のみ表示）
 - 1Password CLI 経由でローカル env 同期
+- DB-依存 server action の vitest mock テスト（vi.mock('@/lib/db')）
+
+## 完了済み（参照）
+
+- ステージ自動進行 7 段（全自動経路、prospect→proposing のみ手動）
+- Kanban ドラッグ&ドロップ（@dnd-kit、楽観的更新 + 後退しないルール）
+- 機能脱落 4 件全復活：generate-estimate / generate-requirement / generate-budget / generate-sitemap
+- AI 結果の自動再表示 3 種：risk-score / next-action / morning-brief
+- 録音 + 文字起こし（Web Speech API、Chrome/Safari/Edge）
+- 議事録 → 検収マーク UI（delivered → acceptance 連動）
+- WelcomeFirstSteps + 経験者用切替トグル
+- vitest 基盤（34 純粋関数テスト）
 
 ## トラブルシューティング
 
