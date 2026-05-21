@@ -6,10 +6,11 @@
 
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, isNull, ne, sql } from 'drizzle-orm';
 import { db, logAudit } from '@/lib/db';
 import { tasks } from '@/db/schema';
 import { requirePermission } from '@/lib/rbac';
+import { maybeAdvanceDealStage } from '@/lib/deals/stage-advance';
 
 const taskSchema = z.object({
   title: z.string().min(1, 'タスク名は必須です').max(200),
@@ -90,6 +91,33 @@ export async function toggleTaskStatus(taskId: string): Promise<void> {
     resource_type: 'task',
     resource_id: taskId,
   });
+
+  // 思想実装：タスクを done にした瞬間、案件配下の未完了タスクが 0 件なら
+  // 案件ステージを「納品済」へ自動進行（後退しないルールにより in_production からのみ進む）
+  if (newStatus === 'done' && task.deal_id) {
+    const openTasks = await db
+      .select({ count: sql<number>`COUNT(*)::int` })
+      .from(tasks)
+      .where(
+        and(
+          eq(tasks.deal_id, task.deal_id),
+          eq(tasks.company_id, session.user.company_id),
+          ne(tasks.status, 'done'),
+          isNull(tasks.deleted_at)
+        )
+      )
+      .then((rows) => rows[0]?.count ?? 0);
+
+    if (openTasks === 0) {
+      await maybeAdvanceDealStage({
+        dealId: task.deal_id,
+        companyId: session.user.company_id,
+        memberId: session.user.member_id,
+        targetStage: 'delivered',
+        triggeredBy: 'tasks.all_completed',
+      });
+    }
+  }
 
   revalidatePath('/tasks');
   revalidatePath(`/home/${session.user.member_id}`);

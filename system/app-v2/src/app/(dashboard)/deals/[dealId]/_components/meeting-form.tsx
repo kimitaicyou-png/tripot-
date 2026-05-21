@@ -48,6 +48,13 @@ export function MeetingForm({ dealId }: { dealId: string }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [state]);
 
+  // savedAt バナーは 6 秒後に自動消去（連続記録時に古い時刻が残るのを防ぐ）
+  useEffect(() => {
+    if (!savedAt) return;
+    const timer = setTimeout(() => setSavedAt(null), 6000);
+    return () => clearTimeout(timer);
+  }, [savedAt]);
+
   function appendTranscript(text: string) {
     setRawText((prev) => (prev ? prev + '\n' + text : text));
   }
