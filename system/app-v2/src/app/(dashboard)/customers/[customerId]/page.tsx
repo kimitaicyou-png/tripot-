@@ -6,6 +6,7 @@ import { db } from '@/lib/db';
 import { customers, deals, members } from '@/db/schema';
 import { eq, and, isNull, desc } from 'drizzle-orm';
 import { deleteCustomer } from '@/lib/actions/customers';
+import { formatYen } from '@/lib/format';
 
 const STAGE_LABEL: Record<string, string> = {
   prospect: '見込み',
@@ -30,10 +31,6 @@ const STAGE_COLOR: Record<string, string> = {
   paid: 'bg-emerald-50 text-emerald-700',
   lost: 'bg-red-50 text-red-700',
 };
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 export default async function CustomerDetailPage({
   params,

@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Check } from 'lucide-react';
 import { updateDealRunningMeta, type RunningMetaState } from '@/lib/actions/deals';
+import { formatYen } from '@/lib/format';
 
 const initialState: RunningMetaState = {};
 
@@ -14,10 +15,6 @@ type Props = {
   renewalCount: number;
   renewalNote: string;
 };
-
-function formatYen(v: number | null): string {
-  return `¥${(v ?? 0).toLocaleString('ja-JP')}`;
-}
 
 function daysUntil(dateStr: string | null): number | null {
   if (!dateStr) return null;

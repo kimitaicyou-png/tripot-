@@ -7,10 +7,7 @@ import { eq, and, isNull, sql, desc, or } from 'drizzle-orm';
 import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { EmptyState } from '@/components/ui/empty-state';
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
+import { formatYen } from '@/lib/format';
 
 const PAGE_SIZE = 50;
 

@@ -3,13 +3,10 @@ import { sql, eq, and, isNull } from 'drizzle-orm';
 import { Phone, AlertTriangle } from 'lucide-react';
 import { db } from '@/lib/db';
 import { customers, deals, actions } from '@/db/schema';
+import { formatYen } from '@/lib/format';
 
 const SILENCE_THRESHOLD_DAYS = 14;
 const TOP_LIMIT = 5;
-
-function formatYen(value: number | null): string {
-  return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
 
 function daysSince(date: Date | null): number | null {
   if (!date) return null;

@@ -3,6 +3,7 @@
 import { useActionState, useState } from 'react';
 import { Check } from 'lucide-react';
 import { updateDealTargetMeta, type TargetMetaState } from '@/lib/actions/deals';
+import { formatYen } from '@/lib/format';
 
 const initialState: TargetMetaState = {};
 
@@ -15,10 +16,6 @@ type Props = {
   targetCloseDate: string | null;
   winReason: string;
 };
-
-function formatYen(v: number | null): string {
-  return `¥${(v ?? 0).toLocaleString('ja-JP')}`;
-}
 
 function progress(current: number, target: number): { pct: number; label: string } {
   if (target === 0) return { pct: 0, label: '目標未設定' };
