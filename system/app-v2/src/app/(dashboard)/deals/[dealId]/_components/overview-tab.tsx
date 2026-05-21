@@ -68,17 +68,21 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
 
   const dealId = deal.id;
 
-  // 過去の risk-score AI ジョブを取得（あれば即表示、無ければ RiskScoreSection が「リスク分析」ボタン表示）
-  const latestRiskJob = await getLatestAiJobForDeal<{
-    score: number;
-    level: string;
-    reasons: string[];
-    recommended_actions: string[];
-  }>({
-    dealId,
-    jobType: 'risk-score',
-    companyId: session.user.company_id,
-  });
+  // 過去の AI ジョブ（risk-score / next-action）を並列取得、あれば即表示
+  const [latestRiskJob, latestNextActionJob] = await Promise.all([
+    getLatestAiJobForDeal<{
+      score: number;
+      level: string;
+      reasons: string[];
+      recommended_actions: string[];
+    }>({ dealId, jobType: 'risk-score', companyId: session.user.company_id }),
+    getLatestAiJobForDeal<{
+      action: string;
+      reason: string;
+      due_in_days: number;
+      action_type: string;
+    }>({ dealId, jobType: 'next-action', companyId: session.user.company_id }),
+  ]);
 
   const [dealTasks, dealActions] = await Promise.all([
     db
@@ -132,7 +136,26 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
         grossProfitRate={deal.gross_profit_rate}
       />
 
-      <NextActionSection dealId={dealId} />
+      <NextActionSection
+        dealId={dealId}
+        initialData={
+          latestNextActionJob
+            ? {
+                action: latestNextActionJob.output.action,
+                reason: latestNextActionJob.output.reason,
+                due_in_days: Number(latestNextActionJob.output.due_in_days ?? 0),
+                action_type: latestNextActionJob.output.action_type as
+                  | 'call'
+                  | 'meeting'
+                  | 'proposal'
+                  | 'email'
+                  | 'visit'
+                  | 'other',
+                generated_at: latestNextActionJob.finishedAt.toISOString(),
+              }
+            : null
+        }
+      />
 
       <RiskScoreSection
         dealId={dealId}

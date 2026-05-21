@@ -6,7 +6,7 @@ import type { LucideIcon } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 
-type NextAction = {
+export type NextAction = {
   action: string;
   reason: string;
   due_in_days: number;
@@ -40,8 +40,14 @@ function formatDue(days: number): string {
   return `${days}日以内`;
 }
 
-export function NextActionSection({ dealId }: { dealId: string }) {
-  const [data, setData] = useState<NextAction | null>(null);
+export function NextActionSection({
+  dealId,
+  initialData,
+}: {
+  dealId: string;
+  initialData?: NextAction | null;
+}) {
+  const [data, setData] = useState<NextAction | null>(initialData ?? null);
   const [running, setRunning] = useState(false);
 
   async function handleSuggest() {
