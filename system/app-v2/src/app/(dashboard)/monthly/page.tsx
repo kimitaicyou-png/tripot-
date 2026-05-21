@@ -10,13 +10,13 @@ import { HeroValue } from '@/components/ui/stat-card';
 import { SendToHqButton } from './_components/send-to-hq-button';
 import { VsBudgetCard } from './_components/vs-budget-card';
 import { MonthlyKpiCards } from './_components/monthly-kpi-cards';
+import { PlVsTargetCards } from './_components/pl-vs-target-cards';
+import { OpexInputForm } from './_components/opex-input-form';
+import { getMonthlyOpex } from '@/lib/actions/monthly-opex';
+import { TRIPOT_CONFIG } from '../../../../coaris.config';
 
 function formatYen(value: number | null): string {
   return `¥${(value ?? 0).toLocaleString('ja-JP')}`;
-}
-
-function formatMan(value: number | null): string {
-  return `${Math.round((value ?? 0) / 10000).toLocaleString('ja-JP')}万`;
 }
 
 export default async function MonthlyPage() {
@@ -28,16 +28,36 @@ export default async function MonthlyPage() {
   const month = now.getMonth() + 1;
   const monthStart = new Date(year, month - 1, 1);
   const monthEnd = new Date(year, month, 0, 23, 59, 59);
+  const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
 
+  // 売上 / 受注 / 粗利 を 1 クエリで取得
   const actualKpi = await db
     .select({
       revenue: sql<number>`COALESCE(SUM(${deals.amount}) FILTER (WHERE ${deals.stage} IN ('paid', 'invoiced') AND ${deals.paid_at} >= ${monthStart} AND ${deals.paid_at} <= ${monthEnd}), 0)::int`,
       ordered: sql<number>`COALESCE(SUM(${deals.amount}) FILTER (WHERE ${deals.stage} = 'ordered' AND ${deals.ordered_at} >= ${monthStart} AND ${deals.ordered_at} <= ${monthEnd}), 0)::int`,
+      gross_profit: sql<number>`COALESCE(SUM(${deals.gross_profit}) FILTER (WHERE ${deals.stage} IN ('paid', 'invoiced') AND ${deals.paid_at} >= ${monthStart} AND ${deals.paid_at} <= ${monthEnd}), 0)::int`,
     })
     .from(deals)
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((rows) => rows[0]);
 
+  // 進行中パイプライン（ステージ別合計、CF 加重用）
+  const pipelineByStage = await db
+    .select({
+      stage: deals.stage,
+      total: sql<number>`COALESCE(SUM(${deals.amount}), 0)::int`,
+    })
+    .from(deals)
+    .where(
+      and(
+        eq(deals.company_id, session.user.company_id),
+        isNull(deals.deleted_at),
+        sql`${deals.stage} NOT IN ('paid', 'lost')`
+      )
+    )
+    .groupBy(deals.stage);
+
+  // 予算（今月）
   const budgetRow = await db
     .select()
     .from(budgets)
@@ -51,11 +71,40 @@ export default async function MonthlyPage() {
     .limit(1)
     .then((rows) => rows[0]);
 
+  // 販管費（手動入力、companies.config.monthly_opex[YM]）
+  const monthlyOpex = await getMonthlyOpex(yearMonth);
+
   const targetRevenue = budgetRow?.target_revenue ?? 0;
   const actualRevenue = actualKpi?.revenue ?? 0;
   const progressRate = targetRevenue > 0 ? Math.round((actualRevenue / targetRevenue) * 100) : 0;
-  const yearMonth = `${year}-${String(month).padStart(2, '0')}`;
+
+  const targetGrossProfit = budgetRow?.target_gross_profit ?? 0;
+  const actualGrossProfit = actualKpi?.gross_profit ?? 0;
+
+  const targetOperatingProfit = budgetRow?.target_operating_profit ?? 0;
+  const actualOperatingProfit = actualGrossProfit - monthlyOpex;
+
+  // CF 加重パイプライン（翌月見通し）
+  const cfBreakdown = pipelineByStage
+    .map((p) => {
+      const stageDef = TRIPOT_CONFIG.stages.find((s) => s.key === p.stage);
+      return {
+        stage: p.stage,
+        label: stageDef?.label ?? p.stage,
+        amount: p.total,
+        weight: stageDef?.cashflowWeight ?? 0,
+        weighted: Math.round(p.total * (stageDef?.cashflowWeight ?? 0)),
+        order: stageDef?.order ?? 999,
+      };
+    })
+    .filter((b) => b.amount > 0)
+    .sort((a, b) => a.order - b.order);
+
+  const cfForecast = cfBreakdown.reduce((s, b) => s + b.weighted, 0);
+
   const remaining = calculateRemainingDays(year, month);
+  const canEditOpex =
+    session.user.role === 'president' || session.user.role === 'hq_member';
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -84,7 +133,7 @@ export default async function MonthlyPage() {
         }
       />
 
-      <div className="px-6 py-10 max-w-5xl mx-auto space-y-12">
+      <div className="px-6 py-10 max-w-5xl mx-auto space-y-10">
         <HeroValue
           label="今月の売上（入金確定）"
           value={formatYen(actualRevenue)}
@@ -92,7 +141,9 @@ export default async function MonthlyPage() {
             targetRevenue > 0 ? (
               <>
                 目標{' '}
-                <span className="font-mono tabular-nums text-gray-900">{formatYen(targetRevenue)}</span>
+                <span className="font-mono tabular-nums text-gray-900">
+                  {formatYen(targetRevenue)}
+                </span>
                 {' '}に対し{' '}
                 <span
                   className={`font-mono tabular-nums font-medium ${
@@ -116,6 +167,29 @@ export default async function MonthlyPage() {
           targetRevenue={targetRevenue}
           actualRevenue={actualRevenue}
           progressRate={progressRate}
+        />
+
+        {/* 粗利 / 営業利益 / CF 見通し（新規） */}
+        <PlVsTargetCards
+          targetGrossProfit={targetGrossProfit}
+          actualGrossProfit={actualGrossProfit}
+          targetOperatingProfit={targetOperatingProfit}
+          actualOperatingProfit={actualOperatingProfit}
+          opexInput={monthlyOpex}
+          cfForecast={cfForecast}
+          cfBreakdown={cfBreakdown.map(({ stage, label, weighted, weight }) => ({
+            stage,
+            label,
+            amount: weighted,
+            weight,
+          }))}
+        />
+
+        {/* 販管費 手動入力（MF 接続前の仮 UI） */}
+        <OpexInputForm
+          yearMonth={yearMonth}
+          initialAmount={monthlyOpex}
+          canEdit={canEditOpex}
         />
 
         <MonthlyKpiCards

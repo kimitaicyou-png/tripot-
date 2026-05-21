@@ -202,9 +202,12 @@ export default async function MemberHomePage({ params }: { params: Promise<{ mem
       </header>
 
       <div className="px-6 py-8 max-w-5xl mx-auto pb-32 md:pb-12">
-        <section>
+        <section className="overflow-hidden">
           <p className="text-sm text-gray-700">あなたの売上（入金確定）</p>
-          <h1 className="font-semibold text-6xl md:text-8xl text-gray-900 tracking-tight tabular-nums mt-2">
+          <h1
+            className="font-semibold text-5xl md:text-7xl text-gray-900 tracking-tight tabular-nums mt-2 truncate"
+            title={formatYen(dealStats?.revenue ?? 0)}
+          >
             {formatYen(dealStats?.revenue ?? 0)}
           </h1>
         </section>

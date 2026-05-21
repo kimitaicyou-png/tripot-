@@ -7,6 +7,7 @@ import { eq, and, sql, isNull, gte } from 'drizzle-orm';
 import { WeeklyTabs } from './_components/tabs';
 import { MemberActivityGrid } from './_components/member-activity-grid';
 import { WeeklyTotals } from './_components/weekly-totals';
+import { WeeklyRevenueCards } from './_components/weekly-revenue-cards';
 import { PageHeader } from '@/components/ui/page-header';
 import { HeroValue } from '@/components/ui/stat-card';
 
@@ -64,6 +65,20 @@ export default async function WeeklyPage({
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((rows) => rows[0]);
 
+  // 今週の動き：paid_at / ordered_at / created_at が weekStart 以降の案件を切り出す
+  const weeklyDeals = await db
+    .select({
+      paid_amount: sql<number>`COALESCE(SUM(${deals.amount}) FILTER (WHERE ${deals.paid_at} >= ${weekStart.toISOString().slice(0, 10)}), 0)::int`,
+      paid_count: sql<number>`COUNT(*) FILTER (WHERE ${deals.paid_at} >= ${weekStart.toISOString().slice(0, 10)})::int`,
+      ordered_amount: sql<number>`COALESCE(SUM(${deals.amount}) FILTER (WHERE ${deals.ordered_at} >= ${weekStart.toISOString().slice(0, 10)}), 0)::int`,
+      ordered_count: sql<number>`COUNT(*) FILTER (WHERE ${deals.ordered_at} >= ${weekStart.toISOString().slice(0, 10)})::int`,
+      new_pipeline_amount: sql<number>`COALESCE(SUM(${deals.amount}) FILTER (WHERE ${deals.created_at} >= ${weekStart} AND ${deals.stage} NOT IN ('paid', 'lost')), 0)::int`,
+      new_pipeline_count: sql<number>`COUNT(*) FILTER (WHERE ${deals.created_at} >= ${weekStart} AND ${deals.stage} NOT IN ('paid', 'lost'))::int`,
+    })
+    .from(deals)
+    .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
+    .then((rows) => rows[0]);
+
   const totalActions = memberStats.reduce((s, m) => s + m.total, 0);
   const maxActions = Math.max(...memberStats.map((m) => m.total), 1);
 
@@ -103,6 +118,15 @@ export default async function WeeklyPage({
               <span className="font-mono tabular-nums text-gray-900 font-medium">{totalActions}</span>
             </>
           }
+        />
+
+        <WeeklyRevenueCards
+          paidAmount={weeklyDeals?.paid_amount ?? 0}
+          paidCount={weeklyDeals?.paid_count ?? 0}
+          orderedAmount={weeklyDeals?.ordered_amount ?? 0}
+          orderedCount={weeklyDeals?.ordered_count ?? 0}
+          newPipelineAmount={weeklyDeals?.new_pipeline_amount ?? 0}
+          newPipelineCount={weeklyDeals?.new_pipeline_count ?? 0}
         />
 
         <MemberActivityGrid members={memberStats} />

@@ -27,12 +27,12 @@ export function StatCard({
   const valueSize = big ? 'text-[28px]' : 'text-xl';
 
   return (
-    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm">
-      <p className="text-xs text-gray-500">{label}</p>
-      <p className={`${valueSize} font-semibold ${valueColor} mt-1 tabular-nums`}>
+    <div className="bg-white border border-gray-200 rounded-lg p-4 shadow-sm overflow-hidden">
+      <p className="text-xs text-gray-500 truncate">{label}</p>
+      <p className={`${valueSize} font-semibold ${valueColor} mt-1 tabular-nums truncate`}>
         {value}
       </p>
-      {sub && <p className="text-xs text-gray-500 mt-1">{sub}</p>}
+      {sub && <p className="text-xs text-gray-500 mt-1 truncate">{sub}</p>}
     </div>
   );
 }
@@ -58,12 +58,12 @@ export function HeroValue({
           : 'text-gray-900';
 
   return (
-    <section className="py-2">
-      <p className="text-sm text-gray-500">{label}</p>
-      <p className={`text-[28px] font-semibold ${valueColor} tabular-nums mt-1`}>
+    <section className="py-2 overflow-hidden">
+      <p className="text-sm text-gray-500 truncate">{label}</p>
+      <p className={`text-[28px] font-semibold ${valueColor} tabular-nums mt-1 truncate`}>
         {value}
       </p>
-      {sub && <p className="text-sm text-gray-500 mt-1">{sub}</p>}
+      {sub && <p className="text-sm text-gray-500 mt-1 break-words">{sub}</p>}
     </section>
   );
 }
