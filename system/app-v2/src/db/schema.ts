@@ -45,6 +45,17 @@ export const dealStage = pgEnum('deal_stage', [
   'paid',
   'lost',
 ]);
+// 営業主観の温度感（ADR-0013、2026-05-25 起案）。stage（客観事実）と直交する補完軸。
+// 現行スプレッドシート運用の A/B/C/D/E + 想定/継続 と 1:1 対応。中止は stage='lost' で表現。
+export const subjectiveConfidence = pgEnum('subjective_confidence', [
+  'a',          // 見積段階以降、受注確度高
+  'b',          // ヒアリング・補助金申請待ち、根拠あり
+  'c',          // 提案段階、検討中
+  'd',          // アポ段階、初期
+  'e',          // 見込み顧客、温度感低
+  'expected',   // 想定（構築中等の計画段階）
+  'continuing', // 継続（既存顧客の追加受注）
+]);
 export const revenueType = pgEnum('revenue_type', ['spot', 'running', 'both']);
 export const taskStatus = pgEnum('task_status', ['todo', 'in_progress', 'done']);
 export const actionType = pgEnum('action_type', ['call', 'meeting', 'proposal', 'email', 'visit', 'other']);
@@ -176,6 +187,10 @@ export const deals = pgTable(
     monthly_amount: bigint('monthly_amount', { mode: 'number' }).default(0), // running 月額
     revenue_type: revenueType('revenue_type').notNull().default('spot'),
     expected_close_date: date('expected_close_date'),
+    // ADR-0013 主観確度（G3、2026-05-25 起案）— 現行シート A/B/C/D/E + 想定/継続
+    subjective_confidence: subjectiveConfidence('subjective_confidence'),
+    confidence_updated_at: timestamp('confidence_updated_at', { withTimezone: true }),
+    confidence_updated_by: uuid('confidence_updated_by').references(() => members.id),
     ordered_at: date('ordered_at'),
     delivered_at: date('delivered_at'),
     paid_at: date('paid_at'),
@@ -195,6 +210,7 @@ export const deals = pgTable(
     companyPaidIdx: index('deals_company_paid_idx').on(t.company_id, t.paid_at),
     grossProfitIdx: index('deals_gross_profit_idx').on(t.company_id, t.gross_profit),
     grossProfitRateIdx: index('deals_gross_profit_rate_idx').on(t.company_id, t.gross_profit_rate),
+    subjectiveConfidenceIdx: index('deals_subjective_confidence_idx').on(t.company_id, t.subjective_confidence),
   })
 );
 

@@ -343,6 +343,7 @@ vercel deploy --prod --yes
 - **MoneyForward Cloud 接続**（販管費実績の自動取得、設計済：`docs/MONEYFORWARD_INTEGRATION.md`、env 投入待ち）
 - iOS Safari 音声認識の精度確認・Whisper API への切替検討
 - 1Password CLI 経由でローカル env 同期
+- **G4 補助金価格表 機能化**（2026-05-25 隊長判断「今回はいいや、やってほしいけどなー」で完成スコープ外。西室の補助金業務は当面 Notion/別シート併用継続。事業会社の補助金商材依存度が上がるタイミング or 西室から実需 escalation 時に再検討）
 
 ## 運用ルール（schema 拡張せず運用で吸収するもの）
 

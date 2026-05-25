@@ -19,6 +19,7 @@
 | [0010](./0010-deals-gross-profit-column.md) | deals テーブル 粗利関連 column 追加（外注費・粗利・粗利率） | Proposed | 2026-05-04 |
 | [0011](./0011-rbac-db-driven-roles.md) | rbac は DB 参照型ロール定義を採用（13社展開対応） | Accepted | 2026-05-04 |
 | [0012](./0012-jwt-revocation-db-recheck.md) | 退職者 JWT 即時無効化は `members.status` DB 再確認方式で実装 | Accepted | 2026-05-04 |
+| [0013](./0013-deals-subjective-confidence.md) | deals テーブル 主観確度（subjective_confidence）column 追加（A〜E + 想定/継続、現行シート互換、ノリスケ柏樹反証受け）| Proposed | 2026-05-25 |
 
 ## ADR を追加する時
 
