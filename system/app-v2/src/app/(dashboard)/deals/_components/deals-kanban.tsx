@@ -19,6 +19,8 @@ import { updateDealStage } from '@/lib/actions/deals';
 import { formatYen, formatShortYen } from '@/lib/format';
 import { toast } from '@/components/ui/toaster';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
+import { ConfidenceBadge } from '../[dealId]/_components/confidence-badge';
+import type { SubjectiveConfidence } from '@/lib/deals/confidence';
 
 /**
  * 案件パイプライン Kanban（Client Component、ドラッグ&ドロップ対応）
@@ -46,6 +48,7 @@ type DealItem = {
   updated_at: Date;
   gross_profit: number | null;
   gross_profit_rate: string | number | null;
+  subjective_confidence: SubjectiveConfidence | null;
 };
 
 function DealCard({
@@ -72,6 +75,12 @@ function DealCard({
           </p>
           {deal.customer_name && (
             <p className="text-[11px] text-gray-600 mt-1 truncate">{deal.customer_name}</p>
+          )}
+          {/* 主観確度（営業温度感、ADR-0013 G3） */}
+          {deal.subjective_confidence && (
+            <div className="mt-1.5">
+              <ConfidenceBadge value={deal.subjective_confidence} size="sm" />
+            </div>
           )}
           <div className="flex items-baseline justify-between gap-2 mt-2">
             <span className="font-mono tabular-nums text-sm text-gray-900 font-semibold">

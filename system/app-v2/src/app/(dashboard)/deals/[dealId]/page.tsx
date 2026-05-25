@@ -42,6 +42,7 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
         external_cost: deals.external_cost,
         gross_profit: deals.gross_profit,
         gross_profit_rate: deals.gross_profit_rate,
+        subjective_confidence: deals.subjective_confidence,
       })
       .from(deals)
       .leftJoin(members, eq(deals.assignee_id, members.id))

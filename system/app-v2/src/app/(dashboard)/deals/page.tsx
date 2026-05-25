@@ -11,6 +11,7 @@ import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
 import { DealsKanban } from './_components/deals-kanban';
 import { KanbanFilters } from './_components/kanban-filters';
+import { ConfidenceBadge } from './[dealId]/_components/confidence-badge';
 import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../coaris.config';
 
@@ -137,6 +138,7 @@ export default async function DealsListPage({
         updated_at: deals.updated_at,
         gross_profit: deals.gross_profit,
         gross_profit_rate: deals.gross_profit_rate,
+        subjective_confidence: deals.subjective_confidence,
       })
       .from(deals)
       .leftJoin(members, eq(deals.assignee_id, members.id))
@@ -332,6 +334,10 @@ export default async function DealsListPage({
                           className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium shrink-0 ${STAGE_COLOR[d.stage] ?? ''}`}
                         >
                           {STAGE_LABEL[d.stage] ?? d.stage}
+                        </span>
+                        {/* 主観確度バッジ（ADR-0013、G3）— stage の隣で「客観 × 主観」両軸を見せる */}
+                        <span className="shrink-0 hidden md:inline-flex">
+                          <ConfidenceBadge value={d.subjective_confidence} size="sm" />
                         </span>
                         <span className="flex-1 text-sm text-gray-900 truncate font-medium">
                           {d.title}

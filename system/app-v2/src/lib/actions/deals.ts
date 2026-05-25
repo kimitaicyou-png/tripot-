@@ -584,3 +584,65 @@ export async function updateDealStage(
   return { ok: true };
 }
 
+/**
+ * 主観確度（A〜E + 想定/継続）の更新（ADR-0013、G3、2026-05-25）
+ *
+ * 現行スプレッドシート互換の営業温度感ラベル。stage（客観事実）と直交する補完軸。
+ * 柏樹（ノリスケ反証ペルソナ）「stage cashflow weight は綺麗だが営業の A〜E 手感を潰してる」
+ * 指摘を受けて実装。
+ */
+const confidenceEnum = z
+  .enum(['a', 'b', 'c', 'd', 'e', 'expected', 'continuing'])
+  .nullable();
+
+export async function updateDealConfidence(
+  dealId: string,
+  confidence: 'a' | 'b' | 'c' | 'd' | 'e' | 'expected' | 'continuing' | null,
+): Promise<UpdateStageResult> {
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) {
+    return { ok: false, error: guard.error };
+  }
+  const { session } = guard;
+
+  const parsed = confidenceEnum.safeParse(confidence);
+  if (!parsed.success) {
+    return { ok: false, error: 'invalid_confidence' };
+  }
+
+  const current = await db
+    .select({ subjective_confidence: deals.subjective_confidence })
+    .from(deals)
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!current) {
+    return { ok: false, error: 'deal_not_found' };
+  }
+
+  await db
+    .update(deals)
+    .set({
+      subjective_confidence: parsed.data,
+      confidence_updated_at: new Date(),
+      confidence_updated_by: session.user.member_id,
+      updated_at: new Date(),
+    })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.confidence_update',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { from: current.subjective_confidence, to: parsed.data },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  revalidatePath('/deals');
+  revalidatePath('/home');
+  return { ok: true };
+}
+

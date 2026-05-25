@@ -22,6 +22,8 @@ import { RunningSection } from './running-section';
 import { TargetSection } from './target-section';
 import { ExternalCostForm } from './external-cost-form';
 import { ImportReplyButton } from './import-reply-button';
+import { ConfidenceDropdown } from './confidence-dropdown';
+import type { SubjectiveConfidence } from '@/lib/deals/confidence';
 
 const ACTION_TYPE_LABEL: Record<string, string> = {
   call: '電話',
@@ -57,6 +59,7 @@ export type DealOverview = {
   external_cost: number | null;
   gross_profit: number | null;
   gross_profit_rate: string | number | null;
+  subjective_confidence: SubjectiveConfidence | null;
 };
 
 export async function OverviewTab({ deal }: { deal: DealOverview }) {
@@ -170,6 +173,17 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
       />
 
       <AttackSection dealId={dealId} />
+
+      {/* 主観確度（ADR-0013、G3、2026-05-25）— stage と直交、営業の温度感をここで設定 */}
+      <section className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between gap-4">
+        <div>
+          <p className="text-xs text-gray-500">主観確度（営業の温度感、A〜E + 想定/継続）</p>
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            stage は書類・タスクの自動進行、確度は営業の判断軸。両方持つことで「同じ提案中でも A と E が混ざらない」
+          </p>
+        </div>
+        <ConfidenceDropdown dealId={dealId} initial={deal.subjective_confidence} />
+      </section>
 
       <section className="bg-white border border-gray-200 rounded-xl p-6 grid grid-cols-2 gap-x-6 gap-y-4 text-sm">
         <div>
