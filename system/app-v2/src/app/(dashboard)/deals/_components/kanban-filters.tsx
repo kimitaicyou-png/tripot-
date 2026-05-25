@@ -5,13 +5,14 @@ import { useTransition } from 'react';
 import { Filter, X } from 'lucide-react';
 
 /**
- * /deals Kanban / リスト のフィルタバー（Client Component）。
+ * /deals Kanban / リスト / 週グリッド のフィルタバー（Client Component）。
  *
  * URL クエリ経由でフィルタ状態を保持（ブックマーク・共有可）。
  * Server Component page.tsx 側で searchParams を読んで DB 絞り込み済データを返す。
  *
  * フィルタ項目：
  * - assignee: 担当者（member_id）
+ * - confidence: 主観確度（a/b/c/d/e/expected/continuing/unset/all、2026-05-26 G7 拡張）
  * - period: 期間（更新日ベース：all / this_week / this_month / this_quarter）
  * - sort: ソート順（updated_desc / amount_desc / amount_asc / cf_weighted_desc）
  */
@@ -32,6 +33,19 @@ const SORT_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'cf_weighted_desc', label: 'CF 加重 大→小' },
 ];
 
+// 主観確度フィルタ（ADR-0013 enum + 「未設定」+「全部」、2026-05-26 隊長要望）
+const CONFIDENCE_FILTER_OPTIONS: Array<{ value: string; label: string }> = [
+  { value: '', label: '確度：全部' },
+  { value: 'a', label: 'A 見積以降' },
+  { value: 'b', label: 'B 補助金待ち等' },
+  { value: 'c', label: 'C 提案中' },
+  { value: 'd', label: 'D アポ段階' },
+  { value: 'e', label: 'E 見込み' },
+  { value: 'expected', label: '想定' },
+  { value: 'continuing', label: '継続' },
+  { value: 'unset', label: '未設定のみ' },
+];
+
 export function KanbanFilters({
   members,
   currentView,
@@ -45,10 +59,12 @@ export function KanbanFilters({
   const [pending, startTransition] = useTransition();
 
   const assignee = searchParams.get('assignee') ?? '';
+  const confidence = searchParams.get('confidence') ?? '';
   const period = searchParams.get('period') ?? 'all';
   const sort = searchParams.get('sort') ?? 'updated_desc';
 
-  const hasActiveFilter = assignee !== '' || period !== 'all' || sort !== 'updated_desc';
+  const hasActiveFilter =
+    assignee !== '' || confidence !== '' || period !== 'all' || sort !== 'updated_desc';
 
   function pushParams(updates: Record<string, string | null>) {
     const next = new URLSearchParams(searchParams.toString());
@@ -89,6 +105,20 @@ export function KanbanFilters({
         {members.map((m) => (
           <option key={m.id} value={m.id}>
             {m.name}
+          </option>
+        ))}
+      </select>
+
+      <select
+        value={confidence}
+        onChange={(e) => pushParams({ confidence: e.target.value || null })}
+        disabled={pending}
+        className="px-2.5 py-1.5 text-xs text-gray-900 bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20 disabled:opacity-50"
+        aria-label="主観確度で絞り込み"
+      >
+        {CONFIDENCE_FILTER_OPTIONS.map((opt) => (
+          <option key={opt.value} value={opt.value}>
+            {opt.label}
           </option>
         ))}
       </select>

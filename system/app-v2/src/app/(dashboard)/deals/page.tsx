@@ -83,6 +83,7 @@ export default async function DealsListPage({
   searchParams: Promise<{
     view?: string;
     assignee?: string;
+    confidence?: string;
     period?: string;
     sort?: string;
     page?: string;
@@ -91,7 +92,14 @@ export default async function DealsListPage({
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
 
-  const { view, assignee, period = 'all', sort = 'updated_desc', page: pageStr } = await searchParams;
+  const {
+    view,
+    assignee,
+    confidence,
+    period = 'all',
+    sort = 'updated_desc',
+    page: pageStr,
+  } = await searchParams;
   // view: 'kanban' (default) | 'list' | 'week-grid'
   const isWeekGrid = view === 'week-grid';
   const isList = view === 'list';
@@ -111,6 +119,19 @@ export default async function DealsListPage({
   ];
   if (assignee) {
     whereConditions.push(eq(deals.assignee_id, assignee));
+  }
+  // 主観確度フィルタ（2026-05-26 G7 拡張、隊長要望「確度で絞り込み」）
+  // 'unset' は null のみ、それ以外は enum 値で eq
+  if (confidence) {
+    if (confidence === 'unset') {
+      whereConditions.push(isNull(deals.subjective_confidence));
+    } else if (
+      ['a', 'b', 'c', 'd', 'e', 'expected', 'continuing'].includes(confidence)
+    ) {
+      whereConditions.push(
+        eq(deals.subjective_confidence, confidence as 'a' | 'b' | 'c' | 'd' | 'e' | 'expected' | 'continuing'),
+      );
+    }
   }
   const periodStart = getPeriodStart(period);
   if (periodStart) {
@@ -194,7 +215,7 @@ export default async function DealsListPage({
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((r) => r[0]?.count ?? 0);
   const isPartialList = (isKanban || isWeekGrid) && rows.length >= KANBAN_LIMIT && filteredTotal > KANBAN_LIMIT;
-  const hasActiveFilter = Boolean(assignee) || period !== 'all';
+  const hasActiveFilter = Boolean(assignee) || Boolean(confidence) || period !== 'all';
 
   // G2 週グリッド view：12 週分の actions/meetings/tasks を集計（view='week-grid' のみ）
   const weeks = isWeekGrid ? generateWeeks() : [];
@@ -452,6 +473,7 @@ export default async function DealsListPage({
                         const p = new URLSearchParams();
                         if (view) p.set('view', view);
                         if (assignee) p.set('assignee', assignee);
+                        if (confidence) p.set('confidence', confidence);
                         if (period !== 'all') p.set('period', period);
                         if (sort !== 'updated_desc') p.set('sort', sort);
                         if (currentPage - 1 > 1) p.set('page', String(currentPage - 1));
@@ -475,6 +497,7 @@ export default async function DealsListPage({
                         const p = new URLSearchParams();
                         if (view) p.set('view', view);
                         if (assignee) p.set('assignee', assignee);
+                        if (confidence) p.set('confidence', confidence);
                         if (period !== 'all') p.set('period', period);
                         if (sort !== 'updated_desc') p.set('sort', sort);
                         p.set('page', String(currentPage + 1));
