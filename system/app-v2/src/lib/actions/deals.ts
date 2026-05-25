@@ -646,3 +646,57 @@ export async function updateDealConfidence(
   return { ok: true };
 }
 
+/**
+ * 受注金額（amount）のインライン更新（G7 1 画面編集、2026-05-26）
+ *
+ * 柏樹（ノリスケ反証）「90 件運用で死ぬ」指摘：詳細ページ往復なしで /deals 一覧から
+ * 金額を直接いじれるようにする。負数は拒否、最大 999 億で安全網。
+ */
+const amountSchema = z.coerce.number().int().nonnegative().max(99_999_999_999);
+
+export async function updateDealAmount(
+  dealId: string,
+  amount: number,
+): Promise<UpdateStageResult> {
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) {
+    return { ok: false, error: guard.error };
+  }
+  const { session } = guard;
+
+  const parsed = amountSchema.safeParse(amount);
+  if (!parsed.success) {
+    return { ok: false, error: 'invalid_amount' };
+  }
+
+  const current = await db
+    .select({ amount: deals.amount })
+    .from(deals)
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!current) {
+    return { ok: false, error: 'deal_not_found' };
+  }
+
+  await db
+    .update(deals)
+    .set({ amount: parsed.data, updated_at: new Date() })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.amount_inline_update',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { from: current.amount, to: parsed.data, source: 'list_view_inline' },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  revalidatePath('/deals');
+  revalidatePath('/home');
+  return { ok: true };
+}
+

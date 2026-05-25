@@ -13,6 +13,8 @@ import { DealsKanban } from './_components/deals-kanban';
 import { KanbanFilters } from './_components/kanban-filters';
 import { ConfidenceBadge } from './[dealId]/_components/confidence-badge';
 import { DealsWeekGrid } from './_components/deals-week-grid';
+import { InlineAmountInput } from './_components/inline-amount-input';
+import { InlineConfidenceSelect } from './_components/inline-confidence-select';
 import { generateWeeks, type WeekGridDeal } from '@/lib/deals/week-grid';
 import { fetchWeekGridCells } from '@/lib/deals/week-grid-fetch';
 import { formatYen } from '@/lib/format';
@@ -365,11 +367,11 @@ export default async function DealsListPage({
                     title={STAGE_LABEL[g.stage] ?? g.stage}
                     count={g.items.length}
                   />
+                  {/* G7（2026-05-26）：行を Link → div 化、案件名のみ Link、金額・確度は inline 編集 */}
                   <div className="bg-white border border-gray-200 rounded-xl divide-y divide-border">
                     {g.items.map((d) => (
-                      <Link
+                      <div
                         key={d.id}
-                        href={`/deals/${d.id}`}
                         className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
                       >
                         <span
@@ -377,13 +379,20 @@ export default async function DealsListPage({
                         >
                           {STAGE_LABEL[d.stage] ?? d.stage}
                         </span>
-                        {/* 主観確度バッジ（ADR-0013、G3）— stage の隣で「客観 × 主観」両軸を見せる */}
+                        {/* G3 + G7：主観確度を inline 編集可能に */}
                         <span className="shrink-0 hidden md:inline-flex">
+                          <InlineConfidenceSelect dealId={d.id} initial={d.subjective_confidence} />
+                        </span>
+                        {/* mobile: 表示のみ（select は inline でも幅取るため） */}
+                        <span className="shrink-0 inline-flex md:hidden">
                           <ConfidenceBadge value={d.subjective_confidence} size="sm" />
                         </span>
-                        <span className="flex-1 text-sm text-gray-900 truncate font-medium">
+                        <Link
+                          href={`/deals/${d.id}`}
+                          className="flex-1 text-sm text-gray-900 truncate font-medium hover:underline decoration-gray-400"
+                        >
                           {d.title}
-                        </span>
+                        </Link>
                         <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-32 truncate">
                           {d.customer_name ?? '—'}
                         </span>
@@ -391,11 +400,10 @@ export default async function DealsListPage({
                           {d.assignee_name ?? '—'}
                         </span>
                         <span className="text-right shrink-0">
-                          <span className="font-mono tabular-nums text-sm text-gray-900 font-semibold block">
-                            {formatYen(d.amount)}
-                          </span>
+                          {/* G7：金額を inline 編集 */}
+                          <InlineAmountInput dealId={d.id} initialAmount={d.amount} />
                           {d.revenue_type !== 'spot' && d.monthly_amount ? (
-                            <span className="text-xs text-amber-700 font-mono tabular-nums">
+                            <span className="text-xs text-amber-700 font-mono tabular-nums block mt-0.5">
                               月 {formatYen(d.monthly_amount)}
                             </span>
                           ) : null}
@@ -419,7 +427,7 @@ export default async function DealsListPage({
                             </span>
                           );
                         })()}
-                      </Link>
+                      </div>
                     ))}
                   </div>
                 </section>
