@@ -734,17 +734,31 @@ export async function updateDealExpectedClose(
 }
 
 /**
- * 「次やること」メモのインライン更新（G7 拡張、2026-05-26）
+ * 「次やること」インライン更新（G7 拡張 + 隊長明示 2026-05-26 03:14「いつまでに誰が」構造化）
  *
- * 柏樹（ノリスケ反証）「シートに戻りたい」3 つ目「次やること書く欄が一覧にない」を解消。
- * deals.metadata.next_action に格納（migration 不要、jsonb 部分更新）。
- * 200 文字まで、空文字は null 扱い。
+ * 柏樹反証 + 隊長明示で 3 要素構造に拡張：
+ *   - text: 何を（200 字まで）
+ *   - due_date: いつまでに（YYYY-MM-DD、null OK）
+ *   - assignee_id: 誰が（members.id、null は案件担当者を fallback）
+ *
+ * deals.metadata 配下に保存（migration 不要、jsonb 部分更新）。
  */
-const nextActionSchema = z.string().max(200);
+const nextActionSchema = z.object({
+  text: z.string().max(200),
+  due_date: z
+    .union([
+      z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日付形式が不正です'),
+      z.literal(''),
+      z.null(),
+    ])
+    .nullable()
+    .optional(),
+  assignee_id: z.union([z.string().uuid(), z.literal(''), z.null()]).nullable().optional(),
+});
 
 export async function updateDealNextAction(
   dealId: string,
-  text: string,
+  input: { text: string; due_date?: string | null; assignee_id?: string | null },
 ): Promise<UpdateStageResult> {
   const guard = await requirePermission({ resource: 'deal', action: 'update' });
   if (!guard.ok) {
@@ -752,11 +766,13 @@ export async function updateDealNextAction(
   }
   const { session } = guard;
 
-  const parsed = nextActionSchema.safeParse(text);
+  const parsed = nextActionSchema.safeParse(input);
   if (!parsed.success) {
-    return { ok: false, error: 'too_long' };
+    return { ok: false, error: 'invalid_next_action' };
   }
-  const trimmed = parsed.data.trim();
+  const trimmedText = parsed.data.text.trim();
+  const dueDate = parsed.data.due_date === '' ? null : (parsed.data.due_date ?? null);
+  const assigneeId = parsed.data.assignee_id === '' ? null : (parsed.data.assignee_id ?? null);
 
   const current = await db
     .select({ metadata: deals.metadata })
@@ -770,14 +786,28 @@ export async function updateDealNextAction(
   }
 
   const oldMeta = (current.metadata as Record<string, unknown> | null) ?? {};
-  const oldText = typeof oldMeta.next_action === 'string' ? oldMeta.next_action : null;
+  const oldSnapshot = {
+    text: typeof oldMeta.next_action === 'string' ? oldMeta.next_action : null,
+    due_date:
+      typeof oldMeta.next_action_due_date === 'string' ? oldMeta.next_action_due_date : null,
+    assignee_id:
+      typeof oldMeta.next_action_assignee_id === 'string'
+        ? oldMeta.next_action_assignee_id
+        : null,
+  };
   const newMetadata: Record<string, unknown> = { ...oldMeta };
-  if (trimmed === '') {
+
+  if (trimmedText === '' && !dueDate && !assigneeId) {
+    // 全部空 → クリア
     delete newMetadata.next_action;
+    delete newMetadata.next_action_due_date;
+    delete newMetadata.next_action_assignee_id;
     delete newMetadata.next_action_updated_at;
     delete newMetadata.next_action_updated_by;
   } else {
-    newMetadata.next_action = trimmed;
+    newMetadata.next_action = trimmedText;
+    newMetadata.next_action_due_date = dueDate;
+    newMetadata.next_action_assignee_id = assigneeId;
     newMetadata.next_action_updated_at = new Date().toISOString();
     newMetadata.next_action_updated_by = session.user.member_id;
   }
@@ -793,7 +823,11 @@ export async function updateDealNextAction(
     action: 'deal.next_action_inline_update',
     resource_type: 'deal',
     resource_id: dealId,
-    metadata: { from: oldText, to: trimmed === '' ? null : trimmed, source: 'list_view_inline' },
+    metadata: {
+      from: oldSnapshot,
+      to: { text: trimmedText, due_date: dueDate, assignee_id: assigneeId },
+      source: 'list_view_inline',
+    },
   });
 
   revalidatePath(`/deals/${dealId}`);

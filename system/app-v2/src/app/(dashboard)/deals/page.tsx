@@ -15,7 +15,7 @@ import { ConfidenceBadge } from './[dealId]/_components/confidence-badge';
 import { DealsWeekGrid } from './_components/deals-week-grid';
 import { InlineAmountInput } from './_components/inline-amount-input';
 import { InlineConfidenceSelect } from './_components/inline-confidence-select';
-import { InlineNextActionInput } from './_components/inline-next-action-input';
+import { InlineNextActionInput, type NextActionData } from './_components/inline-next-action-input';
 import { InlineExpectedCloseInput } from './_components/inline-expected-close-input';
 import { InlineStageChanger } from './[dealId]/_components/inline-stage-changer';
 import { generateWeeks, type WeekGridDeal } from '@/lib/deals/week-grid';
@@ -491,16 +491,30 @@ export default async function DealsListPage({
                         >
                           {d.title}
                         </Link>
-                        {/* G7 拡張：「次やること」を inline 編集（柏樹反証 3 つ目を直撃、2026-05-26 02:53） */}
+                        {/* G7 拡張：「次やること」3 要素 inline 編集（隊長明示 2026-05-26 03:14、いつ/誰/何を） */}
                         <span className="flex-1 min-w-0 hidden md:inline-flex">
-                          <InlineNextActionInput
-                            dealId={d.id}
-                            initial={
-                              typeof (d.metadata as Record<string, unknown> | null)?.next_action === 'string'
-                                ? ((d.metadata as Record<string, unknown>).next_action as string)
-                                : null
-                            }
-                          />
+                          {(() => {
+                            const meta = (d.metadata as Record<string, unknown> | null) ?? {};
+                            const initial: NextActionData = {
+                              text: typeof meta.next_action === 'string' ? meta.next_action : '',
+                              due_date:
+                                typeof meta.next_action_due_date === 'string'
+                                  ? meta.next_action_due_date
+                                  : null,
+                              assignee_id:
+                                typeof meta.next_action_assignee_id === 'string'
+                                  ? meta.next_action_assignee_id
+                                  : null,
+                            };
+                            return (
+                              <InlineNextActionInput
+                                dealId={d.id}
+                                initial={initial}
+                                members={memberOptions}
+                                fallbackAssigneeId={d.assignee_id}
+                              />
+                            );
+                          })()}
                         </span>
                         <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-32 truncate">
                           {d.customer_name ?? '—'}
