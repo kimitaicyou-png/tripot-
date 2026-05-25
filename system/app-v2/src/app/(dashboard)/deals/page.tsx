@@ -15,6 +15,9 @@ import { ConfidenceBadge } from './[dealId]/_components/confidence-badge';
 import { DealsWeekGrid } from './_components/deals-week-grid';
 import { InlineAmountInput } from './_components/inline-amount-input';
 import { InlineConfidenceSelect } from './_components/inline-confidence-select';
+import { InlineNextActionInput } from './_components/inline-next-action-input';
+import { InlineExpectedCloseInput } from './_components/inline-expected-close-input';
+import { InlineStageChanger } from './[dealId]/_components/inline-stage-changer';
 import { generateWeeks, type WeekGridDeal } from '@/lib/deals/week-grid';
 import { fetchWeekGridCells } from '@/lib/deals/week-grid-fetch';
 import { getDealForecastAmount, getDealForecastWeight } from '@/lib/deals/forecast-weight';
@@ -146,6 +149,13 @@ export default async function DealsListPage({
         return desc(deals.amount);
       case 'amount_asc':
         return asc(deals.amount);
+      case 'expected_close_asc':
+        // NULLS LAST：未設定の案件は最後、期日近い順
+        return sql`${deals.expected_close_date} ASC NULLS LAST`;
+      case 'expected_close_desc':
+        return sql`${deals.expected_close_date} DESC NULLS LAST`;
+      case 'updated_asc':
+        return asc(deals.updated_at);
       // cf_weighted_desc は cashflowWeight が config 側のためメモリでソート
       case 'updated_desc':
       default:
@@ -169,6 +179,8 @@ export default async function DealsListPage({
         gross_profit: deals.gross_profit,
         gross_profit_rate: deals.gross_profit_rate,
         subjective_confidence: deals.subjective_confidence,
+        metadata: deals.metadata,
+        expected_close_date: deals.expected_close_date,
       })
       .from(deals)
       .leftJoin(members, eq(deals.assignee_id, members.id))
@@ -393,7 +405,61 @@ export default async function DealsListPage({
                 }))}
               />
             ) : (
-              grouped.map((g) => (
+              <>
+                {/* G7 拡張：List view 全体の列ヘッダ（金額/期日/更新日 クリックで sort 切替、2026-05-26 03:00） */}
+                {(() => {
+                  const buildSortHref = (nextSort: string) => {
+                    const p = new URLSearchParams();
+                    p.set('view', 'list');
+                    if (assignee) p.set('assignee', assignee);
+                    if (confidence) p.set('confidence', confidence);
+                    if (period !== 'all') p.set('period', period);
+                    p.set('sort', nextSort);
+                    return `/deals?${p.toString()}`;
+                  };
+                  const SortLink = ({
+                    label,
+                    ascSort,
+                    descSort,
+                  }: {
+                    label: string;
+                    ascSort: string;
+                    descSort: string;
+                  }) => {
+                    const isAsc = sort === ascSort;
+                    const isDesc = sort === descSort;
+                    const next = isDesc ? ascSort : descSort;
+                    const arrow = isAsc ? '▲' : isDesc ? '▼' : '⇅';
+                    const active = isAsc || isDesc;
+                    return (
+                      <Link
+                        href={buildSortHref(next) as never}
+                        className={`inline-flex items-center gap-0.5 hover:text-gray-900 active:scale-[0.98] transition-colors ${active ? 'text-gray-900 font-semibold' : 'text-gray-500'}`}
+                      >
+                        {label}
+                        <span className="text-[9px] opacity-70">{arrow}</span>
+                      </Link>
+                    );
+                  };
+                  return (
+                    <div className="hidden md:flex items-center gap-4 px-5 py-2 text-[11px] text-gray-600 border-b border-gray-200">
+                      <span className="shrink-0 w-[88px]">ステージ</span>
+                      <span className="shrink-0 w-[60px]">確度</span>
+                      <span className="w-[14rem] shrink-0">案件</span>
+                      <span className="flex-1 min-w-0">次やること</span>
+                      <span className="shrink-0 w-32">顧客</span>
+                      <span className="shrink-0 w-20">担当</span>
+                      <span className="shrink-0">
+                        <SortLink label="受注予定" ascSort="expected_close_asc" descSort="expected_close_desc" />
+                      </span>
+                      <span className="shrink-0 text-right ml-auto">
+                        <SortLink label="金額" ascSort="amount_asc" descSort="amount_desc" />
+                      </span>
+                      <span className="shrink-0 w-16 text-center">粗利率</span>
+                    </div>
+                  );
+                })()}
+              {grouped.map((g) => (
                 <section key={g.stage}>
                   <SectionHeading
                     eyebrow={g.stage.toUpperCase()}
@@ -407,10 +473,9 @@ export default async function DealsListPage({
                         key={d.id}
                         className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
                       >
-                        <span
-                          className={`inline-flex px-2.5 py-0.5 rounded-lg text-xs font-medium shrink-0 ${STAGE_COLOR[d.stage] ?? ''}`}
-                        >
-                          {STAGE_LABEL[d.stage] ?? d.stage}
+                        {/* G7 拡張：stage を inline 編集（既存 InlineStageChanger 流用、2026-05-26 02:53） */}
+                        <span className="shrink-0">
+                          <InlineStageChanger dealId={d.id} currentStage={d.stage} />
                         </span>
                         {/* G3 + G7：主観確度を inline 編集可能に */}
                         <span className="shrink-0 hidden md:inline-flex">
@@ -422,15 +487,30 @@ export default async function DealsListPage({
                         </span>
                         <Link
                           href={`/deals/${d.id}`}
-                          className="flex-1 text-sm text-gray-900 truncate font-medium hover:underline decoration-gray-400"
+                          className="text-sm text-gray-900 truncate font-medium hover:underline decoration-gray-400 max-w-[14rem]"
                         >
                           {d.title}
                         </Link>
+                        {/* G7 拡張：「次やること」を inline 編集（柏樹反証 3 つ目を直撃、2026-05-26 02:53） */}
+                        <span className="flex-1 min-w-0 hidden md:inline-flex">
+                          <InlineNextActionInput
+                            dealId={d.id}
+                            initial={
+                              typeof (d.metadata as Record<string, unknown> | null)?.next_action === 'string'
+                                ? ((d.metadata as Record<string, unknown>).next_action as string)
+                                : null
+                            }
+                          />
+                        </span>
                         <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-32 truncate">
                           {d.customer_name ?? '—'}
                         </span>
                         <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-20 truncate">
                           {d.assignee_name ?? '—'}
+                        </span>
+                        {/* G7 拡張：受注予定日も inline 編集 */}
+                        <span className="shrink-0 hidden md:inline-flex">
+                          <InlineExpectedCloseInput dealId={d.id} initial={d.expected_close_date} />
                         </span>
                         <span className="text-right shrink-0">
                           {/* G7：金額を inline 編集 */}
@@ -464,7 +544,8 @@ export default async function DealsListPage({
                     ))}
                   </div>
                 </section>
-              ))
+              ))}
+              </>
             )}
 
             {/* ページネーション（List view のみ） */}

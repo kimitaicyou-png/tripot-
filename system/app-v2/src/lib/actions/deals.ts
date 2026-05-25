@@ -673,6 +673,136 @@ export async function updateDealConfidence(
 }
 
 /**
+ * 受注予定日のインライン更新（G7 拡張、2026-05-26）
+ *
+ * 柏樹「90 件運用で詳細ページ往復ダルい」の解消。
+ * date 文字列（YYYY-MM-DD）or null（クリア）を受ける。
+ */
+const expectedCloseSchema = z
+  .union([
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, '日付形式が不正です（YYYY-MM-DD）'),
+    z.literal(''),
+    z.null(),
+  ])
+  .nullable();
+
+export async function updateDealExpectedClose(
+  dealId: string,
+  date: string | null,
+): Promise<UpdateStageResult> {
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) {
+    return { ok: false, error: guard.error };
+  }
+  const { session } = guard;
+
+  const parsed = expectedCloseSchema.safeParse(date);
+  if (!parsed.success) {
+    return { ok: false, error: 'invalid_date' };
+  }
+  const normalized = parsed.data === '' ? null : parsed.data;
+
+  const current = await db
+    .select({ expected_close_date: deals.expected_close_date })
+    .from(deals)
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!current) {
+    return { ok: false, error: 'deal_not_found' };
+  }
+
+  await db
+    .update(deals)
+    .set({ expected_close_date: normalized, updated_at: new Date() })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.expected_close_inline_update',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { from: current.expected_close_date, to: normalized, source: 'list_view_inline' },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  revalidatePath('/deals');
+  revalidatePath('/home');
+  return { ok: true };
+}
+
+/**
+ * 「次やること」メモのインライン更新（G7 拡張、2026-05-26）
+ *
+ * 柏樹（ノリスケ反証）「シートに戻りたい」3 つ目「次やること書く欄が一覧にない」を解消。
+ * deals.metadata.next_action に格納（migration 不要、jsonb 部分更新）。
+ * 200 文字まで、空文字は null 扱い。
+ */
+const nextActionSchema = z.string().max(200);
+
+export async function updateDealNextAction(
+  dealId: string,
+  text: string,
+): Promise<UpdateStageResult> {
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) {
+    return { ok: false, error: guard.error };
+  }
+  const { session } = guard;
+
+  const parsed = nextActionSchema.safeParse(text);
+  if (!parsed.success) {
+    return { ok: false, error: 'too_long' };
+  }
+  const trimmed = parsed.data.trim();
+
+  const current = await db
+    .select({ metadata: deals.metadata })
+    .from(deals)
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!current) {
+    return { ok: false, error: 'deal_not_found' };
+  }
+
+  const oldMeta = (current.metadata as Record<string, unknown> | null) ?? {};
+  const oldText = typeof oldMeta.next_action === 'string' ? oldMeta.next_action : null;
+  const newMetadata: Record<string, unknown> = { ...oldMeta };
+  if (trimmed === '') {
+    delete newMetadata.next_action;
+    delete newMetadata.next_action_updated_at;
+    delete newMetadata.next_action_updated_by;
+  } else {
+    newMetadata.next_action = trimmed;
+    newMetadata.next_action_updated_at = new Date().toISOString();
+    newMetadata.next_action_updated_by = session.user.member_id;
+  }
+
+  await db
+    .update(deals)
+    .set({ metadata: newMetadata, updated_at: new Date() })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.next_action_inline_update',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { from: oldText, to: trimmed === '' ? null : trimmed, source: 'list_view_inline' },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  revalidatePath('/deals');
+  revalidatePath('/home');
+  return { ok: true };
+}
+
+/**
  * 受注金額（amount）のインライン更新（G7 1 画面編集、2026-05-26）
  *
  * 柏樹（ノリスケ反証）「90 件運用で死ぬ」指摘：詳細ページ往復なしで /deals 一覧から

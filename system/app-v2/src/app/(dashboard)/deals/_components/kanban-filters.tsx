@@ -28,9 +28,12 @@ const PERIOD_OPTIONS: Array<{ value: string; label: string }> = [
 
 const SORT_OPTIONS: Array<{ value: string; label: string }> = [
   { value: 'updated_desc', label: '更新日 新→古' },
+  { value: 'updated_asc', label: '更新日 古→新' },
   { value: 'amount_desc', label: '金額 大→小' },
   { value: 'amount_asc', label: '金額 小→大' },
-  { value: 'cf_weighted_desc', label: 'CF 加重 大→小' },
+  { value: 'expected_close_asc', label: '受注予定 近→遠' },
+  { value: 'expected_close_desc', label: '受注予定 遠→近' },
+  { value: 'cf_weighted_desc', label: 'ヨミ予測売上 大→小' },
 ];
 
 // 主観確度フィルタ（ADR-0013 enum + 「未設定」+「全部」、2026-05-26 隊長要望）
