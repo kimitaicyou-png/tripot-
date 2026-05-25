@@ -1,4 +1,8 @@
 import { ClipboardList, ChevronRight, ChevronDown } from 'lucide-react';
+import { eq, and } from 'drizzle-orm';
+import { auth } from '@/auth';
+import { db } from '@/lib/db';
+import { deals, customers } from '@/db/schema';
 import { listEstimatesForDeal } from '@/lib/actions/estimates';
 import { formatYen } from '@/lib/format';
 import { EmptyState } from '@/components/ui/empty-state';
@@ -24,7 +28,18 @@ const STATUS_TONE: Record<string, 'neutral' | 'info' | 'up' | 'down' | 'default'
 type LineItem = { description: string; quantity: number; unit_price: number; amount: number };
 
 export async function EstimatesTab({ dealId }: { dealId: string }) {
+  const session = await auth();
   const items = await listEstimatesForDeal(dealId);
+  // F：mailto: 件名・本文 prefill 用に deal/customer 取得
+  const dealInfo = session?.user?.company_id
+    ? await db
+        .select({ title: deals.title, customer_name: customers.name })
+        .from(deals)
+        .leftJoin(customers, eq(deals.customer_id, customers.id))
+        .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
+        .limit(1)
+        .then((rows) => rows[0])
+    : null;
 
   return (
     <div className="space-y-6">
@@ -135,6 +150,10 @@ export async function EstimatesTab({ dealId }: { dealId: string }) {
                       estimateId={e.id}
                       dealId={dealId}
                       currentStatus={status}
+                      dealTitle={dealInfo?.title}
+                      customerName={dealInfo?.customer_name ?? null}
+                      totalAmount={e.total ?? null}
+                      estimateVersion={e.version}
                     />
                     {status === 'accepted' && (
                       <InvoiceFromEstimateButton
