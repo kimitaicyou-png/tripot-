@@ -329,7 +329,7 @@ export default async function DealsListPage({
         {/* フィルタバー */}
         <KanbanFilters
           members={memberOptions}
-          currentView={isKanban ? 'kanban' : 'list'}
+          currentView={isWeekGrid ? 'week-grid' : isKanban ? 'kanban' : 'list'}
         />
 
         {isPartialList && (
