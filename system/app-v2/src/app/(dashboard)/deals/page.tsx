@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { LayoutGrid, List } from 'lucide-react';
+import { LayoutGrid, List, CalendarRange } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, members, customers } from '@/db/schema';
@@ -12,6 +12,9 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DealsKanban } from './_components/deals-kanban';
 import { KanbanFilters } from './_components/kanban-filters';
 import { ConfidenceBadge } from './[dealId]/_components/confidence-badge';
+import { DealsWeekGrid } from './_components/deals-week-grid';
+import { generateWeeks, type WeekGridDeal } from '@/lib/deals/week-grid';
+import { fetchWeekGridCells } from '@/lib/deals/week-grid-fetch';
 import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../coaris.config';
 
@@ -87,14 +90,17 @@ export default async function DealsListPage({
   if (!session?.user?.member_id) redirect('/login');
 
   const { view, assignee, period = 'all', sort = 'updated_desc', page: pageStr } = await searchParams;
-  const isKanban = view !== 'list';
+  // view: 'kanban' (default) | 'list' | 'week-grid'
+  const isWeekGrid = view === 'week-grid';
+  const isList = view === 'list';
+  const isKanban = !isWeekGrid && !isList;
 
-  // ページネーション（List view のみ有効、Kanban は全件 = フィルタで絞る）
+  // ページネーション（List view のみ有効、Kanban / WeekGrid は全件 = フィルタで絞る）
   const PAGE_SIZE = 50;
   const KANBAN_LIMIT = 300;
   const requestedPage = Math.max(1, Number(pageStr) || 1);
-  const offset = isKanban ? 0 : (requestedPage - 1) * PAGE_SIZE;
-  const queryLimit = isKanban ? KANBAN_LIMIT : PAGE_SIZE;
+  const offset = isList ? (requestedPage - 1) * PAGE_SIZE : 0;
+  const queryLimit = isList ? PAGE_SIZE : KANBAN_LIMIT;
 
   // フィルタ条件構築
   const whereConditions: SQL[] = [
@@ -185,8 +191,29 @@ export default async function DealsListPage({
     .from(deals)
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((r) => r[0]?.count ?? 0);
-  const isPartialList = isKanban && rows.length >= KANBAN_LIMIT && filteredTotal > KANBAN_LIMIT;
+  const isPartialList = (isKanban || isWeekGrid) && rows.length >= KANBAN_LIMIT && filteredTotal > KANBAN_LIMIT;
   const hasActiveFilter = Boolean(assignee) || period !== 'all';
+
+  // G2 週グリッド view：12 週分の actions/meetings/tasks を集計（view='week-grid' のみ）
+  const weeks = isWeekGrid ? generateWeeks() : [];
+  const weekCellMap = isWeekGrid
+    ? await fetchWeekGridCells({
+        companyId: session.user.company_id,
+        dealIds: rows.map((d) => d.id),
+      })
+    : {};
+  const weekGridDeals: WeekGridDeal[] = isWeekGrid
+    ? rows.map((d) => ({
+        id: d.id,
+        title: d.title,
+        stage: d.stage,
+        amount: d.amount,
+        customer_name: d.customer_name,
+        assignee_name: d.assignee_name,
+        subjective_confidence: d.subjective_confidence,
+        weeks: weekCellMap[d.id] ?? {},
+      }))
+    : [];
 
   const totalActive = rows.filter((d) =>
     ['proposing', 'ordered', 'in_production'].includes(d.stage),
@@ -236,14 +263,27 @@ export default async function DealsListPage({
               <Link
                 href="/deals?view=list"
                 className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-150 ${
-                  !isKanban
+                  isList
                     ? 'bg-white text-gray-900 shadow-sm'
                     : 'text-gray-600 hover:text-gray-900'
                 }`}
-                aria-pressed={!isKanban}
+                aria-pressed={isList}
               >
                 <List className="w-3.5 h-3.5" />
                 リスト
+              </Link>
+              <Link
+                href="/deals?view=week-grid"
+                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-150 ${
+                  isWeekGrid
+                    ? 'bg-white text-gray-900 shadow-sm'
+                    : 'text-gray-600 hover:text-gray-900'
+                }`}
+                aria-pressed={isWeekGrid}
+                title="月別週グリッド（現行スプレッドシート互換）"
+              >
+                <CalendarRange className="w-3.5 h-3.5" />
+                週グリッド
               </Link>
             </div>
             <Link
@@ -308,7 +348,9 @@ export default async function DealsListPage({
               />
             </section>
 
-            {isKanban ? (
+            {isWeekGrid ? (
+              <DealsWeekGrid deals={weekGridDeals} weeks={weeks} />
+            ) : isKanban ? (
               <DealsKanban
                 deals={rows.map((d) => ({
                   ...d,
@@ -385,7 +427,7 @@ export default async function DealsListPage({
             )}
 
             {/* ページネーション（List view のみ） */}
-            {!isKanban && totalPages > 1 && (
+            {isList && totalPages > 1 && (
               <nav
                 className="flex items-center justify-between gap-3 pt-4 border-t border-gray-200"
                 aria-label="ページネーション"
