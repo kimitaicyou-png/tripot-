@@ -555,7 +555,10 @@ export async function updateDealStage(
   }
 
   const current = await db
-    .select({ stage: deals.stage })
+    .select({
+      stage: deals.stage,
+      subjective_confidence: deals.subjective_confidence,
+    })
     .from(deals)
     .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
     .limit(1)
@@ -565,9 +568,25 @@ export async function updateDealStage(
     return { ok: false, error: "deal_not_found" };
   }
 
+  // 受注以降の stage に移行する場合、主観確度を自動リセット（秋美レビュー C-4 改良 3、2026-05-26）
+  // 受注済 + confidence=D の論理矛盾を構造で防ぐ。stage CF 加重が真実、主観は不要。
+  const POST_ORDER_STAGES = ['ordered', 'in_production', 'delivered', 'acceptance', 'invoiced', 'paid'];
+  const shouldResetConfidence =
+    POST_ORDER_STAGES.includes(parsed.data) && current.subjective_confidence !== null;
+
   await db
     .update(deals)
-    .set({ stage: parsed.data, updated_at: new Date() })
+    .set({
+      stage: parsed.data,
+      ...(shouldResetConfidence
+        ? {
+            subjective_confidence: null,
+            confidence_updated_at: new Date(),
+            confidence_updated_by: session.user.member_id,
+          }
+        : {}),
+      updated_at: new Date(),
+    })
     .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
 
   await logAudit({
@@ -576,7 +595,14 @@ export async function updateDealStage(
     action: "deal.stage_manual_change",
     resource_type: "deal",
     resource_id: dealId,
-    metadata: { from: current.stage, to: parsed.data, source: "inline_stage_changer" },
+    metadata: {
+      from: current.stage,
+      to: parsed.data,
+      source: "inline_stage_changer",
+      ...(shouldResetConfidence
+        ? { confidence_auto_reset: { from: current.subjective_confidence, to: null } }
+        : {}),
+    },
   });
 
   revalidatePath(`/deals/${dealId}`);

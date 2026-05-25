@@ -17,6 +17,7 @@ import { InlineAmountInput } from './_components/inline-amount-input';
 import { InlineConfidenceSelect } from './_components/inline-confidence-select';
 import { generateWeeks, type WeekGridDeal } from '@/lib/deals/week-grid';
 import { fetchWeekGridCells } from '@/lib/deals/week-grid-fetch';
+import { getDealForecastAmount, getDealForecastWeight } from '@/lib/deals/forecast-weight';
 import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../coaris.config';
 
@@ -195,16 +196,12 @@ export default async function DealsListPage({
   const totalPages = isKanban ? 1 : Math.max(1, Math.ceil(filteredTotal / PAGE_SIZE));
   const currentPage = isKanban ? 1 : Math.min(requestedPage, totalPages);
 
-  // cf_weighted_desc は メモリソート
+  // cf_weighted_desc は メモリソート（forecast-weight 経由、stage CF と主観確度のハイブリッド）
   const rows =
     sort === 'cf_weighted_desc'
       ? [...rowsRaw].sort((a, b) => {
-          const wa =
-            (a.amount ?? 0) *
-            (TRIPOT_CONFIG.stages.find((s) => s.key === a.stage)?.cashflowWeight ?? 0);
-          const wb =
-            (b.amount ?? 0) *
-            (TRIPOT_CONFIG.stages.find((s) => s.key === b.stage)?.cashflowWeight ?? 0);
+          const wa = getDealForecastAmount(a.amount, a.stage, a.subjective_confidence);
+          const wb = getDealForecastAmount(b.amount, b.stage, b.subjective_confidence);
           return wb - wa;
         })
       : rowsRaw;
@@ -244,7 +241,16 @@ export default async function DealsListPage({
   const totalRevenue = rows
     .filter((d) => d.stage === 'paid' || d.stage === 'invoiced')
     .reduce((s, d) => s + (d.amount ?? 0), 0);
-  const totalPipeline = rows
+  // 「ヨミ予測売上」= 失注以外の全案件の (amount × forecast weight) 合計
+  // stage CF 加重 + 主観確度のハイブリッド（ADR-0013 + 秋美レビュー 2026-05-26 反映）
+  const totalForecast = rows
+    .filter((d) => d.stage !== 'lost')
+    .reduce(
+      (s, d) => s + getDealForecastAmount(d.amount, d.stage, d.subjective_confidence),
+      0,
+    );
+  // 純パイプライン（重み付けなし、参考表示用）
+  const totalPipelineRaw = rows
     .filter((d) => !['paid', 'lost'].includes(d.stage))
     .reduce((s, d) => s + (d.amount ?? 0), 0);
 
@@ -362,7 +368,13 @@ export default async function DealsListPage({
           <>
             <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <StatCard label="入金確定累計" value={formatYen(totalRevenue)} tone="up" big />
-              <StatCard label="パイプライン" value={formatYen(totalPipeline)} tone="accent" big />
+              <StatCard
+                label="ヨミ予測売上"
+                value={formatYen(totalForecast)}
+                sub={`総額 ${formatYen(totalPipelineRaw)}`}
+                tone="accent"
+                big
+              />
               <StatCard
                 label="進行中の案件"
                 value={totalActive}
