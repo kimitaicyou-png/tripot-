@@ -35,8 +35,9 @@ export function ProposalGenerateButton({ dealId }: { dealId: string }) {
       }
 
       const data = (await res.json()) as { proposal_id: string; version: number; slide_count: number };
+      // C（隊長明示 2026-05-26 03:14）：「どこ見れば？」を解消、description で誘導
       toast.success('提案書を生成しました', {
-        description: `v${data.version}・${data.slide_count}枚`,
+        description: `v${data.version}・${data.slide_count}枚 → 上の「提案書」タブで確認`,
       });
       startTransition(() => router.refresh());
     } catch (err) {

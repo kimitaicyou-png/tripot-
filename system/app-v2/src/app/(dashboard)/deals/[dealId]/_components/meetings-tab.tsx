@@ -1,6 +1,8 @@
 import { Phone, Handshake, Video, Footprints, Mail, FileEdit, FolderOpen, ChevronRight, ChevronDown } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
+import { auth } from '@/auth';
 import { listMeetingsForDeal } from '@/lib/actions/meetings';
+import { listArtifactsForMeeting } from '@/lib/ai/jobs';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
 import { MeetingForm } from './meeting-form';
@@ -10,6 +12,7 @@ import { GenerateTasksFromMeetingButton } from './generate-tasks-from-meeting-bu
 import { GenerateRequirementButton } from './generate-requirement-button';
 import { GenerateSitemapButton } from './generate-sitemap-button';
 import { MarkAcceptanceButton } from './mark-acceptance-button';
+import { MeetingArtifactsSummary } from './meeting-artifacts-summary';
 
 type Need = { tag: string; priority: 'high' | 'medium' | 'low'; context: string };
 
@@ -38,7 +41,15 @@ const TYPE_ICON: Record<string, LucideIcon> = {
 };
 
 export async function MeetingsTab({ dealId }: { dealId: string }) {
+  const session = await auth();
   const items = await listMeetingsForDeal(dealId);
+  // H（隊長明示 2026-05-26 03:14）：各議事録から生まれた AI 成果物を集約取得
+  const companyId = session?.user?.company_id;
+  const artifactsByMeeting = companyId
+    ? await Promise.all(
+        items.map((m) => listArtifactsForMeeting({ meetingId: m.id, companyId })),
+      )
+    : items.map(() => []);
 
   return (
     <div className="space-y-6">
@@ -65,8 +76,9 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
           />
         ) : (
           <ul className="space-y-3">
-            {items.map((m) => {
+            {items.map((m, i) => {
               const Icon = TYPE_ICON[m.type] ?? FileEdit;
+              const artifacts = artifactsByMeeting[i] ?? [];
               return (
               <li
                 key={m.id}
@@ -126,11 +138,14 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                   </details>
                 )}
 
+                {/* H：この議事録から生まれた AI 成果物の集約（隊長明示 2026-05-26 03:14） */}
+                <MeetingArtifactsSummary artifacts={artifacts} />
+
                 {/* AI アクション領域：縦並びで各ボタンが独立、展開時も他を押さない */}
                 <div className="pt-4 border-t border-gray-100 space-y-3">
                   <div className="flex items-center justify-between gap-2 flex-wrap">
                     <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
-                      AI アクション
+                      AI アクション（押すと上の集約に追加される）
                     </p>
                     <MarkAcceptanceButton
                       dealId={dealId}
@@ -142,22 +157,34 @@ export async function MeetingsTab({ dealId }: { dealId: string }) {
                       }
                     />
                   </div>
+                  {/* D（隊長明示 2026-05-26 03:14、アクション迷い解消）：
+                      議事録→成果物のパイプライン順に並べ替え
+                      1. 要約 + needs（素材を整える）
+                      2. 要件定義（顧客が何を欲しいか）
+                      3. 提案書化（何を売るか）
+                      4. サイトマップ（Web 系の設計概要）
+                      5. タスク生成（制作・営業タスク） */}
                   {m.raw_text && (
                     <div>
+                      <p className="text-[10px] text-gray-500 mb-1">① 議事録から要約 + needs 抽出</p>
                       <SummarizeMeetingButton meetingId={m.id} hasSummary={Boolean(m.summary)} />
                     </div>
                   )}
                   <div>
-                    <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
-                  </div>
-                  <div>
-                    <GenerateTasksFromMeetingButton meetingId={m.id} />
-                  </div>
-                  <div>
+                    <p className="text-[10px] text-gray-500 mb-1">② 顧客の要件を整理</p>
                     <GenerateRequirementButton dealId={dealId} meetingId={m.id} />
                   </div>
                   <div>
+                    <p className="text-[10px] text-gray-500 mb-1">③ 提案書を AI で叩き台</p>
+                    <ProposalFromMeetingButton dealId={dealId} meetingId={m.id} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 mb-1">④ サイトマップ（Web 系のみ）</p>
                     <GenerateSitemapButton meetingId={m.id} />
+                  </div>
+                  <div>
+                    <p className="text-[10px] text-gray-500 mb-1">⑤ 受注後の制作・営業タスク</p>
+                    <GenerateTasksFromMeetingButton meetingId={m.id} />
                   </div>
                 </div>
               </li>

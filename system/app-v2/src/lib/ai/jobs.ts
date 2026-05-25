@@ -72,3 +72,76 @@ export async function getLatestAiJobForDeal<T = unknown>(params: {
     finishedAt: row.finished_at,
   };
 }
+
+/**
+ * 議事録から生まれた AI 成果物の集約（H、隊長明示 2026-05-26 03:14、議事録の集約感改善）
+ *
+ * meeting_id を input.meeting_id key で持つ ai_jobs を job_type 別に最新 1 件ずつ取得。
+ * 議事録カードの下に「この議事録から生まれた成果物」一覧として表示する。
+ */
+export type MeetingArtifactKind =
+  | 'generate-requirement'
+  | 'generate-proposal'
+  | 'generate-tasks'
+  | 'generate-sitemap'
+  | 'summarize-meeting';
+
+export interface MeetingArtifact {
+  jobType: MeetingArtifactKind;
+  finishedAt: Date;
+  hasOutput: boolean;
+}
+
+const ARTIFACT_JOB_TYPES: MeetingArtifactKind[] = [
+  'generate-requirement',
+  'generate-proposal',
+  'generate-tasks',
+  'generate-sitemap',
+  'summarize-meeting',
+];
+
+export async function listArtifactsForMeeting(params: {
+  meetingId: string;
+  companyId: string;
+}): Promise<MeetingArtifact[]> {
+  const rows = await db
+    .select({
+      job_type: ai_jobs.job_type,
+      finished_at: ai_jobs.finished_at,
+      output: ai_jobs.output,
+    })
+    .from(ai_jobs)
+    .where(
+      and(
+        eq(ai_jobs.company_id, params.companyId),
+        eq(ai_jobs.status, 'succeeded'),
+        sql`${ai_jobs.input}->>'meeting_id' = ${params.meetingId}`,
+      ),
+    )
+    .orderBy(desc(ai_jobs.finished_at));
+
+  // job_type 別に最新 1 件のみ採用
+  const latest = new Map<string, MeetingArtifact>();
+  for (const r of rows) {
+    if (!r.finished_at) continue;
+    if (latest.has(r.job_type)) continue;
+    if (!ARTIFACT_JOB_TYPES.includes(r.job_type as MeetingArtifactKind)) continue;
+    latest.set(r.job_type, {
+      jobType: r.job_type as MeetingArtifactKind,
+      finishedAt: r.finished_at,
+      hasOutput: r.output != null,
+    });
+  }
+  // 順序固定（要約 → 要件 → 提案 → 見積 → タスク → サイトマップ）
+  const ORDER: MeetingArtifactKind[] = [
+    'summarize-meeting',
+    'generate-requirement',
+    'generate-proposal',
+    'generate-tasks',
+    'generate-sitemap',
+  ];
+  return ORDER.flatMap((k) => {
+    const v = latest.get(k);
+    return v ? [v] : [];
+  });
+}
