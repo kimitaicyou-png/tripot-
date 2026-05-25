@@ -26,7 +26,7 @@ export default function CustomerNewPage() {
               name="name"
               type="text"
               required
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
               placeholder="例：株式会社A社"
             />
             {state.errors?.name && <p className="mt-1 text-xs text-red-600">{state.errors.name.join(', ')}</p>}
@@ -38,7 +38,7 @@ export default function CustomerNewPage() {
               id="contact_email"
               name="contact_email"
               type="email"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             />
             {state.errors?.contact_email && <p className="mt-1 text-xs text-red-600">{state.errors.contact_email.join(', ')}</p>}
           </div>
@@ -49,7 +49,7 @@ export default function CustomerNewPage() {
               id="contact_phone"
               name="contact_phone"
               type="tel"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             />
           </div>
 

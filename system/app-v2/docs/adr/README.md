@@ -15,6 +15,10 @@
 | [0006](./0006-member-color-hash.md) | メンバー識別色の決定論的生成 | Accepted | 2026-04-26 |
 | [0007](./0007-running-revenue-model-deferral.md) | running 売上モデルの簡略化と billing_periods Phase 2 送り | Accepted | 2026-04-26 |
 | [0008](./0008-no-internal-basepath-multi-zones-true.md) | Next.js 内部 basePath を持たず Multi-Zones 真意で運用（ADR-0003 補足） | Accepted | 2026-04-26 |
+| [0009](./0009-audit-logs-immutable.md) | audit_logs テーブル immutable 化（DELETE/UPDATE/TRUNCATE 物理ブロック） | Proposed | 2026-05-04 |
+| [0010](./0010-deals-gross-profit-column.md) | deals テーブル 粗利関連 column 追加（外注費・粗利・粗利率） | Proposed | 2026-05-04 |
+| [0011](./0011-rbac-db-driven-roles.md) | rbac は DB 参照型ロール定義を採用（13社展開対応） | Accepted | 2026-05-04 |
+| [0012](./0012-jwt-revocation-db-recheck.md) | 退職者 JWT 即時無効化は `members.status` DB 再確認方式で実装 | Accepted | 2026-05-04 |
 
 ## ADR を追加する時
 

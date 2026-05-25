@@ -21,12 +21,12 @@ export function TaskQuickAdd({ dealId }: { dealId?: string }) {
         name="title"
         required
         placeholder="タスクを追加…"
-        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="flex-1 px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
       />
       <input
         type="date"
         name="due_date"
-        className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-gray-900/20"
       />
       <button
         type="submit"

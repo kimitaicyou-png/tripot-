@@ -42,7 +42,7 @@ export default function DealNewPage() {
               name="title"
               type="text"
               required
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
               placeholder="例：株式会社A社向け 新サービス開発"
             />
             {state.errors?.title && <p className="mt-1 text-xs text-red-600">{state.errors.title.join(', ')}</p>}
@@ -54,7 +54,7 @@ export default function DealNewPage() {
               id="stage"
               name="stage"
               defaultValue="prospect"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             >
               {STAGE_OPTIONS.map((s) => (
                 <option key={s.value} value={s.value}>{s.label}</option>
@@ -71,7 +71,7 @@ export default function DealNewPage() {
                 type="number"
                 min="0"
                 defaultValue="0"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-gray-900/20"
               />
             </div>
             <div>
@@ -80,7 +80,7 @@ export default function DealNewPage() {
                 id="revenue_type"
                 name="revenue_type"
                 defaultValue="spot"
-                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
               >
                 {REVENUE_TYPE_OPTIONS.map((r) => (
                   <option key={r.value} value={r.value}>{r.label}</option>
@@ -99,7 +99,7 @@ export default function DealNewPage() {
               type="number"
               min="0"
               defaultValue="0"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             />
           </div>
 
@@ -109,7 +109,7 @@ export default function DealNewPage() {
               id="expected_close_date"
               name="expected_close_date"
               type="date"
-              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
             />
           </div>
 

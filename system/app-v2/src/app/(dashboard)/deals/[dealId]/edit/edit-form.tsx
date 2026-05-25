@@ -44,7 +44,7 @@ export function DealEditForm({ dealId, initial }: { dealId: string; initial: Ini
           name="title"
           type="text"
           defaultValue={initial.title}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
         />
         {state.errors?.title && <p className="mt-1 text-xs text-red-600">{state.errors.title.join(', ')}</p>}
       </div>
@@ -55,7 +55,7 @@ export function DealEditForm({ dealId, initial }: { dealId: string; initial: Ini
           id="stage"
           name="stage"
           defaultValue={initial.stage}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
         >
           {STAGE_OPTIONS.map((s) => (
             <option key={s.value} value={s.value}>{s.label}</option>
@@ -72,7 +72,7 @@ export function DealEditForm({ dealId, initial }: { dealId: string; initial: Ini
             type="number"
             min="0"
             defaultValue={initial.amount}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-gray-900/20"
           />
         </div>
         <div>
@@ -81,7 +81,7 @@ export function DealEditForm({ dealId, initial }: { dealId: string; initial: Ini
             id="revenue_type"
             name="revenue_type"
             defaultValue={initial.revenue_type}
-            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
           >
             {REVENUE_TYPE_OPTIONS.map((r) => (
               <option key={r.value} value={r.value}>{r.label}</option>
@@ -98,7 +98,7 @@ export function DealEditForm({ dealId, initial }: { dealId: string; initial: Ini
           type="number"
           min="0"
           defaultValue={initial.monthly_amount}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-gray-900/20"
         />
       </div>
 
@@ -109,7 +109,7 @@ export function DealEditForm({ dealId, initial }: { dealId: string; initial: Ini
           name="expected_close_date"
           type="date"
           defaultValue={initial.expected_close_date ?? ''}
-          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20"
         />
       </div>
 

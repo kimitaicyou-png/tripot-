@@ -2,7 +2,7 @@ import { redirect } from 'next/navigation';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { members, deals, tasks, actions, budgets } from '@/db/schema';
-import { eq, and, sql, isNull, gte } from 'drizzle-orm';
+import { eq, and, sql, isNull, gte, desc } from 'drizzle-orm';
 import { LogActionButton } from '@/components/log-action-button';
 import { MorningBrief } from './_components/morning-brief';
 import { CommitmentsSection } from './_components/commitments-section';
@@ -74,6 +74,22 @@ export default async function MemberHomePage({
   const isFirstDayView =
     forceWelcome || ((dealStats?.activeCount ?? 0) === 0 && taskCount === 0);
   if (isFirstDayView) {
+    // Step 3 のボタン分岐用：自分の最新案件が 1 件でもあれば、議事録タブへ直接飛ばす。
+    // 無ければ Step 3 は注釈のままで「先に Step 2 を完了して」と促す。
+    const latestDeal = await db
+      .select({ id: deals.id })
+      .from(deals)
+      .where(
+        and(
+          eq(deals.assignee_id, memberId),
+          eq(deals.company_id, companyId),
+          isNull(deals.deleted_at),
+        ),
+      )
+      .orderBy(desc(deals.created_at))
+      .limit(1)
+      .then((rows) => rows[0]);
+
     return (
       <main className="min-h-screen bg-gray-50">
         <header className="bg-white border-b border-gray-200 px-6 py-4">
@@ -100,7 +116,7 @@ export default async function MemberHomePage({
           </div>
         </header>
         <div className="px-6 py-10 max-w-5xl mx-auto pb-32 md:pb-12">
-          <WelcomeFirstSteps memberName={member.name} />
+          <WelcomeFirstSteps memberName={member.name} latestDealId={latestDeal?.id} />
         </div>
         <LogActionButton />
       </main>

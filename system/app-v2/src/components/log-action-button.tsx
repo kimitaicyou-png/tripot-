@@ -106,7 +106,7 @@ export function LogActionButton({
                     id="note"
                     name="note"
                     rows={3}
-                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-none"
+                    className="w-full px-3 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900/20 resize-none"
                     placeholder="どんな話をしたか、次に何をするか…"
                   />
                 </div>

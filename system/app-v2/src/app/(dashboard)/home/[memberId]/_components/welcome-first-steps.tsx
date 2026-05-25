@@ -12,7 +12,13 @@ import { Users, Briefcase, FileText, Sparkles, ArrowRight, BarChart3 } from 'luc
  * 汎用 SFA のオンボーディング（lead/opportunity 等の汎用語）を流用しない。
  * tripot の用語（見込み・proposing・粗利・議事録 AI）で書く。
  */
-export function WelcomeFirstSteps({ memberName }: { memberName: string }) {
+export function WelcomeFirstSteps({
+  memberName,
+  latestDealId,
+}: {
+  memberName: string;
+  latestDealId?: string;
+}) {
   return (
     <section className="max-w-3xl">
       {/* ヘッダー */}
@@ -107,9 +113,19 @@ export function WelcomeFirstSteps({ memberName }: { memberName: string }) {
                 が要約・顧客ニーズ抽出・提案書叩き台・見積明細まで自動で作ります。
                 <strong className="text-gray-900 font-semibold">あなたは「確認して直す」だけ</strong>。
               </p>
-              <p className="text-xs text-gray-500 mt-2">
-                ※ 案件を作った後、案件詳細の「議事録」タブから貼り付けます
-              </p>
+              {latestDealId ? (
+                <Link
+                  href={`/deals/${latestDealId}?tab=meetings#meetings` as Route}
+                  className="inline-flex items-center gap-1.5 mt-3 px-3.5 py-2 text-sm font-medium text-gray-900 bg-white border border-gray-300 hover:bg-gray-50 active:scale-[0.98] rounded-lg transition-all duration-150"
+                >
+                  議事録を貼る
+                  <ArrowRight className="w-4 h-4" />
+                </Link>
+              ) : (
+                <p className="text-xs text-gray-500 mt-2">
+                  ※ 先に Step 2 で案件を 1 本作ると、ここから直接「議事録」タブに飛べます
+                </p>
+              )}
             </div>
           </div>
         </li>

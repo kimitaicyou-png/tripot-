@@ -153,7 +153,7 @@ function NumberField({
         min={0}
         step={10000}
         defaultValue={defaultValue}
-        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-blue-500"
+        className="w-full px-3 py-2 border border-gray-200 rounded-lg font-mono tabular-nums focus:outline-none focus:ring-2 focus:ring-gray-900/20"
       />
     </div>
   );
