@@ -13,6 +13,7 @@ import { InlineStageChanger } from '../[dealId]/_components/inline-stage-changer
 import { InlineConfidenceSelect } from './inline-confidence-select';
 import { InlineAmountInput } from './inline-amount-input';
 import { InlineAssigneeSelect, type MemberOption } from './inline-assignee-select';
+import { WeekCellPopover } from './week-cell-popover';
 import type { WeekInfo, WeekGridDeal, WeekCell, ActionType } from '@/lib/deals/week-grid';
 
 const STAGE_LABEL: Record<string, string> = {
@@ -255,18 +256,19 @@ export function DealsWeekGrid({
                 {weeks.map((w) => {
                   const pinHere =
                     deal.next_action_due_week === w.startDate ? deal.next_action_text : null;
+                  const highlight = pinHere ? 'rose' : w.isCurrent ? 'amber' : null;
                   return (
                     <td
                       key={w.startDate}
-                      className={`px-1 py-2 text-center border-l border-gray-100 ${
-                        w.isCurrent ? 'bg-amber-50/40' : ''
-                      } ${pinHere ? 'bg-rose-50/40' : ''}`}
+                      className="px-0.5 py-1 text-center border-l border-gray-100"
                     >
-                      <WeekCellContent
-                        cell={deal.weeks[w.startDate]}
-                        weekStart={w.startDate}
-                        nextActionPinText={pinHere}
-                      />
+                      <WeekCellPopover dealId={deal.id} weekStart={w.startDate} highlight={highlight}>
+                        <WeekCellContent
+                          cell={deal.weeks[w.startDate]}
+                          weekStart={w.startDate}
+                          nextActionPinText={pinHere}
+                        />
+                      </WeekCellPopover>
                     </td>
                   );
                 })}
