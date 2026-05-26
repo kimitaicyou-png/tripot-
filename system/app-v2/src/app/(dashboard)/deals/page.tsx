@@ -444,15 +444,15 @@ export default async function DealsListPage({
                   return (
                     <div className="hidden md:flex items-center gap-4 px-5 py-2 text-[11px] text-gray-600 border-b border-gray-200">
                       <span className="shrink-0 w-[88px]">ステージ</span>
-                      <span className="shrink-0 w-[60px]">確度</span>
+                      <span className="shrink-0 w-[64px]">確度</span>
                       <span className="w-[14rem] shrink-0">案件</span>
                       <span className="flex-1 min-w-0">次やること</span>
                       <span className="shrink-0 w-32">顧客</span>
                       <span className="shrink-0 w-20">担当</span>
-                      <span className="shrink-0">
+                      <span className="shrink-0 w-[104px]">
                         <SortLink label="受注予定" ascSort="expected_close_asc" descSort="expected_close_desc" />
                       </span>
-                      <span className="shrink-0 text-right ml-auto">
+                      <span className="shrink-0 w-[120px] text-right">
                         <SortLink label="金額" ascSort="amount_asc" descSort="amount_desc" />
                       </span>
                       <span className="shrink-0 w-16 text-center">粗利率</span>
@@ -473,21 +473,21 @@ export default async function DealsListPage({
                         key={d.id}
                         className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50 transition-colors"
                       >
-                        {/* G7 拡張：stage を inline 編集（既存 InlineStageChanger 流用、2026-05-26 02:53） */}
-                        <span className="shrink-0">
+                        {/* G7 拡張：stage inline 編集（見出しと幅揃え 88px） */}
+                        <span className="shrink-0 w-[88px] inline-flex items-center">
                           <InlineStageChanger dealId={d.id} currentStage={d.stage} />
                         </span>
-                        {/* G3 + G7：主観確度を inline 編集可能に */}
-                        <span className="shrink-0 hidden md:inline-flex">
+                        {/* G3 + G7：主観確度（見出しと幅揃え 64px） */}
+                        <span className="shrink-0 w-[64px] hidden md:inline-flex items-center">
                           <InlineConfidenceSelect dealId={d.id} initial={d.subjective_confidence} />
                         </span>
-                        {/* mobile: 表示のみ（select は inline でも幅取るため） */}
+                        {/* mobile: 表示のみ */}
                         <span className="shrink-0 inline-flex md:hidden">
                           <ConfidenceBadge value={d.subjective_confidence} size="sm" />
                         </span>
                         <Link
                           href={`/deals/${d.id}`}
-                          className="text-sm text-gray-900 truncate font-medium hover:underline decoration-gray-400 max-w-[14rem]"
+                          className="text-sm text-gray-900 truncate font-medium hover:underline decoration-gray-400 w-[14rem] shrink-0"
                         >
                           {d.title}
                         </Link>
@@ -522,12 +522,12 @@ export default async function DealsListPage({
                         <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-20 truncate">
                           {d.assignee_name ?? '—'}
                         </span>
-                        {/* G7 拡張：受注予定日も inline 編集 */}
-                        <span className="shrink-0 hidden md:inline-flex">
+                        {/* G7 拡張：受注予定日 inline（見出しと幅揃え 104px） */}
+                        <span className="shrink-0 w-[104px] hidden md:inline-flex items-center">
                           <InlineExpectedCloseInput dealId={d.id} initial={d.expected_close_date} />
                         </span>
-                        <span className="text-right shrink-0">
-                          {/* G7：金額を inline 編集 */}
+                        <span className="text-right shrink-0 w-[120px] inline-flex items-center justify-end flex-col">
+                          {/* G7：金額 inline（見出しと幅揃え 120px、右寄せ） */}
                           <InlineAmountInput dealId={d.id} initialAmount={d.amount} />
                           {d.revenue_type !== 'spot' && d.monthly_amount ? (
                             <span className="text-xs text-amber-700 font-mono tabular-nums block mt-0.5">
