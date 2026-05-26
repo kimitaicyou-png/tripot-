@@ -11,6 +11,7 @@ import { InlineStageChanger } from '../[dealId]/_components/inline-stage-changer
 import { InlineConfidenceSelect } from './inline-confidence-select';
 import { InlineAmountInput } from './inline-amount-input';
 import { InlineAssigneeSelect, type MemberOption } from './inline-assignee-select';
+import { InlineNextActionInput, type NextActionData } from './inline-next-action-input';
 import type { WeekGridDeal } from '@/lib/deals/week-grid';
 
 export function DealsWeekGrid({
@@ -55,6 +56,9 @@ export function DealsWeekGrid({
               <th className="px-2 py-2 text-right text-[11px] font-medium text-gray-700" style={{ minWidth: 120 }}>
                 金額
               </th>
+              <th className="px-2 py-2 text-left text-[11px] font-medium text-gray-700" style={{ minWidth: 240 }}>
+                次やること
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -90,6 +94,23 @@ export function DealsWeekGrid({
                 </td>
                 <td className="px-2 py-2 text-right">
                   <InlineAmountInput dealId={deal.id} initialAmount={deal.amount} />
+                </td>
+                <td className="px-2 py-2">
+                  {(() => {
+                    const initial: NextActionData = {
+                      text: deal.next_action_text ?? '',
+                      due_date: deal.next_action_due_date,
+                      assignee_id: deal.next_action_assignee_id,
+                    };
+                    return (
+                      <InlineNextActionInput
+                        dealId={deal.id}
+                        initial={initial}
+                        members={members}
+                        fallbackAssigneeId={deal.assignee_id}
+                      />
+                    );
+                  })()}
                 </td>
               </tr>
             ))}

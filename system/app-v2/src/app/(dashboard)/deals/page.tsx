@@ -227,21 +227,33 @@ export default async function DealsListPage({
   const hasActiveFilter = Boolean(assignee) || Boolean(confidence) || period !== 'all';
 
   // 案件グリッド view（隊長明示 2026-05-27 02:02 で週列は廃止、案件 table のみ残す）
+  // 次やること（text/due_date/assignee_id）も列として追加（2026-05-27 02:10）
   const weekGridDeals: WeekGridDeal[] = isWeekGrid
-    ? rows.map((d) => ({
-        id: d.id,
-        title: d.title,
-        stage: d.stage,
-        amount: d.amount,
-        customer_name: d.customer_name,
-        assignee_id: d.assignee_id,
-        assignee_name: d.assignee_name,
-        subjective_confidence: d.subjective_confidence,
-        next_action_text: null,
-        next_action_due_week: null,
-        next_action_assignee_id: null,
-        weeks: {},
-      }))
+    ? rows.map((d) => {
+        const meta = (d.metadata as Record<string, unknown> | null) ?? {};
+        const nextText = typeof meta.next_action === 'string' ? meta.next_action : null;
+        const nextDue =
+          typeof meta.next_action_due_date === 'string' ? meta.next_action_due_date : null;
+        const nextAssignee =
+          typeof meta.next_action_assignee_id === 'string'
+            ? meta.next_action_assignee_id
+            : null;
+        return {
+          id: d.id,
+          title: d.title,
+          stage: d.stage,
+          amount: d.amount,
+          customer_name: d.customer_name,
+          assignee_id: d.assignee_id,
+          assignee_name: d.assignee_name,
+          subjective_confidence: d.subjective_confidence,
+          next_action_text: nextText,
+          next_action_due_date: nextDue,
+          next_action_due_week: null,
+          next_action_assignee_id: nextAssignee,
+          weeks: {},
+        };
+      })
     : [];
 
   const totalActive = rows.filter((d) =>
