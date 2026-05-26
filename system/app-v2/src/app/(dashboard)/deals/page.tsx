@@ -19,8 +19,7 @@ import { InlineNextActionInput, type NextActionData } from './_components/inline
 import { InlineAssigneeSelect } from './_components/inline-assignee-select';
 import { InlineExpectedCloseInput } from './_components/inline-expected-close-input';
 import { InlineStageChanger } from './[dealId]/_components/inline-stage-changer';
-import { generateWeeks, type WeekGridDeal } from '@/lib/deals/week-grid';
-import { fetchWeekGridCells } from '@/lib/deals/week-grid-fetch';
+import type { WeekGridDeal } from '@/lib/deals/week-grid';
 import { getDealForecastAmount, getDealForecastWeight } from '@/lib/deals/forecast-weight';
 import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../coaris.config';
@@ -227,46 +226,22 @@ export default async function DealsListPage({
   const isPartialList = (isKanban || isWeekGrid) && rows.length >= KANBAN_LIMIT && filteredTotal > KANBAN_LIMIT;
   const hasActiveFilter = Boolean(assignee) || Boolean(confidence) || period !== 'all';
 
-  // G2 週グリッド view：12 週分の actions/meetings/tasks を集計（view='week-grid' のみ）
-  const weeks = isWeekGrid ? generateWeeks() : [];
-  const weekCellMap = isWeekGrid
-    ? await fetchWeekGridCells({
-        companyId: session.user.company_id,
-        dealIds: rows.map((d) => d.id),
-      })
-    : {};
+  // 案件グリッド view（隊長明示 2026-05-27 02:02 で週列は廃止、案件 table のみ残す）
   const weekGridDeals: WeekGridDeal[] = isWeekGrid
-    ? rows.map((d) => {
-        const meta = (d.metadata as Record<string, unknown> | null) ?? {};
-        const nextText = typeof meta.next_action === 'string' ? meta.next_action : null;
-        const nextDue =
-          typeof meta.next_action_due_date === 'string' ? meta.next_action_due_date : null;
-        const nextAssignee =
-          typeof meta.next_action_assignee_id === 'string' ? meta.next_action_assignee_id : null;
-        // 期日 → 週月曜 ISO に正規化（その週セルに pin 表示）
-        let nextDueWeek: string | null = null;
-        if (nextDue) {
-          const d2 = new Date(`${nextDue}T00:00:00Z`);
-          const dow = d2.getUTCDay();
-          const diff = dow === 0 ? -6 : 1 - dow;
-          d2.setUTCDate(d2.getUTCDate() + diff);
-          nextDueWeek = d2.toISOString().slice(0, 10);
-        }
-        return {
-          id: d.id,
-          title: d.title,
-          stage: d.stage,
-          amount: d.amount,
-          customer_name: d.customer_name,
-          assignee_id: d.assignee_id,
-          assignee_name: d.assignee_name,
-          subjective_confidence: d.subjective_confidence,
-          next_action_text: nextText,
-          next_action_due_week: nextDueWeek,
-          next_action_assignee_id: nextAssignee,
-          weeks: weekCellMap[d.id] ?? {},
-        };
-      })
+    ? rows.map((d) => ({
+        id: d.id,
+        title: d.title,
+        stage: d.stage,
+        amount: d.amount,
+        customer_name: d.customer_name,
+        assignee_id: d.assignee_id,
+        assignee_name: d.assignee_name,
+        subjective_confidence: d.subjective_confidence,
+        next_action_text: null,
+        next_action_due_week: null,
+        next_action_assignee_id: null,
+        weeks: {},
+      }))
     : [];
 
   const totalActive = rows.filter((d) =>
@@ -418,7 +393,7 @@ export default async function DealsListPage({
             </section>
 
             {isWeekGrid ? (
-              <DealsWeekGrid deals={weekGridDeals} weeks={weeks} members={memberOptions} />
+              <DealsWeekGrid deals={weekGridDeals} members={memberOptions} />
             ) : isKanban ? (
               <DealsKanban
                 deals={rows.map((d) => ({
