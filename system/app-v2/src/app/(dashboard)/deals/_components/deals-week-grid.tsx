@@ -93,11 +93,8 @@ function WeekCellContent({
     !cell || (cell.actionCount === 0 && cell.meetingCount === 0 && cell.tasksTotal === 0);
 
   if (cellEmpty && !hasPin) {
-    return (
-      <span className="text-gray-300 text-[10px]" title={`週 ${weekStart}（活動なし）`}>
-        ・
-      </span>
-    );
+    // 空セルは何も出さず、popover trigger 用の最小高さだけ確保（視覚ノイズ削減）
+    return <span className="block h-3" aria-hidden />;
   }
 
   const tooltipLines: string[] = [];
