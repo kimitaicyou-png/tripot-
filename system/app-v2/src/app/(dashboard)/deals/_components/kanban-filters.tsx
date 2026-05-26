@@ -5,7 +5,7 @@ import { useTransition } from 'react';
 import { Filter, X } from 'lucide-react';
 
 /**
- * /deals Kanban / リスト のフィルタバー（Client Component）。
+ * /deals Kanban / リスト / 週グリッド のフィルタバー（Client Component）。
  *
  * URL クエリ経由でフィルタ状態を保持（ブックマーク・共有可）。
  * Server Component page.tsx 側で searchParams を読んで DB 絞り込み済データを返す。
