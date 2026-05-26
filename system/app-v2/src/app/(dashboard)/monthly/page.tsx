@@ -13,6 +13,7 @@ import { MonthlyKpiCards } from './_components/monthly-kpi-cards';
 import { PlVsTargetCards } from './_components/pl-vs-target-cards';
 import { OpexInputForm } from './_components/opex-input-form';
 import { getMonthlyOpex } from '@/lib/actions/monthly-opex';
+import { getDealForecastAmount } from '@/lib/deals/forecast-weight';
 import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../coaris.config';
 
@@ -38,11 +39,14 @@ export default async function MonthlyPage() {
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((rows) => rows[0]);
 
-  // 進行中パイプライン（ステージ別合計、CF 加重用）
-  const pipelineByStage = await db
+  // 進行中パイプライン（行単位で取得、ヨミ予測売上ハイブリッド計算用）
+  // 隊長明示 2026-05-27 02:10：「/weekly /monthly の予測売上もハイブリッド計算に統一」
+  // 旧 SQL 集計（stage 別 SUM）→ 行単位取得 + forecast-weight でメモリ集計に変更
+  const activeDealsForCf = await db
     .select({
       stage: deals.stage,
-      total: sql<number>`COALESCE(SUM(${deals.amount}), 0)::int`,
+      amount: deals.amount,
+      subjective_confidence: deals.subjective_confidence,
     })
     .from(deals)
     .where(
@@ -51,8 +55,7 @@ export default async function MonthlyPage() {
         isNull(deals.deleted_at),
         sql`${deals.stage} NOT IN ('paid', 'lost')`
       )
-    )
-    .groupBy(deals.stage);
+    );
 
   // 予算（今月）
   const budgetRow = await db
@@ -81,16 +84,25 @@ export default async function MonthlyPage() {
   const targetOperatingProfit = budgetRow?.target_operating_profit ?? 0;
   const actualOperatingProfit = actualGrossProfit - monthlyOpex;
 
-  // CF 加重パイプライン（翌月見通し）
-  const cfBreakdown = pipelineByStage
-    .map((p) => {
-      const stageDef = TRIPOT_CONFIG.stages.find((s) => s.key === p.stage);
+  // ヨミ予測売上ハイブリッド（forecast-weight：stage CF + 主観確度の段階別 fallback）
+  const cfByStage = new Map<string, { amount: number; weighted: number }>();
+  for (const d of activeDealsForCf) {
+    const cur = cfByStage.get(d.stage) ?? { amount: 0, weighted: 0 };
+    cur.amount += d.amount ?? 0;
+    cur.weighted += getDealForecastAmount(d.amount, d.stage, d.subjective_confidence);
+    cfByStage.set(d.stage, cur);
+  }
+  const cfBreakdown = Array.from(cfByStage.entries())
+    .map(([stage, v]) => {
+      const stageDef = TRIPOT_CONFIG.stages.find((s) => s.key === stage);
+      // 実効加重平均（A 多ければ高い、E 多ければ低い、未設定なら stage CF 加重に等しい）
+      const effectiveWeight = v.amount > 0 ? v.weighted / v.amount : (stageDef?.cashflowWeight ?? 0);
       return {
-        stage: p.stage,
-        label: stageDef?.label ?? p.stage,
-        amount: p.total,
-        weight: stageDef?.cashflowWeight ?? 0,
-        weighted: Math.round(p.total * (stageDef?.cashflowWeight ?? 0)),
+        stage,
+        label: stageDef?.label ?? stage,
+        amount: v.amount,
+        weight: effectiveWeight,
+        weighted: v.weighted,
         order: stageDef?.order ?? 999,
       };
     })
