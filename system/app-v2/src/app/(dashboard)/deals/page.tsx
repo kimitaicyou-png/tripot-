@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { LayoutGrid, List, CalendarRange } from 'lucide-react';
+import { LayoutGrid, List } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
 import { deals, members, customers } from '@/db/schema';
@@ -12,15 +12,12 @@ import { EmptyState } from '@/components/ui/empty-state';
 import { DealsKanban } from './_components/deals-kanban';
 import { KanbanFilters } from './_components/kanban-filters';
 import { ConfidenceBadge } from './[dealId]/_components/confidence-badge';
-import { DealsWeekGrid } from './_components/deals-week-grid';
 import { InlineAmountInput } from './_components/inline-amount-input';
 import { InlineConfidenceSelect } from './_components/inline-confidence-select';
 import { InlineNextActionInput, type NextActionData } from './_components/inline-next-action-input';
 import { InlineAssigneeSelect } from './_components/inline-assignee-select';
 import { InlineExpectedCloseInput } from './_components/inline-expected-close-input';
 import { InlineStageChanger } from './[dealId]/_components/inline-stage-changer';
-import { generateWeeks, type WeekGridDeal } from '@/lib/deals/week-grid';
-import { fetchWeekGridCells } from '@/lib/deals/week-grid-fetch';
 import { getDealForecastAmount, getDealForecastWeight } from '@/lib/deals/forecast-weight';
 import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../coaris.config';
@@ -224,50 +221,8 @@ export default async function DealsListPage({
     .from(deals)
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((r) => r[0]?.count ?? 0);
-  const isPartialList = (isKanban || isWeekGrid) && rows.length >= KANBAN_LIMIT && filteredTotal > KANBAN_LIMIT;
+  const isPartialList = isKanban && rows.length >= KANBAN_LIMIT && filteredTotal > KANBAN_LIMIT;
   const hasActiveFilter = Boolean(assignee) || Boolean(confidence) || period !== 'all';
-
-  // G2 週グリッド view：12 週分の actions/meetings/tasks を集計（view='week-grid' のみ）
-  const weeks = isWeekGrid ? generateWeeks() : [];
-  const weekCellMap = isWeekGrid
-    ? await fetchWeekGridCells({
-        companyId: session.user.company_id,
-        dealIds: rows.map((d) => d.id),
-      })
-    : {};
-  const weekGridDeals: WeekGridDeal[] = isWeekGrid
-    ? rows.map((d) => {
-        const meta = (d.metadata as Record<string, unknown> | null) ?? {};
-        const nextText = typeof meta.next_action === 'string' ? meta.next_action : null;
-        const nextDue =
-          typeof meta.next_action_due_date === 'string' ? meta.next_action_due_date : null;
-        const nextAssignee =
-          typeof meta.next_action_assignee_id === 'string' ? meta.next_action_assignee_id : null;
-        // 期日 → 週月曜 ISO に正規化（その週セルに pin 表示）
-        let nextDueWeek: string | null = null;
-        if (nextDue) {
-          const d2 = new Date(`${nextDue}T00:00:00Z`);
-          const dow = d2.getUTCDay();
-          const diff = dow === 0 ? -6 : 1 - dow;
-          d2.setUTCDate(d2.getUTCDate() + diff);
-          nextDueWeek = d2.toISOString().slice(0, 10);
-        }
-        return {
-          id: d.id,
-          title: d.title,
-          stage: d.stage,
-          amount: d.amount,
-          customer_name: d.customer_name,
-          assignee_id: d.assignee_id,
-          assignee_name: d.assignee_name,
-          subjective_confidence: d.subjective_confidence,
-          next_action_text: nextText,
-          next_action_due_week: nextDueWeek,
-          next_action_assignee_id: nextAssignee,
-          weeks: weekCellMap[d.id] ?? {},
-        };
-      })
-    : [];
 
   const totalActive = rows.filter((d) =>
     ['proposing', 'ordered', 'in_production'].includes(d.stage),
@@ -334,19 +289,6 @@ export default async function DealsListPage({
               >
                 <List className="w-3.5 h-3.5" />
                 リスト
-              </Link>
-              <Link
-                href="/deals?view=week-grid"
-                className={`inline-flex items-center gap-1 px-2.5 py-1 text-xs font-medium rounded-md transition-all duration-150 ${
-                  isWeekGrid
-                    ? 'bg-white text-gray-900 shadow-sm'
-                    : 'text-gray-600 hover:text-gray-900'
-                }`}
-                aria-pressed={isWeekGrid}
-                title="月別週グリッド（現行スプレッドシート互換）"
-              >
-                <CalendarRange className="w-3.5 h-3.5" />
-                週グリッド
               </Link>
             </div>
             <Link
@@ -417,9 +359,7 @@ export default async function DealsListPage({
               />
             </section>
 
-            {isWeekGrid ? (
-              <DealsWeekGrid deals={weekGridDeals} weeks={weeks} members={memberOptions} />
-            ) : isKanban ? (
+            {isKanban ? (
               <DealsKanban
                 deals={rows.map((d) => ({
                   ...d,
