@@ -11,6 +11,9 @@ import Link from 'next/link';
 import { Phone, Handshake, FileText, Mail, Footprints } from 'lucide-react';
 import { formatShortYen } from '@/lib/format';
 import { ConfidenceBadge } from '../[dealId]/_components/confidence-badge';
+import { InlineStageChanger } from '../[dealId]/_components/inline-stage-changer';
+import { InlineConfidenceSelect } from './inline-confidence-select';
+import { InlineAmountInput } from './inline-amount-input';
 import type { WeekInfo, WeekGridDeal, WeekCell, ActionType } from '@/lib/deals/week-grid';
 
 const STAGE_LABEL: Record<string, string> = {
@@ -47,12 +50,48 @@ const ACTION_ICON: Record<ActionType, typeof Phone> = {
   other: FileText,
 };
 
-function WeekCellContent({ cell }: { cell: WeekCell | undefined }) {
-  if (!cell || (cell.actionCount === 0 && cell.meetingCount === 0 && cell.tasksTotal === 0)) {
-    return <span className="text-gray-300 text-[10px]">・</span>;
+const ACTION_TYPE_LABEL_JA: Record<ActionType, string> = {
+  call: '電話',
+  meeting: '商談',
+  proposal: '提案',
+  email: 'メール',
+  visit: '訪問',
+  other: 'その他',
+};
+
+function buildWeekCellTooltip(cell: WeekCell, weekStart: string): string {
+  const lines: string[] = [`週 ${weekStart} の活動`];
+  if (cell.actionCount > 0) {
+    const breakdown = Object.entries(cell.actionsByType)
+      .filter(([, n]) => (n ?? 0) > 0)
+      .map(([t, n]) => `${ACTION_TYPE_LABEL_JA[t as ActionType] ?? t} ${n}`)
+      .join(' / ');
+    lines.push(`行動 ${cell.actionCount} 件（${breakdown}）`);
   }
+  if (cell.meetingCount > 0) {
+    lines.push(`議事録 ${cell.meetingCount} 件`);
+  }
+  if (cell.tasksTotal > 0) {
+    lines.push(`タスク ${cell.tasksDone}/${cell.tasksTotal}（完了/期限）`);
+  }
+  if (lines.length === 1) lines.push('（活動なし）');
+  return lines.join('\n');
+}
+
+function WeekCellContent({ cell, weekStart }: { cell: WeekCell | undefined; weekStart: string }) {
+  if (!cell || (cell.actionCount === 0 && cell.meetingCount === 0 && cell.tasksTotal === 0)) {
+    return (
+      <span className="text-gray-300 text-[10px]" title={`週 ${weekStart}（活動なし）`}>
+        ・
+      </span>
+    );
+  }
+  const tooltip = buildWeekCellTooltip(cell, weekStart);
   return (
-    <div className="flex flex-col items-center gap-0.5 leading-tight">
+    <div
+      className="flex flex-col items-center gap-0.5 leading-tight cursor-help"
+      title={tooltip}
+    >
       {cell.actionCount > 0 && (
         <span className="font-mono tabular-nums text-[10px] text-gray-700">
           {cell.actionCount}
@@ -61,7 +100,6 @@ function WeekCellContent({ cell }: { cell: WeekCell | undefined }) {
       {cell.meetingCount > 0 && (
         <span
           className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"
-          title={`議事録 ${cell.meetingCount} 件`}
           aria-label={`議事録 ${cell.meetingCount} 件`}
         />
       )}
@@ -70,7 +108,6 @@ function WeekCellContent({ cell }: { cell: WeekCell | undefined }) {
           className={`font-mono tabular-nums text-[9px] ${
             cell.tasksDone === cell.tasksTotal ? 'text-emerald-700' : 'text-rose-700'
           }`}
-          title={`タスク ${cell.tasksDone}/${cell.tasksTotal}`}
         >
           {cell.tasksDone}/{cell.tasksTotal}
         </span>
@@ -174,20 +211,15 @@ export function DealsWeekGrid({
                 <td className="px-2 py-2 text-[11px] text-gray-700 truncate" style={{ maxWidth: 80 }}>
                   {deal.assignee_name ?? '—'}
                 </td>
+                {/* 隊長明示 2026-05-27 01:39：「ここで触れなかったら意味ない」→ 確度・段階・金額 inline 編集 */}
                 <td className="px-2 py-2 text-center">
-                  <ConfidenceBadge value={deal.subjective_confidence} size="sm" />
+                  <InlineConfidenceSelect dealId={deal.id} initial={deal.subjective_confidence} />
                 </td>
                 <td className="px-2 py-2 text-center">
-                  <span
-                    className={`inline-flex px-1.5 py-0.5 rounded text-[10px] font-medium ${
-                      STAGE_COLOR[deal.stage] ?? 'bg-gray-100 text-gray-700'
-                    }`}
-                  >
-                    {STAGE_LABEL[deal.stage] ?? deal.stage}
-                  </span>
+                  <InlineStageChanger dealId={deal.id} currentStage={deal.stage} />
                 </td>
-                <td className="px-2 py-2 text-right text-[11px] font-mono tabular-nums text-gray-900">
-                  {formatShortYen(deal.amount)}
+                <td className="px-2 py-2 text-right">
+                  <InlineAmountInput dealId={deal.id} initialAmount={deal.amount} />
                 </td>
                 {weeks.map((w) => (
                   <td
@@ -196,7 +228,7 @@ export function DealsWeekGrid({
                       w.isCurrent ? 'bg-amber-50/40' : ''
                     }`}
                   >
-                    <WeekCellContent cell={deal.weeks[w.startDate]} />
+                    <WeekCellContent cell={deal.weeks[w.startDate]} weekStart={w.startDate} />
                   </td>
                 ))}
               </tr>
