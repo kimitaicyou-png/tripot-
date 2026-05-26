@@ -172,8 +172,6 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
         }
       />
 
-      <AttackSection dealId={dealId} />
-
       {/* 主観確度（ADR-0013、G3、2026-05-25）— stage と直交、営業の温度感をここで設定 */}
       <section className="bg-white border border-gray-200 rounded-xl p-4 flex items-center justify-between gap-4">
         <div>
@@ -274,33 +272,50 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
         )}
       </section>
 
-      <LostDealSection dealId={dealId} currentStage={deal.stage} />
+      {/* 補助 sections — 使用頻度低めの section を折りたたみ（隊長明示 2026-05-27 02:10「スクロール深い、優先順位整理」）*/}
+      <details className="group bg-white border border-gray-200 rounded-xl overflow-hidden">
+        <summary className="px-6 py-3 cursor-pointer hover:bg-gray-50 text-sm font-medium text-gray-900 flex items-center justify-between list-none">
+          <span>
+            補助セクション
+            <span className="text-xs text-gray-500 font-normal ml-2">
+              攻略カード ／ 失注フォーム ／ 目標（クリックで展開）
+            </span>
+          </span>
+          <span className="text-xs text-gray-400 group-open:hidden">▶</span>
+          <span className="text-xs text-gray-400 hidden group-open:inline">▼</span>
+        </summary>
+        <div className="px-6 py-4 space-y-6 border-t border-gray-100">
+          <AttackSection dealId={dealId} />
 
-      <TargetSection
-        dealId={dealId}
-        currentAmount={deal.amount}
-        currentExpectedClose={deal.expected_close_date}
-        targetRevenue={
-          typeof (deal.metadata as Record<string, unknown> | null)?.target_revenue === 'number'
-            ? ((deal.metadata as Record<string, unknown>).target_revenue as number)
-            : 0
-        }
-        targetGp={
-          typeof (deal.metadata as Record<string, unknown> | null)?.target_gp === 'number'
-            ? ((deal.metadata as Record<string, unknown>).target_gp as number)
-            : 0
-        }
-        targetCloseDate={
-          typeof (deal.metadata as Record<string, unknown> | null)?.target_close_date === 'string'
-            ? ((deal.metadata as Record<string, unknown>).target_close_date as string)
-            : null
-        }
-        winReason={
-          typeof (deal.metadata as Record<string, unknown> | null)?.win_reason === 'string'
-            ? ((deal.metadata as Record<string, unknown>).win_reason as string)
-            : ''
-        }
-      />
+          <LostDealSection dealId={dealId} currentStage={deal.stage} />
+
+          <TargetSection
+            dealId={dealId}
+            currentAmount={deal.amount}
+            currentExpectedClose={deal.expected_close_date}
+            targetRevenue={
+              typeof (deal.metadata as Record<string, unknown> | null)?.target_revenue === 'number'
+                ? ((deal.metadata as Record<string, unknown>).target_revenue as number)
+                : 0
+            }
+            targetGp={
+              typeof (deal.metadata as Record<string, unknown> | null)?.target_gp === 'number'
+                ? ((deal.metadata as Record<string, unknown>).target_gp as number)
+                : 0
+            }
+            targetCloseDate={
+              typeof (deal.metadata as Record<string, unknown> | null)?.target_close_date === 'string'
+                ? ((deal.metadata as Record<string, unknown>).target_close_date as string)
+                : null
+            }
+            winReason={
+              typeof (deal.metadata as Record<string, unknown> | null)?.win_reason === 'string'
+                ? ((deal.metadata as Record<string, unknown>).win_reason as string)
+                : ''
+            }
+          />
+        </div>
+      </details>
 
       {(deal.revenue_type === 'running' || deal.revenue_type === 'both') && (
         <RunningSection
