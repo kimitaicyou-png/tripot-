@@ -8,12 +8,11 @@
  */
 
 import Link from 'next/link';
-import { Phone, Handshake, FileText, Mail, Footprints } from 'lucide-react';
-import { formatShortYen } from '@/lib/format';
-import { ConfidenceBadge } from '../[dealId]/_components/confidence-badge';
+import { Phone, Handshake, FileText, Mail, Footprints, Pin } from 'lucide-react';
 import { InlineStageChanger } from '../[dealId]/_components/inline-stage-changer';
 import { InlineConfidenceSelect } from './inline-confidence-select';
 import { InlineAmountInput } from './inline-amount-input';
+import { InlineAssigneeSelect, type MemberOption } from './inline-assignee-select';
 import type { WeekInfo, WeekGridDeal, WeekCell, ActionType } from '@/lib/deals/week-grid';
 
 const STAGE_LABEL: Record<string, string> = {
@@ -78,32 +77,62 @@ function buildWeekCellTooltip(cell: WeekCell, weekStart: string): string {
   return lines.join('\n');
 }
 
-function WeekCellContent({ cell, weekStart }: { cell: WeekCell | undefined; weekStart: string }) {
-  if (!cell || (cell.actionCount === 0 && cell.meetingCount === 0 && cell.tasksTotal === 0)) {
+function WeekCellContent({
+  cell,
+  weekStart,
+  nextActionPinText,
+}: {
+  cell: WeekCell | undefined;
+  weekStart: string;
+  /** その週に「次やること」の期日が落ちる場合のテキスト（pin 表示用）*/
+  nextActionPinText: string | null;
+}) {
+  const hasPin = !!nextActionPinText;
+  const cellEmpty =
+    !cell || (cell.actionCount === 0 && cell.meetingCount === 0 && cell.tasksTotal === 0);
+
+  if (cellEmpty && !hasPin) {
     return (
       <span className="text-gray-300 text-[10px]" title={`週 ${weekStart}（活動なし）`}>
         ・
       </span>
     );
   }
-  const tooltip = buildWeekCellTooltip(cell, weekStart);
+
+  const tooltipLines: string[] = [];
+  if (hasPin) tooltipLines.push(`次やること（期日この週）：${nextActionPinText}`);
+  if (cell && (cell.actionCount > 0 || cell.meetingCount > 0 || cell.tasksTotal > 0)) {
+    tooltipLines.push(buildWeekCellTooltip(cell, weekStart));
+  } else {
+    tooltipLines.push(`週 ${weekStart}（活動はまだ）`);
+  }
+  const tooltip = tooltipLines.join('\n---\n');
+
   return (
     <div
       className="flex flex-col items-center gap-0.5 leading-tight cursor-help"
       title={tooltip}
     >
-      {cell.actionCount > 0 && (
+      {hasPin && (
+        <span
+          className="inline-flex items-center text-rose-700"
+          aria-label="この週に「次やること」期日"
+        >
+          <Pin className="w-3 h-3" />
+        </span>
+      )}
+      {cell && cell.actionCount > 0 && (
         <span className="font-mono tabular-nums text-[10px] text-gray-700">
           {cell.actionCount}
         </span>
       )}
-      {cell.meetingCount > 0 && (
+      {cell && cell.meetingCount > 0 && (
         <span
           className="inline-block w-1.5 h-1.5 rounded-full bg-amber-500"
           aria-label={`議事録 ${cell.meetingCount} 件`}
         />
       )}
-      {cell.tasksTotal > 0 && (
+      {cell && cell.tasksTotal > 0 && (
         <span
           className={`font-mono tabular-nums text-[9px] ${
             cell.tasksDone === cell.tasksTotal ? 'text-emerald-700' : 'text-rose-700'
@@ -119,9 +148,11 @@ function WeekCellContent({ cell, weekStart }: { cell: WeekCell | undefined; week
 export function DealsWeekGrid({
   deals,
   weeks,
+  members,
 }: {
   deals: WeekGridDeal[];
   weeks: WeekInfo[];
+  members: MemberOption[];
 }) {
   if (deals.length === 0) {
     return (
@@ -208,8 +239,8 @@ export function DealsWeekGrid({
                 <td className="px-2 py-2 text-[11px] text-gray-700 truncate" style={{ maxWidth: 100 }}>
                   {deal.customer_name ?? '—'}
                 </td>
-                <td className="px-2 py-2 text-[11px] text-gray-700 truncate" style={{ maxWidth: 80 }}>
-                  {deal.assignee_name ?? '—'}
+                <td className="px-2 py-2 text-[11px]" style={{ maxWidth: 110 }}>
+                  <InlineAssigneeSelect dealId={deal.id} initial={deal.assignee_id} members={members} />
                 </td>
                 {/* 隊長明示 2026-05-27 01:39：「ここで触れなかったら意味ない」→ 確度・段階・金額 inline 編集 */}
                 <td className="px-2 py-2 text-center">
@@ -221,16 +252,24 @@ export function DealsWeekGrid({
                 <td className="px-2 py-2 text-right">
                   <InlineAmountInput dealId={deal.id} initialAmount={deal.amount} />
                 </td>
-                {weeks.map((w) => (
-                  <td
-                    key={w.startDate}
-                    className={`px-1 py-2 text-center border-l border-gray-100 ${
-                      w.isCurrent ? 'bg-amber-50/40' : ''
-                    }`}
-                  >
-                    <WeekCellContent cell={deal.weeks[w.startDate]} weekStart={w.startDate} />
-                  </td>
-                ))}
+                {weeks.map((w) => {
+                  const pinHere =
+                    deal.next_action_due_week === w.startDate ? deal.next_action_text : null;
+                  return (
+                    <td
+                      key={w.startDate}
+                      className={`px-1 py-2 text-center border-l border-gray-100 ${
+                        w.isCurrent ? 'bg-amber-50/40' : ''
+                      } ${pinHere ? 'bg-rose-50/40' : ''}`}
+                    >
+                      <WeekCellContent
+                        cell={deal.weeks[w.startDate]}
+                        weekStart={w.startDate}
+                        nextActionPinText={pinHere}
+                      />
+                    </td>
+                  );
+                })}
               </tr>
             ))}
           </tbody>

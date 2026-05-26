@@ -16,6 +16,7 @@ import { DealsWeekGrid } from './_components/deals-week-grid';
 import { InlineAmountInput } from './_components/inline-amount-input';
 import { InlineConfidenceSelect } from './_components/inline-confidence-select';
 import { InlineNextActionInput, type NextActionData } from './_components/inline-next-action-input';
+import { InlineAssigneeSelect } from './_components/inline-assignee-select';
 import { InlineExpectedCloseInput } from './_components/inline-expected-close-input';
 import { InlineStageChanger } from './[dealId]/_components/inline-stage-changer';
 import { generateWeeks, type WeekGridDeal } from '@/lib/deals/week-grid';
@@ -235,16 +236,37 @@ export default async function DealsListPage({
       })
     : {};
   const weekGridDeals: WeekGridDeal[] = isWeekGrid
-    ? rows.map((d) => ({
-        id: d.id,
-        title: d.title,
-        stage: d.stage,
-        amount: d.amount,
-        customer_name: d.customer_name,
-        assignee_name: d.assignee_name,
-        subjective_confidence: d.subjective_confidence,
-        weeks: weekCellMap[d.id] ?? {},
-      }))
+    ? rows.map((d) => {
+        const meta = (d.metadata as Record<string, unknown> | null) ?? {};
+        const nextText = typeof meta.next_action === 'string' ? meta.next_action : null;
+        const nextDue =
+          typeof meta.next_action_due_date === 'string' ? meta.next_action_due_date : null;
+        const nextAssignee =
+          typeof meta.next_action_assignee_id === 'string' ? meta.next_action_assignee_id : null;
+        // 期日 → 週月曜 ISO に正規化（その週セルに pin 表示）
+        let nextDueWeek: string | null = null;
+        if (nextDue) {
+          const d2 = new Date(`${nextDue}T00:00:00Z`);
+          const dow = d2.getUTCDay();
+          const diff = dow === 0 ? -6 : 1 - dow;
+          d2.setUTCDate(d2.getUTCDate() + diff);
+          nextDueWeek = d2.toISOString().slice(0, 10);
+        }
+        return {
+          id: d.id,
+          title: d.title,
+          stage: d.stage,
+          amount: d.amount,
+          customer_name: d.customer_name,
+          assignee_id: d.assignee_id,
+          assignee_name: d.assignee_name,
+          subjective_confidence: d.subjective_confidence,
+          next_action_text: nextText,
+          next_action_due_week: nextDueWeek,
+          next_action_assignee_id: nextAssignee,
+          weeks: weekCellMap[d.id] ?? {},
+        };
+      })
     : [];
 
   const totalActive = rows.filter((d) =>
@@ -396,7 +418,7 @@ export default async function DealsListPage({
             </section>
 
             {isWeekGrid ? (
-              <DealsWeekGrid deals={weekGridDeals} weeks={weeks} />
+              <DealsWeekGrid deals={weekGridDeals} weeks={weeks} members={memberOptions} />
             ) : isKanban ? (
               <DealsKanban
                 deals={rows.map((d) => ({
@@ -519,8 +541,9 @@ export default async function DealsListPage({
                         <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-32 truncate">
                           {d.customer_name ?? '—'}
                         </span>
-                        <span className="text-xs text-gray-700 shrink-0 hidden md:inline w-20 truncate">
-                          {d.assignee_name ?? '—'}
+                        {/* G7 拡張：担当 inline 編集（隊長明示 2026-05-27 01:39） */}
+                        <span className="shrink-0 w-20 hidden md:inline-flex items-center">
+                          <InlineAssigneeSelect dealId={d.id} initial={d.assignee_id} members={memberOptions} />
                         </span>
                         {/* G7 拡張：受注予定日 inline（見出しと幅揃え 104px） */}
                         <span className="shrink-0 w-[104px] hidden md:inline-flex items-center">

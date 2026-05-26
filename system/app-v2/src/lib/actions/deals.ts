@@ -837,6 +837,61 @@ export async function updateDealNextAction(
 }
 
 /**
+ * 担当者（assignee_id）のインライン更新（G7 拡張、2026-05-27）
+ *
+ * 隊長明示「触れなかったら意味ない」直撃。週グリッドと List view 両方で。
+ * null（担当解除）も許容。
+ */
+const assigneeSchema = z.union([z.string().uuid(), z.literal(''), z.null()]).nullable();
+
+export async function updateDealAssignee(
+  dealId: string,
+  assigneeId: string | null,
+): Promise<UpdateStageResult> {
+  const guard = await requirePermission({ resource: 'deal', action: 'update' });
+  if (!guard.ok) {
+    return { ok: false, error: guard.error };
+  }
+  const { session } = guard;
+
+  const parsed = assigneeSchema.safeParse(assigneeId);
+  if (!parsed.success) {
+    return { ok: false, error: 'invalid_assignee' };
+  }
+  const normalized = parsed.data === '' ? null : parsed.data;
+
+  const current = await db
+    .select({ assignee_id: deals.assignee_id })
+    .from(deals)
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!current) {
+    return { ok: false, error: 'deal_not_found' };
+  }
+
+  await db
+    .update(deals)
+    .set({ assignee_id: normalized, updated_at: new Date() })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.assignee_inline_update',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { from: current.assignee_id, to: normalized, source: 'list_or_week_grid_inline' },
+  });
+
+  revalidatePath(`/deals/${dealId}`);
+  revalidatePath('/deals');
+  revalidatePath('/home');
+  return { ok: true };
+}
+
+/**
  * 受注金額（amount）のインライン更新（G7 1 画面編集、2026-05-26）
  *
  * 柏樹（ノリスケ反証）「90 件運用で死ぬ」指摘：詳細ページ往復なしで /deals 一覧から

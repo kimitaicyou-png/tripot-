@@ -110,8 +110,13 @@ export interface WeekGridDeal {
   stage: string;
   amount: number | null;
   customer_name: string | null;
+  assignee_id: string | null;
   assignee_name: string | null;
   subjective_confidence: SubjectiveConfidence | null;
+  /** 隊長明示 2026-05-27 01:39：次やること（期日が該当週セルに pin 表示）*/
+  next_action_text: string | null;
+  next_action_due_week: string | null; // ISO 週月曜 yyyy-mm-dd（該当週セルに pin）
+  next_action_assignee_id: string | null;
   /** key = WeekInfo.startDate (ISO yyyy-mm-dd) */
   weeks: Record<string, WeekCell>;
 }
