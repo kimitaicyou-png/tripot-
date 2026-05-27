@@ -74,7 +74,32 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         return true;
       }
 
-      // ドメイン制限
+      // 招待制が最優先：DB 登録があれば domain は問わない。
+      // /settings/members から招待された外部メンバー（gmail.com / partner ドメイン等）も
+      // active なら通す。inactive は理由付きで拒否、未招待は domain check に降りる。
+      // 2026-05-27 隊長明示「石田アクセスブロックなってまった」修正：
+      // 旧実装は ALLOWED_DOMAINS 通過後に DB 照合だった、招待した外部 Gmail が全部弾かれた。
+      const member = await db
+        .select({ id: members.id, status: members.status, company_id: members.company_id })
+        .from(members)
+        .where(and(eq(members.email, email), isNull(members.deleted_at)))
+        .limit(1)
+        .then((rows) => rows[0]);
+
+      if (member) {
+        if (member.status !== 'active') {
+          await logAudit({
+            member_id: member.id,
+            company_id: member.company_id,
+            action: 'sign_in.rejected.inactive',
+            metadata: { email, status: member.status },
+          });
+          return '/login?error=inactive';
+        }
+        return true;
+      }
+
+      // 未招待：自社ドメインなら「招待されていない」、それ以外は「ドメイン違い」と親切に。
       const domainMatch = ALLOWED_DOMAINS.some((d) => email.endsWith(`@${d}`));
       if (!domainMatch) {
         await logAudit({
@@ -83,34 +108,11 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
         });
         return '/login?error=domain_not_allowed';
       }
-
-      // DB登録メンバーかチェック
-      const member = await db
-        .select({ id: members.id, status: members.status, company_id: members.company_id })
-        .from(members)
-        .where(and(eq(members.email, email), isNull(members.deleted_at)))
-        .limit(1)
-        .then((rows) => rows[0]);
-
-      if (!member) {
-        await logAudit({
-          action: 'sign_in.rejected.not_invited',
-          metadata: { email },
-        });
-        return '/login?error=not_invited';
-      }
-
-      if (member.status !== 'active') {
-        await logAudit({
-          member_id: member.id,
-          company_id: member.company_id,
-          action: 'sign_in.rejected.inactive',
-          metadata: { email, status: member.status },
-        });
-        return '/login?error=inactive';
-      }
-
-      return true;
+      await logAudit({
+        action: 'sign_in.rejected.not_invited',
+        metadata: { email },
+      });
+      return '/login?error=not_invited';
     },
 
     async jwt({ token, user }) {
