@@ -61,7 +61,12 @@ vi.mock('next/cache', () => ({
   revalidatePath: vi.fn(),
 }));
 
-import { updateDealStage } from '@/lib/actions/deals';
+import {
+  updateDealStage,
+  updateDealConfidence,
+  updateDealAmount,
+  updateDealAssignee,
+} from '@/lib/actions/deals';
 
 describe('updateDealStage', () => {
   beforeEach(() => {
@@ -135,5 +140,153 @@ describe('updateDealStage', () => {
     const result = await updateDealStage('test-deal-id', 'proposing');
     expect(result).toEqual({ ok: false, error: 'forbidden' });
     expect(dbMock.update).not.toHaveBeenCalled();
+  });
+});
+
+describe('updateDealConfidence', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    authMock.mockResolvedValue(mockSession);
+    requirePermissionMock.mockResolvedValue({ ok: true, session: mockSession });
+  });
+
+  test('requirePermission denied → guard.error', async () => {
+    requirePermissionMock.mockResolvedValue({ ok: false, error: 'unauthorized' });
+    const result = await updateDealConfidence('deal-1', 'a');
+    expect(result).toEqual({ ok: false, error: 'unauthorized' });
+    expect(dbMock.select).not.toHaveBeenCalled();
+  });
+
+  test('不正な confidence 値（"z"）→ invalid_confidence', async () => {
+    // @ts-expect-error - 不正値テスト
+    const result = await updateDealConfidence('deal-1', 'z');
+    expect(result).toEqual({ ok: false, error: 'invalid_confidence' });
+  });
+
+  test('deal 不在 → deal_not_found', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([]));
+    const result = await updateDealConfidence('deal-1', 'a');
+    expect(result).toEqual({ ok: false, error: 'deal_not_found' });
+  });
+
+  test('正常：null → a 更新 + audit', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([{ subjective_confidence: null }]));
+    dbMock.update.mockReturnValue(makeDbChain([]));
+    const result = await updateDealConfidence('deal-1', 'a');
+    expect(result).toEqual({ ok: true });
+    expect(logAuditMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'deal.confidence_update',
+        metadata: expect.objectContaining({ from: null, to: 'a' }),
+      }),
+    );
+  });
+
+  test('正常：a → null（解除）も OK', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([{ subjective_confidence: 'a' }]));
+    dbMock.update.mockReturnValue(makeDbChain([]));
+    const result = await updateDealConfidence('deal-1', null);
+    expect(result).toEqual({ ok: true });
+    expect(logAuditMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        metadata: expect.objectContaining({ from: 'a', to: null }),
+      }),
+    );
+  });
+});
+
+describe('updateDealAmount', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    authMock.mockResolvedValue(mockSession);
+    requirePermissionMock.mockResolvedValue({ ok: true, session: mockSession });
+  });
+
+  test('requirePermission denied → guard.error', async () => {
+    requirePermissionMock.mockResolvedValue({ ok: false, error: 'unauthorized' });
+    const result = await updateDealAmount('deal-1', 1000);
+    expect(result).toEqual({ ok: false, error: 'unauthorized' });
+  });
+
+  test('負数 → invalid_amount', async () => {
+    const result = await updateDealAmount('deal-1', -1);
+    expect(result).toEqual({ ok: false, error: 'invalid_amount' });
+  });
+
+  test('上限超過（1 兆超）→ invalid_amount', async () => {
+    const result = await updateDealAmount('deal-1', 100_000_000_000);
+    expect(result).toEqual({ ok: false, error: 'invalid_amount' });
+  });
+
+  test('deal 不在 → deal_not_found', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([]));
+    const result = await updateDealAmount('deal-1', 1_000_000);
+    expect(result).toEqual({ ok: false, error: 'deal_not_found' });
+  });
+
+  test('正常：0 円 → 100 万 更新 + audit', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([{ amount: 0 }]));
+    dbMock.update.mockReturnValue(makeDbChain([]));
+    const result = await updateDealAmount('deal-1', 1_000_000);
+    expect(result).toEqual({ ok: true });
+    expect(logAuditMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'deal.amount_inline_update',
+        metadata: expect.objectContaining({ from: 0, to: 1_000_000 }),
+      }),
+    );
+  });
+
+  test('正常：0 円も許容（amount=0 は明示的に nonnegative 含む）', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([{ amount: 5000 }]));
+    dbMock.update.mockReturnValue(makeDbChain([]));
+    const result = await updateDealAmount('deal-1', 0);
+    expect(result).toEqual({ ok: true });
+  });
+});
+
+describe('updateDealAssignee', () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    authMock.mockResolvedValue(mockSession);
+    requirePermissionMock.mockResolvedValue({ ok: true, session: mockSession });
+  });
+
+  test('requirePermission denied → guard.error', async () => {
+    requirePermissionMock.mockResolvedValue({ ok: false, error: 'unauthorized' });
+    const result = await updateDealAssignee('deal-1', 'member-1');
+    expect(result).toEqual({ ok: false, error: 'unauthorized' });
+  });
+
+  test('不正な assignee（uuid じゃない）→ invalid_assignee', async () => {
+    const result = await updateDealAssignee('deal-1', 'not-a-uuid');
+    expect(result).toEqual({ ok: false, error: 'invalid_assignee' });
+  });
+
+  test('deal 不在 → deal_not_found', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([]));
+    const result = await updateDealAssignee('deal-1', '550e8400-e29b-41d4-a716-446655440000');
+    expect(result).toEqual({ ok: false, error: 'deal_not_found' });
+  });
+
+  test('正常：assignee 更新 + audit', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([{ assignee_id: 'old-id' }]));
+    dbMock.update.mockReturnValue(makeDbChain([]));
+    const newId = '550e8400-e29b-41d4-a716-446655440000';
+    const result = await updateDealAssignee('deal-1', newId);
+    expect(result).toEqual({ ok: true });
+    expect(logAuditMock).toHaveBeenCalledWith(
+      expect.objectContaining({
+        action: 'deal.assignee_inline_update',
+        metadata: expect.objectContaining({ from: 'old-id', to: newId }),
+      }),
+    );
+  });
+
+  test('正常：null（担当解除）も OK', async () => {
+    dbMock.select.mockReturnValue(makeDbChain([{ assignee_id: 'old-id' }]));
+    dbMock.update.mockReturnValue(makeDbChain([]));
+    const result = await updateDealAssignee('deal-1', null);
+    expect(result).toEqual({ ok: true });
   });
 });
