@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote, Bot, Sparkles } from 'lucide-react';
+import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote, Bot, Sparkles, TrendingUp } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -127,6 +127,13 @@ export default async function SettingsHubPage() {
       title: 'AI 機能ガイド',
       description: 'AI 9機能（チャット / 朝ブリーフィング / 案件リスク / 次の一手 / メール / 提案書 / 議事録要約 / タスク生成 / 工数最適化 / アサイン推薦）の場所と使い方',
       status: '9 機能稼働中',
+    },
+    {
+      href: '/settings/forecast-calibration',
+      icon: TrendingUp,
+      title: 'ヨミ予測売上 実測キャリブレーション',
+      description: '主観確度 A〜E の実勝率を集計、デフォルト % との乖離を可視化。3-6 ヶ月運用後に係数を実測値で書き換える判断材料',
+      status: '運用 3 ヶ月後 推奨',
     },
   ];
 
