@@ -16,6 +16,7 @@ import { StageStepper } from './_components/stage-stepper';
 import { NextStageChecklist } from './_components/next-stage-checklist';
 import { InlineStageChanger } from './_components/inline-stage-changer';
 import { StageBar } from './_components/stage-bar';
+import { ShareDealButton } from './_components/share-deal-button';
 import { getStageRequirements } from '@/lib/deals/stage-requirements';
 
 export default async function DealDetailPage({ params }: { params: Promise<{ dealId: string }> }) {
@@ -157,6 +158,11 @@ export default async function DealDetailPage({ params }: { params: Promise<{ dea
           案件一覧
         </Link>
         <h1 className="text-lg font-semibold text-gray-900 truncate flex-1">{deal.title}</h1>
+        <ShareDealButton
+          dealTitle={deal.title}
+          customerName={deal.customer_name}
+          stage={deal.stage}
+        />
         <InlineStageChanger dealId={dealId} currentStage={deal.stage} />
       </header>
 
