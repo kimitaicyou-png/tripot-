@@ -249,9 +249,7 @@ export default async function DealsListPage({
           subjective_confidence: d.subjective_confidence,
           next_action_text: nextText,
           next_action_due_date: nextDue,
-          next_action_due_week: null,
           next_action_assignee_id: nextAssignee,
-          weeks: {},
         };
       })
     : [];
