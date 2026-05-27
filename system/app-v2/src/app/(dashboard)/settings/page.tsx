@@ -1,7 +1,7 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { eq, and, isNull, sql } from 'drizzle-orm';
-import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote, Bot, Sparkles, TrendingUp } from 'lucide-react';
+import { ArrowLeft, Building2, Quote, FolderOpen, Factory, Plug, FileSearch, Banknote, Bot, Sparkles, TrendingUp, Users } from 'lucide-react';
 import type { LucideIcon } from 'lucide-react';
 import { auth } from '@/auth';
 import { db } from '@/lib/db';
@@ -66,6 +66,13 @@ export default async function SettingsHubPage() {
   ]);
 
   const items: SettingItem[] = [
+    {
+      href: '/settings/members',
+      icon: Users,
+      title: 'メンバー管理',
+      description: '招待（Gmail + 役割）／一覧／役割変更／無効化。退職時 JWT 即時無効化',
+      status: `${memberCountRow[0]?.n ?? 0} 名`,
+    },
     {
       href: '/settings/company',
       icon: Building2,
