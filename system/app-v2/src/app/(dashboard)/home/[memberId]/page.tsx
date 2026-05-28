@@ -149,6 +149,11 @@ export default async function MemberHomePage({
       calls: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'call')::int`,
       meetings: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'meeting')::int`,
       proposals: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'proposal')::int`,
+      // 2026-05-28 B2-1：email/visit/other が内訳表示に無く、total と合わなかった
+      // （隊長報告「メール/訪問/その他で記録した行動が反映されない」）。
+      emails: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'email')::int`,
+      visits: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'visit')::int`,
+      others: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'other')::int`,
     })
     .from(actions)
     .where(and(eq(actions.member_id, memberId), eq(actions.company_id, companyId), gte(actions.occurred_at, weekStart)))
@@ -358,22 +363,36 @@ export default async function MemberHomePage({
 
         <section className="mt-8 bg-white border border-gray-200 rounded-xl p-5 shadow-sm">
           <p className="text-sm font-medium text-gray-900 mb-3">今週の行動量（直近7日）</p>
-          <div className="flex items-end gap-3">
-            <div className="flex-1">
+          <div className="flex items-end gap-3 mb-4">
+            <div>
               <p className="text-xs text-gray-500">合計</p>
               <p className="font-semibold text-3xl text-gray-900 tabular-nums">{actionStats?.total ?? 0}</p>
             </div>
-            <div className="flex-1">
+          </div>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
+            <div>
               <p className="text-xs text-gray-500">電話</p>
               <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.calls ?? 0}</p>
             </div>
-            <div className="flex-1">
+            <div>
               <p className="text-xs text-gray-500">商談</p>
               <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.meetings ?? 0}</p>
             </div>
-            <div className="flex-1">
+            <div>
               <p className="text-xs text-gray-500">提案</p>
               <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.proposals ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">メール</p>
+              <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.emails ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">訪問</p>
+              <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.visits ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">その他</p>
+              <p className="font-mono tabular-nums text-xl text-gray-900">{actionStats?.others ?? 0}</p>
             </div>
           </div>
         </section>
