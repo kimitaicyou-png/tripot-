@@ -1,6 +1,9 @@
 'use client';
 
 import { Download } from 'lucide-react';
+// 日付は format.ts の正本に統一（JST 固定）。自前の getHours() 実装は
+// サーバー TZ（Vercel=UTC）依存で CSV の時刻が UTC になる不具合があったため寄せた。
+import { formatDateTime } from '@/lib/format';
 
 type AuditRow = {
   id: string;
@@ -10,16 +13,6 @@ type AuditRow = {
   resource_type: string | null;
   resource_id: string | null;
 };
-
-function formatDatetime(value: string | Date): string {
-  const d = typeof value === 'string' ? new Date(value) : value;
-  const yyyy = d.getFullYear();
-  const mm = String(d.getMonth() + 1).padStart(2, '0');
-  const dd = String(d.getDate()).padStart(2, '0');
-  const hh = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${yyyy}/${mm}/${dd} ${hh}:${min}`;
-}
 
 function escapeCsv(value: string | null | undefined): string {
   const s = value ?? '';
@@ -34,7 +27,7 @@ export function AuditCsvButton({ rows }: { rows: AuditRow[] }) {
     const header = ['日時', '実行者', 'アクション', 'リソース種別', 'リソースID'];
     const lines = rows.map((r) =>
       [
-        escapeCsv(formatDatetime(r.occurred_at)),
+        escapeCsv(formatDateTime(r.occurred_at)),
         escapeCsv(r.member_name),
         escapeCsv(r.action),
         escapeCsv(r.resource_type),

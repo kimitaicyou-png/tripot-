@@ -50,3 +50,48 @@ export function formatRate(value: number | null | undefined): string {
   if (value == null) return '—';
   return `${Math.round(value)}%`;
 }
+
+/**
+ * 日付・日時フォーマットの統一 helper（2026-05-28 隊長報告 14-① / 14-② / 13-⑩）。
+ *
+ * 旧：画面ごとに toLocaleDateString のオプションがバラバラで
+ * 「2026/01/15」「2026年1月15日」「Jan 15, 2026」が混在、さらに JST/UTC も混在していた。
+ * これを正本として全画面で統一する：
+ * - タイムゾーンは Asia/Tokyo 固定（サーバーが UTC でも日本時間で表示）
+ * - 日付は「2026/01/15」（ゼロ埋めスラッシュ、一覧・テーブル向けでコンパクト）
+ * - 日時は「2026/01/15 14:30」
+ * 不正値・null は「—」。
+ */
+const JST = 'Asia/Tokyo';
+
+function toDate(value: Date | string | number | null | undefined): Date | null {
+  if (value == null || value === '') return null;
+  const d = value instanceof Date ? value : new Date(value);
+  return isNaN(d.getTime()) ? null : d;
+}
+
+/** 「2026/01/15」（JST、ゼロ埋め）。null/不正は「—」。 */
+export function formatDate(value: Date | string | number | null | undefined): string {
+  const d = toDate(value);
+  if (!d) return '—';
+  return d.toLocaleDateString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    timeZone: JST,
+  });
+}
+
+/** 「2026/01/15 14:30」（JST、24h）。null/不正は「—」。 */
+export function formatDateTime(value: Date | string | number | null | undefined): string {
+  const d = toDate(value);
+  if (!d) return '—';
+  return d.toLocaleString('ja-JP', {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    timeZone: JST,
+  });
+}
