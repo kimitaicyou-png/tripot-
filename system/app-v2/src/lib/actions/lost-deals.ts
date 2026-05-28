@@ -1,6 +1,6 @@
 'use server';
 
-import { revalidatePath } from 'next/cache';
+import { revalidateDealViews } from '@/lib/deals/revalidate-deal-views';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import { db, logAudit } from '@/lib/db';
@@ -118,6 +118,7 @@ export async function recordLostDeal(
       )
     );
 
-  revalidatePath(`/deals/${parsed.data.deal_id}`);
+  // 失注は stage=lost（CF 0%）→ 予測売上から外れるため予実ビューも再検証
+  revalidateDealViews(parsed.data.deal_id);
   return { success: true };
 }

@@ -512,7 +512,8 @@ export async function updateDealExternalCost(
     metadata: { external_cost: externalCost },
   });
 
-  revalidatePath(`/deals/${dealId}`);
+  // 外注原価は粗利 → /monthly /budget の P/L 集計に直結するため予実ビューも再検証
+  revalidateDealViews(dealId);
   return { success: true };
 }
 
