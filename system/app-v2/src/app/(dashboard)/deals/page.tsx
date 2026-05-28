@@ -19,6 +19,7 @@ import { InlineNextActionInput, type NextActionData } from './_components/inline
 import { InlineAssigneeSelect } from './_components/inline-assignee-select';
 import { InlineExpectedCloseInput } from './_components/inline-expected-close-input';
 import { InlineStageChanger } from './[dealId]/_components/inline-stage-changer';
+import { DealDeleteButton } from './_components/deal-delete-button';
 import type { WeekGridDeal } from '@/lib/deals/week-grid';
 import { getDealForecastAmount, getDealForecastWeight } from '@/lib/deals/forecast-weight';
 import { formatYen } from '@/lib/format';
@@ -95,6 +96,8 @@ export default async function DealsListPage({
 }) {
   const session = await auth();
   if (!session?.user?.member_id) redirect('/login');
+
+  const isPresident = session.user.role === 'president';
 
   const {
     view,
@@ -463,6 +466,7 @@ export default async function DealsListPage({
                         <SortLink label="金額" ascSort="amount_asc" descSort="amount_desc" />
                       </span>
                       <span className="shrink-0 w-16 text-center">粗利率</span>
+                      {isPresident && <span className="shrink-0 w-8" />}
                     </div>
                   );
                 })()}
@@ -562,6 +566,11 @@ export default async function DealsListPage({
                             </span>
                           );
                         })()}
+                        {isPresident && (
+                          <span className="shrink-0 w-8 hidden md:inline-flex items-center justify-center">
+                            <DealDeleteButton dealId={d.id} dealTitle={d.title} />
+                          </span>
+                        )}
                       </div>
                     ))}
                   </div>

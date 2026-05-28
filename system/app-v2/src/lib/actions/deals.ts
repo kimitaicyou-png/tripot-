@@ -152,6 +152,56 @@ export async function deleteDeal(dealId: string): Promise<void> {
   redirect('/deals');
 }
 
+export type DeleteDealResult =
+  | { ok: true; title: string }
+  | { ok: false; error: string };
+
+export async function deleteDealSoft(dealId: string): Promise<DeleteDealResult> {
+  const guard = await requirePermission({ resource: 'deal', action: 'delete' });
+  if (!guard.ok) {
+    return { ok: false, error: guard.error };
+  }
+  const { session } = guard;
+
+  if (session.user.role !== 'president') {
+    return { ok: false, error: '案件の削除は社長のみ実行できます' };
+  }
+
+  const existing = await db
+    .select({ title: deals.title, deleted_at: deals.deleted_at })
+    .from(deals)
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)))
+    .limit(1)
+    .then((rows) => rows[0]);
+
+  if (!existing) {
+    return { ok: false, error: '案件が見つかりません' };
+  }
+  if (existing.deleted_at) {
+    return { ok: false, error: 'すでに削除済みです' };
+  }
+
+  const title = existing.title;
+
+  await db
+    .update(deals)
+    .set({ deleted_at: new Date() })
+    .where(and(eq(deals.id, dealId), eq(deals.company_id, session.user.company_id)));
+
+  await logAudit({
+    member_id: session.user.member_id,
+    company_id: session.user.company_id,
+    action: 'deal.delete',
+    resource_type: 'deal',
+    resource_id: dealId,
+    metadata: { source: 'list_view', title },
+  });
+
+  revalidatePath('/deals');
+  return { ok: true, title };
+}
+
+
 export type InternalNoteState = {
   errors?: { _form?: string[] };
   success?: boolean;
