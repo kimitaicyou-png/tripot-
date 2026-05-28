@@ -73,6 +73,7 @@ export async function markAsRead(notificationId: string): Promise<void> {
     );
 
   revalidatePath('/notifications');
+  revalidatePath('/', 'layout');
 }
 
 export async function markAllAsRead(): Promise<void> {
@@ -102,6 +103,7 @@ export async function markAllAsRead(): Promise<void> {
   });
 
   revalidatePath('/notifications');
+  revalidatePath('/', 'layout');
 }
 
 export async function createNotification(

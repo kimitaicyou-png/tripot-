@@ -1,6 +1,6 @@
 'use client';
 
-import { useTransition } from 'react';
+import { useState, useTransition } from 'react';
 import { markAsRead } from '@/lib/actions/notifications';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/components/ui/toaster';
@@ -25,13 +25,18 @@ export function NotificationItem({
   isRead: boolean;
 }) {
   const [pending, startTransition] = useTransition();
+  const [optimisticRead, setOptimisticRead] = useState(isRead);
+
+  const effectivelyRead = optimisticRead || isRead;
 
   function handleClick() {
-    if (isRead || pending) return;
+    if (effectivelyRead || pending) return;
+    setOptimisticRead(true);
     startTransition(async () => {
       try {
         await markAsRead(id);
       } catch (err) {
+        setOptimisticRead(false);
         const msg = err instanceof Error ? err.message : '更新失敗';
         toast.error('既読化失敗', { description: msg });
       }
@@ -41,15 +46,15 @@ export function NotificationItem({
   return (
     <li
       onClick={handleClick}
-      className={`bg-white border rounded-xl p-4 transition-colors ${
-        isRead
+      className={`bg-white border rounded-xl p-4 transition-colors active:scale-[0.98] ${
+        effectivelyRead
           ? 'border-gray-200 opacity-70'
           : 'border-l-2 border-l-amber-300 cursor-pointer hover:border-gray-900'
       }`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
-          <p className={`text-sm ${isRead ? 'text-gray-700' : 'text-gray-900 font-medium'}`}>{title}</p>
+          <p className={`text-sm ${effectivelyRead ? 'text-gray-700' : 'text-gray-900 font-semibold'}`}>{title}</p>
           {body && <p className="text-xs text-gray-700 mt-1 whitespace-pre-wrap">{body}</p>}
           <div className="flex items-center gap-3 mt-2">
             <span className="text-xs text-gray-500">{ruleLabel}</span>
@@ -58,7 +63,7 @@ export function NotificationItem({
         </div>
         <div className="flex items-center gap-2 shrink-0">
           <Badge tone={channelTone}>{channelLabel}</Badge>
-          {!isRead && <span className="w-2 h-2 rounded-full bg-amber-500" aria-label="未読" />}
+          {!effectivelyRead && <span className="w-2 h-2 rounded-full bg-amber-500" aria-label="未読" />}
         </div>
       </div>
     </li>
