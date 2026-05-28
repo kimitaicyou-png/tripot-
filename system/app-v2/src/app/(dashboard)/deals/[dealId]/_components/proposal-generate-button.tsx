@@ -39,7 +39,7 @@ export function ProposalGenerateButton({ dealId }: { dealId: string }) {
       toast.success('提案書を生成しました', {
         description: `v${data.version}・${data.slide_count}枚 → 上の「提案書」タブで確認`,
       });
-      startTransition(() => router.refresh());
+      startTransition(async () => { await router.refresh(); });
     } catch (err) {
       const msg = err instanceof Error ? err.message : '通信失敗';
       toast.error('提案書生成に失敗', { description: msg });
@@ -57,7 +57,7 @@ export function ProposalGenerateButton({ dealId }: { dealId: string }) {
     >
       <span className="inline-flex items-center gap-1.5">
         <Sparkles className="w-4 h-4" />
-        {running ? '生成中…(30秒前後)' : 'AIで提案書を生成'}
+        {running ? '生成中…(30秒前後)' : pending ? '画面を更新中…' : 'AIで提案書を生成'}
       </span>
     </Button>
   );
