@@ -37,6 +37,9 @@ export default async function WeeklyPage({
       calls: sql<number>`COALESCE(COUNT(${actions.id}) FILTER (WHERE ${actions.type} = 'call'), 0)::int`,
       meetings: sql<number>`COALESCE(COUNT(${actions.id}) FILTER (WHERE ${actions.type} = 'meeting'), 0)::int`,
       proposals: sql<number>`COALESCE(COUNT(${actions.id}) FILTER (WHERE ${actions.type} = 'proposal'), 0)::int`,
+      emails: sql<number>`COALESCE(COUNT(${actions.id}) FILTER (WHERE ${actions.type} = 'email'), 0)::int`,
+      visits: sql<number>`COALESCE(COUNT(${actions.id}) FILTER (WHERE ${actions.type} = 'visit'), 0)::int`,
+      others: sql<number>`COALESCE(COUNT(${actions.id}) FILTER (WHERE ${actions.type} = 'other'), 0)::int`,
     })
     .from(members)
     .leftJoin(
@@ -134,6 +137,9 @@ export default async function WeeklyPage({
             calls: memberStats.reduce((s, m) => s + m.calls, 0),
             meetings: memberStats.reduce((s, m) => s + m.meetings, 0),
             proposals: memberStats.reduce((s, m) => s + m.proposals, 0),
+            emails: memberStats.reduce((s, m) => s + m.emails, 0),
+            visits: memberStats.reduce((s, m) => s + m.visits, 0),
+            others: memberStats.reduce((s, m) => s + m.others, 0),
           }}
         />
       </div>

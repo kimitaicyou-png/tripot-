@@ -174,6 +174,9 @@ export default async function MonthlyDetailPage({
       calls: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'call')::int`,
       meetings: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'meeting')::int`,
       proposals: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'proposal')::int`,
+      emails: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'email')::int`,
+      visits: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'visit')::int`,
+      others: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'other')::int`,
     })
     .from(actions)
     .where(
@@ -270,7 +273,7 @@ export default async function MonthlyDetailPage({
 
         <section>
           <SectionHeading eyebrow="ACTIVITY" title="今月の行動量" />
-          <div className="bg-white border border-gray-200 rounded-xl p-6 grid grid-cols-4 gap-4 text-center">
+          <div className="bg-white border border-gray-200 rounded-xl p-6 grid grid-cols-4 md:grid-cols-7 gap-4 text-center">
             <div>
               <p className="text-xs uppercase tracking-wider text-gray-500">合計</p>
               <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
@@ -293,6 +296,24 @@ export default async function MonthlyDetailPage({
               <p className="text-xs uppercase tracking-wider text-gray-500">提案</p>
               <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
                 {actionStats?.proposals ?? 0}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-gray-500">メール</p>
+              <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
+                {actionStats?.emails ?? 0}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-gray-500">訪問</p>
+              <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
+                {actionStats?.visits ?? 0}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs uppercase tracking-wider text-gray-500">その他</p>
+              <p className="font-semibold text-3xl text-gray-900 mt-1 tabular-nums">
+                {actionStats?.others ?? 0}
               </p>
             </div>
           </div>
