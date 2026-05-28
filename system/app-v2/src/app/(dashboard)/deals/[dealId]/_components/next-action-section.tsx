@@ -114,6 +114,10 @@ export function NextActionSection({
           <p className="text-xs font-mono text-gray-500 mt-1">
             {new Date(data.generated_at).toLocaleString('ja-JP')}
           </p>
+          {/* 4-⑪：AI 出力は提案実行時点のスナップショット。確度の正は案件の主観確度 */}
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            提案時点のスナップショット ／ 確度の正は案件の主観確度
+          </p>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={handleSuggest} disabled={running}>
           <span className="inline-flex items-center gap-1">

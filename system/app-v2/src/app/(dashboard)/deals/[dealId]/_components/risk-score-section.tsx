@@ -127,6 +127,11 @@ export function RiskScoreSection({
           <p className="text-xs font-mono text-gray-500 mt-1">
             {new Date(data.generated_at).toLocaleString('ja-JP')}
           </p>
+          {/* 4-⑪：AI 出力は分析実行時点のスナップショット。案件の主観確度（A〜E）と
+              別軸なので、数字がズレても矛盾ではない旨を明示し混同を防ぐ */}
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            分析時点のスナップショット ／ 確度の正は案件の主観確度
+          </p>
         </div>
         <Button type="button" variant="ghost" size="sm" onClick={handleAssess} disabled={running}>
           <span className="inline-flex items-center gap-1">

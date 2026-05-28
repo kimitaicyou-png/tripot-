@@ -133,6 +133,10 @@ export function MorningBrief({
               {new Date(generatedAt).toLocaleString('ja-JP')}
             </p>
           )}
+          {/* 1-③：朝ブリは生成時点のスナップショット。案件数や数字は最新の案件一覧・月次が正 */}
+          <p className="text-[11px] text-gray-500 mt-0.5">
+            生成時点のスナップショット ／ 最新は案件一覧・月次が正
+          </p>
         </div>
         <Button
           type="button"
