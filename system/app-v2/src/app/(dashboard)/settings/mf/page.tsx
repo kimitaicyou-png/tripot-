@@ -82,21 +82,18 @@ export default async function MfSettingsPage() {
               disabled
               className="w-full px-4 py-2 bg-slate-100 text-gray-700 text-sm rounded-lg cursor-not-allowed"
             >
-              MF と認証する（OAuth、明日朝実装）
+              MF クラウドと OAuth 連携する（近日対応予定）
             </button>
             <button
               type="button"
               disabled
               className="w-full px-4 py-2 bg-slate-100 text-gray-700 text-sm rounded-lg cursor-not-allowed"
             >
-              仕訳を取り込む（明日朝実装）
+              仕訳を取り込む（近日対応予定）
             </button>
           </div>
         </section>
 
-        <p className="text-xs text-gray-500 text-center">
-          ※ OAuth/取込/照合 の実装は秋美担当（4/30 完成目標、tripot-v2-schedule.md B9）
-        </p>
       </div>
     </main>
   );

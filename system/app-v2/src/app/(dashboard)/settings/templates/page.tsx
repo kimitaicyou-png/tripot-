@@ -32,7 +32,7 @@ export default async function SettingsTemplatesPage() {
           <EmptyState
             icon="📁"
             title="まだテンプレートがありません"
-            description="上の「初期データ投入」で 6 個の seed を一括登録できます"
+            description="右上の「新規追加」から登録できます。まとめて登録したい場合は「初期データ投入」で 6 件の標準テンプレートを一括取込できます。"
           />
         )}
       </div>

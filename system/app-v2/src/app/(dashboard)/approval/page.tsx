@@ -9,6 +9,7 @@ import { PageHeader } from '@/components/ui/page-header';
 import { StatCard } from '@/components/ui/stat-card';
 import { SectionHeading } from '@/components/ui/section-heading';
 import { EmptyState } from '@/components/ui/empty-state';
+import { CheckCircle } from 'lucide-react';
 
 const TYPE_LABEL: Record<string, string> = {
   discount: '値引き',
@@ -103,13 +104,19 @@ export default async function ApprovalPage() {
               />
             </section>
 
-            {pendingForMe.length > 0 && (
-              <section>
-                <SectionHeading
-                  eyebrow="ACTION REQUIRED"
-                  title="あなたの承認が必要"
-                  count={pendingForMe.length}
+            <section>
+              <SectionHeading
+                eyebrow="ACTION REQUIRED"
+                title="あなたの承認が必要"
+                count={pendingForMe.length}
+              />
+              {pendingForMe.length === 0 ? (
+                <EmptyState
+                  icon={CheckCircle}
+                  title="承認待ちの案件はありません"
+                  description="あなたの承認が必要な申請が届くとここに表示されます。"
                 />
+              ) : (
                 <div className="bg-white border border-gray-200 rounded-xl divide-y divide-border">
                   {pendingForMe.map((a) => (
                     <div
@@ -134,8 +141,8 @@ export default async function ApprovalPage() {
                     </div>
                   ))}
                 </div>
-              </section>
-            )}
+              )}
+            </section>
 
             {myPending.length > 0 && (
               <section>

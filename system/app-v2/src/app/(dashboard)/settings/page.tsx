@@ -132,8 +132,8 @@ export default async function SettingsHubPage() {
       href: '/settings/ai-features',
       icon: Sparkles,
       title: 'AI 機能ガイド',
-      description: 'AI 9機能（チャット / 朝ブリーフィング / 案件リスク / 次の一手 / メール / 提案書 / 議事録要約 / タスク生成 / 工数最適化 / アサイン推薦）の場所と使い方',
-      status: '9 機能稼働中',
+      description: 'AI 10 機能（チャット / 朝ブリーフィング / 案件リスク / 次の一手 / メール / 提案書 / 議事録要約 / タスク生成 / 工数最適化 / アサイン推薦）の場所と使い方',
+      status: '10 機能稼働中',
     },
     {
       href: '/settings/forecast-calibration',

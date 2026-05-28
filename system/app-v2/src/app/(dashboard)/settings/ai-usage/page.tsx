@@ -41,13 +41,20 @@ const JOB_TYPE_LABEL: Record<string, string> = {
 };
 
 const MONTHLY_BUDGET_USD = 30;
+const USD_TO_JPY = 155;
 
 function microUsdToUsd(microUsd: number | null): number {
   return Math.round(((microUsd ?? 0) / 1_000_000) * 100) / 100;
 }
 
-function formatUsd(usd: number): string {
-  return `$${usd.toFixed(2)}`;
+function formatJpy(usd: number): string {
+  const yen = Math.round(usd * USD_TO_JPY);
+  return `¥${yen.toLocaleString('ja-JP')}（$${usd.toFixed(2)}）`;
+}
+
+function formatJpyBudget(usd: number): string {
+  const yen = Math.round(usd * USD_TO_JPY);
+  return `¥${yen.toLocaleString('ja-JP')}`;
 }
 
 export default async function AiUsagePage() {
@@ -150,7 +157,7 @@ export default async function AiUsagePage() {
             <div>
               <p className="text-sm font-medium text-red-900">月次予算超過</p>
               <p className="text-xs text-red-800 mt-1">
-                月次予算 {formatUsd(MONTHLY_BUDGET_USD)} を超過しています。経営判断のため、AI 機能の優先順位を見直してください
+                月次予算 {formatJpyBudget(MONTHLY_BUDGET_USD)} を超過しています。経営判断のため、AI 機能の優先順位を見直してください
               </p>
             </div>
           </section>
@@ -160,8 +167,8 @@ export default async function AiUsagePage() {
           <StatCard label="今月の呼出数" value={monthSummaryRow?.job_count ?? 0} big />
           <StatCard
             label="今月のコスト"
-            value={formatUsd(monthCost)}
-            sub={`予算 ${formatUsd(MONTHLY_BUDGET_USD)} の ${budgetPct}%`}
+            value={formatJpy(monthCost)}
+            sub={`予算 ${formatJpyBudget(MONTHLY_BUDGET_USD)} の ${budgetPct}%`}
             tone={budgetTone}
             big
           />
@@ -200,7 +207,7 @@ export default async function AiUsagePage() {
                       {r.count}回
                     </p>
                     <p className="font-mono text-sm text-gray-900 tabular-nums w-20 text-right">
-                      {formatUsd(cost)}
+                      {formatJpy(cost)}
                     </p>
                   </li>
                 );
@@ -229,7 +236,7 @@ export default async function AiUsagePage() {
                     </div>
                     <p className="font-mono text-sm text-gray-700 tabular-nums">{r.count}回</p>
                     <p className="font-mono text-sm text-gray-900 tabular-nums w-20 text-right">
-                      {formatUsd(cost)}
+                      {formatJpy(cost)}
                     </p>
                   </li>
                 );
