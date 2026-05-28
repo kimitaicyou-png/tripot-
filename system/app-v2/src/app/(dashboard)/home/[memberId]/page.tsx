@@ -11,8 +11,24 @@ import { RevenueTrendCard } from './_components/revenue-trend-card';
 import { FunnelCard } from './_components/funnel-card';
 import { SilentCustomersCard } from './_components/silent-customers-card';
 import { WelcomeFirstSteps } from './_components/welcome-first-steps';
-import type { Brief } from './_components/morning-brief';
+import type { Brief, FocusItem, AlertItem } from './_components/morning-brief';
 import { getLatestAiJobForMember } from '@/lib/ai/jobs';
+
+/**
+ * morning-brief AI の output を Brief に正規化する。
+ * 過去 ai_jobs.output には schema 変更前の形式（focus / alerts 欠け）が残っており、
+ * 型 cast で渡すと client component で TypeError になっていた
+ * （2026-05-28 隊長報告 "undefined is not an object (evaluating 'o.focus.length')"）。
+ */
+function normalizeBrief(raw: unknown): Brief | null {
+  if (!raw || typeof raw !== 'object') return null;
+  const obj = raw as Record<string, unknown>;
+  return {
+    focus: Array.isArray(obj.focus) ? (obj.focus as FocusItem[]) : [],
+    alerts: Array.isArray(obj.alerts) ? (obj.alerts as AlertItem[]) : [],
+    message: typeof obj.message === 'string' ? obj.message : '',
+  };
+}
 import { pickQuoteForMember } from '@/lib/actions/quotes';
 import { formatYen } from '@/lib/format';
 import { TRIPOT_CONFIG } from '../../../../../coaris.config';
@@ -291,7 +307,7 @@ export default async function MemberHomePage({
         <div className="mt-12">
           <MorningBrief
             memberId={memberId}
-            initialBrief={latestMorningBriefJob?.output ?? null}
+            initialBrief={normalizeBrief(latestMorningBriefJob?.output)}
             initialGeneratedAt={
               latestMorningBriefJob?.finishedAt.toISOString() ?? null
             }

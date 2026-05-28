@@ -115,6 +115,14 @@ export function MorningBrief({
     );
   }
 
+  // 過去 ai_jobs に保存された古い brief output で focus/alerts が欠ける形式があり、
+  // .length アクセスで TypeError になっていた（2026-05-28 09:35 隊長報告
+  // /home/[memberId] で "undefined is not an object (evaluating 'o.focus.length')")。
+  // schema は配列必須だが、validation 通過前の旧データを防御するために
+  // 表示直前で配列化する。
+  const focusItems = Array.isArray(brief.focus) ? brief.focus : [];
+  const alertItems = Array.isArray(brief.alerts) ? brief.alerts : [];
+
   return (
     <section className="bg-white border border-gray-200 rounded-xl p-6 space-y-5">
       <div className="flex items-start justify-between gap-4">
@@ -146,13 +154,13 @@ export function MorningBrief({
         </p>
       )}
 
-      {brief.focus.length > 0 && (
+      {focusItems.length > 0 && (
         <div>
           <p className="text-xs uppercase tracking-widest text-gray-500 mb-3">
-            今日の重点 <span className="font-mono text-gray-900">{brief.focus.length}</span>
+            今日の重点 <span className="font-mono text-gray-900">{focusItems.length}</span>
           </p>
           <ol className="space-y-3">
-            {brief.focus.map((f, i) => (
+            {focusItems.map((f, i) => (
               <li
                 key={i}
                 className="border-l-2 border-gray-900 pl-4 py-1"
@@ -181,10 +189,10 @@ export function MorningBrief({
         </div>
       )}
 
-      {brief.alerts.length > 0 && (
+      {alertItems.length > 0 && (
         <div className="space-y-2">
           <p className="text-xs uppercase tracking-widest text-gray-500">警告</p>
-          {brief.alerts.map((a, i) => {
+          {alertItems.map((a, i) => {
             const Icon = ALERT_ICON[a.severity];
             return (
               <div
