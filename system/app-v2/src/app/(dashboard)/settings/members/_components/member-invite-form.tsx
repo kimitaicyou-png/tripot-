@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useEffect, useRef } from 'react';
+import { useActionState, useEffect, useRef, useTransition } from 'react';
 import { createMember, type MemberFormState } from '@/lib/actions/members';
 import { FormField, TextInput, Select, Button, FormActions } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
@@ -9,12 +9,19 @@ const initialState: MemberFormState = {};
 
 const ROLE_OPTIONS = [
   { value: 'member', label: 'メンバー（営業 / 制作）' },
-  { value: 'hq_member', label: '本部メンバー（hq_member）' },
+  { value: 'hq_member', label: '本部（hq_member）' },
   { value: 'president', label: '社長（president、全権）' },
 ];
 
+const ROLE_LABEL: Record<string, string> = {
+  member: 'メンバー',
+  hq_member: '本部',
+  president: '社長',
+};
+
 export function MemberInviteForm({ onSuccess }: { onSuccess?: () => void }) {
   const [state, formAction, pending] = useActionState(createMember, initialState);
+  const [, startTransition] = useTransition();
   const formRef = useRef<HTMLFormElement>(null);
 
   useEffect(() => {
@@ -27,8 +34,19 @@ export function MemberInviteForm({ onSuccess }: { onSuccess?: () => void }) {
     }
   }, [state.success, onSuccess]);
 
+  function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const name = (fd.get('name') as string | null) ?? '';
+    const email = (fd.get('email') as string | null) ?? '';
+    const role = (fd.get('role') as string | null) ?? 'member';
+    const roleText = ROLE_LABEL[role] ?? role;
+    if (!confirm(`${name}（${email}）を ${roleText} として招待します。よろしいですか？`)) return;
+    startTransition(() => formAction(fd));
+  }
+
   return (
-    <form ref={formRef} action={formAction} className="space-y-3">
+    <form ref={formRef} onSubmit={handleSubmit} className="space-y-3">
       <FormField label="氏名" required error={state.errors?.name?.[0]}>
         <TextInput name="name" placeholder="例：石田 ぴっぱ" />
       </FormField>

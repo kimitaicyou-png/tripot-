@@ -14,7 +14,7 @@ import { formatYen } from '@/lib/format';
 
 const ROLE_LABEL: Record<string, string> = {
   president: '社長',
-  hq_member: '本部メンバー',
+  hq_member: '本部',
   member: 'メンバー',
 };
 

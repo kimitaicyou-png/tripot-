@@ -71,9 +71,14 @@ export function WeeklyInputGrid({
     });
   }
 
-  function clearAll() {
+  function resetGrid() {
     setGrid(Object.fromEntries(members.map((m) => [m.id, emptyRow()])));
     setMessage(null);
+  }
+
+  function clearAll() {
+    if (!confirm('今週の入力をすべてクリアします。よろしいですか？')) return;
+    resetGrid();
   }
 
   function handleSubmit() {
@@ -92,7 +97,7 @@ export function WeeklyInputGrid({
         return;
       }
       setMessage(`${result.inserted ?? 0} 件保存しました`);
-      clearAll();
+      resetGrid();
       router.refresh();
     });
   }
@@ -125,7 +130,7 @@ export function WeeklyInputGrid({
           <button
             type="button"
             onClick={clearAll}
-            className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors"
+            className="px-4 py-2 text-sm text-gray-700 border border-gray-200 rounded hover:text-gray-900 hover:border-gray-900 transition-colors active:scale-[0.98]"
           >
             クリア
           </button>
@@ -133,7 +138,7 @@ export function WeeklyInputGrid({
             type="button"
             onClick={handleSubmit}
             disabled={pending || totals.grand === 0}
-            className="px-5 py-2 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity"
+            className="px-5 py-2 text-sm font-medium bg-gray-900 text-white rounded hover:opacity-90 disabled:opacity-40 disabled:cursor-not-allowed transition-opacity active:scale-[0.98]"
           >
             {pending ? '保存中...' : `${totals.grand} 件まとめて保存`}
           </button>
@@ -171,7 +176,7 @@ export function WeeklyInputGrid({
                           type="button"
                           aria-label={`${m.name} ${t.label} -1`}
                           onClick={() => bump(m.id, t.key, -1)}
-                          className="w-6 h-6 text-gray-700 hover:text-gray-900 rounded border border-transparent hover:border-gray-200 transition-colors"
+                          className="w-6 h-6 text-gray-700 hover:text-gray-900 rounded border border-transparent hover:border-gray-200 transition-colors active:scale-[0.98]"
                         >
                           −
                         </button>
@@ -187,7 +192,7 @@ export function WeeklyInputGrid({
                           type="button"
                           aria-label={`${m.name} ${t.label} +1`}
                           onClick={() => bump(m.id, t.key, 1)}
-                          className="w-6 h-6 text-gray-700 hover:text-gray-900 rounded border border-transparent hover:border-gray-200 transition-colors"
+                          className="w-6 h-6 text-gray-700 hover:text-gray-900 rounded border border-transparent hover:border-gray-200 transition-colors active:scale-[0.98]"
                         >
                           +
                         </button>

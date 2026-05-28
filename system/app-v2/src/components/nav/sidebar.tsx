@@ -184,7 +184,7 @@ export async function Sidebar({ user }: { user: { name?: string | null; member_i
 function roleLabel(role: string): string {
   switch (role) {
     case 'president': return '社長';
-    case 'hq_member': return '本部メンバー';
+    case 'hq_member': return '本部';
     case 'member': return 'メンバー';
     default: return role;
   }

@@ -5,6 +5,7 @@ import { auth } from '@/auth';
 import { listAuditLogs, listAuditableMembers, type AuditFilter } from '@/lib/actions/audit-logs';
 import { EmptyState } from '@/components/ui/empty-state';
 import { Badge } from '@/components/ui/badge';
+import { AuditCsvButton } from './_components/audit-csv-button';
 
 const ACTION_TONE: Record<string, 'down' | 'accent' | 'up' | 'info' | 'neutral'> = {
   delete: 'down',
@@ -47,6 +48,15 @@ export default async function SettingsAuditPage({
     listAuditLogs(filter),
     listAuditableMembers(),
   ]);
+
+  const csvRows = rows.map((r) => ({
+    id: r.id,
+    occurred_at: r.occurred_at instanceof Date ? r.occurred_at.toISOString() : String(r.occurred_at),
+    member_name: r.member_name ?? null,
+    action: r.action,
+    resource_type: r.resource_type ?? null,
+    resource_id: r.resource_id ?? null,
+  }));
 
   return (
     <main className="min-h-screen bg-gray-50">
@@ -134,6 +144,7 @@ export default async function SettingsAuditPage({
           <span>
             該当 <span className="font-mono text-gray-900">{total.toLocaleString('ja-JP')}</span> 件 / 表示 <span className="font-mono text-gray-900">{rows.length}</span> 件
           </span>
+          <AuditCsvButton rows={csvRows} />
         </div>
 
         {rows.length === 0 ? (
