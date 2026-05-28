@@ -8,6 +8,7 @@
 'use server';
 
 import { revalidatePath } from 'next/cache';
+import { revalidateDealViews } from '@/lib/deals/revalidate-deal-views';
 import { redirect } from 'next/navigation';
 import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
@@ -15,6 +16,10 @@ import { db, logAudit } from '@/lib/db';
 import { deals, customers, members } from '@/db/schema';
 import { isNull, ilike, sql } from 'drizzle-orm';
 import { requirePermission } from '@/lib/rbac';
+
+function toHalfWidth(v: string): string {
+  return v.replace(/[０-９]/g, (c) => String.fromCharCode(c.charCodeAt(0) - 0xFEE0));
+}
 
 const dealSchema = z.object({
   title: z.string().min(1, '案件名は必須です').max(200),
@@ -52,8 +57,8 @@ export async function createDeal(_prev: DealFormState, formData: FormData): Prom
     customer_id: formData.get('customer_id') || null,
     assignee_id: formData.get('assignee_id') || session.user.member_id,
     stage: formData.get('stage') ?? 'prospect',
-    amount: formData.get('amount') ?? 0,
-    monthly_amount: formData.get('monthly_amount') ?? 0,
+    amount: toHalfWidth(String(formData.get('amount') ?? '0')),
+    monthly_amount: toHalfWidth(String(formData.get('monthly_amount') ?? '0')),
     revenue_type: formData.get('revenue_type') ?? 'spot',
     expected_close_date: formData.get('expected_close_date') || null,
   });
@@ -119,8 +124,7 @@ export async function updateDeal(dealId: string, _prev: DealFormState, formData:
     metadata: parsed.data as Record<string, unknown>,
   });
 
-  revalidatePath('/deals');
-  revalidatePath(`/deals/${dealId}`);
+  revalidateDealViews(dealId);
   return { success: true };
 }
 
@@ -605,8 +609,7 @@ export async function updateDealStage(
     },
   });
 
-  revalidatePath(`/deals/${dealId}`);
-  revalidatePath("/deals");
+  revalidateDealViews(dealId);
   return { ok: true };
 }
 
@@ -666,9 +669,7 @@ export async function updateDealConfidence(
     metadata: { from: current.subjective_confidence, to: parsed.data },
   });
 
-  revalidatePath(`/deals/${dealId}`);
-  revalidatePath('/deals');
-  revalidatePath('/home');
+  revalidateDealViews(dealId);
   return { ok: true };
 }
 
@@ -727,9 +728,7 @@ export async function updateDealExpectedClose(
     metadata: { from: current.expected_close_date, to: normalized, source: 'list_view_inline' },
   });
 
-  revalidatePath(`/deals/${dealId}`);
-  revalidatePath('/deals');
-  revalidatePath('/home');
+  revalidateDealViews(dealId);
   return { ok: true };
 }
 
@@ -830,9 +829,7 @@ export async function updateDealNextAction(
     },
   });
 
-  revalidatePath(`/deals/${dealId}`);
-  revalidatePath('/deals');
-  revalidatePath('/home');
+  revalidateDealViews(dealId);
   return { ok: true };
 }
 
@@ -885,9 +882,7 @@ export async function updateDealAssignee(
     metadata: { from: current.assignee_id, to: normalized, source: 'list_or_week_grid_inline' },
   });
 
-  revalidatePath(`/deals/${dealId}`);
-  revalidatePath('/deals');
-  revalidatePath('/home');
+  revalidateDealViews(dealId);
   return { ok: true };
 }
 
@@ -939,9 +934,7 @@ export async function updateDealAmount(
     metadata: { from: current.amount, to: parsed.data, source: 'list_view_inline' },
   });
 
-  revalidatePath(`/deals/${dealId}`);
-  revalidatePath('/deals');
-  revalidatePath('/home');
+  revalidateDealViews(dealId);
   return { ok: true };
 }
 

@@ -5,7 +5,7 @@
  * RLS 用の SET LOCAL ヘルパー込み
  */
 
-import { neon } from '@neondatabase/serverless';
+import { neon, neonConfig } from '@neondatabase/serverless';
 import { drizzle } from 'drizzle-orm/neon-http';
 import { sql } from 'drizzle-orm';
 import * as schema from '@/db/schema';
@@ -14,6 +14,44 @@ const databaseUrl = process.env.DATABASE_URL;
 if (!databaseUrl) {
   throw new Error('DATABASE_URL is not set');
 }
+
+/**
+ * Neon serverless の scale-to-zero cold start 由来の一時的 5xx を吸収するリトライ。
+ *
+ * 2026-05-28 隊長報告：「503 エラー（ページが一時的に開けない）が複数画面でランダム発生」
+ * （バグリスト 4-② / 14-③）。Neon の compute がアイドルでサスペンドした後、最初の
+ * リクエストが compute 起動待ちで 502/503/504 を返すのが主因。neon-http は各クエリが
+ * 独立 HTTP のためリトライが無く、ユーザーに 503 がそのまま見えていた。
+ *
+ * 502/503/504（サーバー未処理＝リクエスト副作用なし）と、ネットワーク例外を
+ * 最大 3 回・指数バックオフ（150/300ms）でリトライする。cold start は通常数百 ms で
+ * 起動するため、これで体感のランダム 503 はほぼ吸収できる。
+ * fetchFunction は NeonConfig グローバル設定（型は any）。
+ */
+const RETRYABLE_STATUS = new Set([502, 503, 504]);
+const MAX_RETRIES = 3;
+
+neonConfig.fetchFunction = async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+  let lastError: unknown;
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      const res = await fetch(input, init);
+      if (RETRYABLE_STATUS.has(res.status) && attempt < MAX_RETRIES - 1) {
+        await new Promise((r) => setTimeout(r, 150 * (attempt + 1)));
+        continue;
+      }
+      return res;
+    } catch (err) {
+      // ネットワーク例外（cold start 中の接続失敗等）。最終試行なら投げる
+      lastError = err;
+      if (attempt < MAX_RETRIES - 1) {
+        await new Promise((r) => setTimeout(r, 150 * (attempt + 1)));
+        continue;
+      }
+    }
+  }
+  throw lastError ?? new Error('Neon fetch failed after retries');
+};
 
 const client = neon(databaseUrl);
 
