@@ -55,33 +55,40 @@ export async function createMeeting(
 
   const occurredAt = parsed.data.occurred_at ? new Date(parsed.data.occurred_at) : new Date();
 
-  const [created] = await db
-    .insert(meetings)
-    .values({
-      company_id: session.user.company_id,
+  try {
+    const [created] = await db
+      .insert(meetings)
+      .values({
+        company_id: session.user.company_id,
+        member_id: session.user.member_id,
+        deal_id: parsed.data.deal_id ?? null,
+        customer_id: parsed.data.customer_id ?? null,
+        type: parsed.data.type,
+        title: parsed.data.title ?? null,
+        raw_text: parsed.data.raw_text ?? null,
+        summary: parsed.data.summary ?? null,
+        duration_sec: parsed.data.duration_sec ?? null,
+        occurred_at: occurredAt,
+      })
+      .returning({ id: meetings.id });
+
+    await logAudit({
       member_id: session.user.member_id,
-      deal_id: parsed.data.deal_id ?? null,
-      customer_id: parsed.data.customer_id ?? null,
-      type: parsed.data.type,
-      title: parsed.data.title ?? null,
-      raw_text: parsed.data.raw_text ?? null,
-      summary: parsed.data.summary ?? null,
-      duration_sec: parsed.data.duration_sec ?? null,
-      occurred_at: occurredAt,
-    })
-    .returning({ id: meetings.id });
+      company_id: session.user.company_id,
+      action: 'meeting.create',
+      resource_type: 'meeting',
+      resource_id: created!.id,
+      metadata: { type: parsed.data.type, deal_id: parsed.data.deal_id },
+    });
 
-  await logAudit({
-    member_id: session.user.member_id,
-    company_id: session.user.company_id,
-    action: 'meeting.create',
-    resource_type: 'meeting',
-    resource_id: created!.id,
-    metadata: { type: parsed.data.type, deal_id: parsed.data.deal_id },
-  });
-
-  if (parsed.data.deal_id) revalidatePath(`/deals/${parsed.data.deal_id}`);
-  return { success: true, meetingId: created!.id };
+    if (parsed.data.deal_id) revalidatePath(`/deals/${parsed.data.deal_id}`);
+    return { success: true, meetingId: created!.id };
+  } catch (error) {
+    // 保存失敗時も必ず state を返す（throw すると useActionState の pending が
+    // false に戻らず、ボタンが「保存中…」のまま固まるため）
+    const message = error instanceof Error ? error.message : '保存に失敗しました';
+    return { errors: { _form: [message] } };
+  }
 }
 
 export async function updateMeeting(

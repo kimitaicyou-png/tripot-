@@ -1,6 +1,6 @@
 'use client';
 
-import { useActionState, useState } from 'react';
+import { useActionState, useEffect, useState } from 'react';
 import { Check, Pencil, Sparkles, Loader2, ChevronDown, ChevronUp } from 'lucide-react';
 import { updateDealExternalCost, type ExternalCostState } from '@/lib/actions/deals';
 import { formatYen } from '@/lib/format';
@@ -46,6 +46,16 @@ export function ExternalCostForm({
   const [aiRunning, setAiRunning] = useState(false);
   const [aiResult, setAiResult] = useState<BudgetResult | null>(null);
   const [aiExpanded, setAiExpanded] = useState(true);
+
+  // 保存成功時に編集モードを抜ける。これで revalidate 済みの新しい
+  // grossProfit / grossProfitRate（props）が画面に反映され、原価編集が
+  // 粗利自動計算に連動する（B6-15）。
+  useEffect(() => {
+    if (state.success) {
+      setEditing(false);
+      setDraft(String(externalCost));
+    }
+  }, [state.success, externalCost]);
 
   const rateNum = grossProfitRate == null ? 0 : Number(grossProfitRate);
   const rateLabel = `${rateNum.toFixed(2)}%`;

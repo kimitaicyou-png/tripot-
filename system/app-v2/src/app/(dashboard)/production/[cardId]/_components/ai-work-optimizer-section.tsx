@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Bot, RotateCcw, User2 } from 'lucide-react';
+import { Bot, RotateCcw, User2, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 import { formatYen } from '@/lib/format';
@@ -70,6 +70,32 @@ const CATEGORY_BADGE: Record<Category, string> = {
 export function AiWorkOptimizerSection({ cardId }: { cardId: string }) {
   const [data, setData] = useState<OptimizeResult | null>(null);
   const [running, setRunning] = useState(false);
+  const [copied, setCopied] = useState(false);
+
+  async function handleReflect(result: OptimizeResult) {
+    const lines = [
+      `【AI 工数最適化シミュレーション】${result.card.title}`,
+      `元工数 ${result.summary.total_original_hours}h → 最適化後 ${result.summary.total_optimized_hours}h（${result.summary.overall_reduction_rate}% 削減）`,
+      `削減効果 ${formatYen(result.summary.cost_saving_yen)}（時給単価 ${formatYen(result.hourly_rate_yen)}/h）`,
+      ...result.items.map(
+        (i) =>
+          `・[${CATEGORY_LABEL[i.category]}]${i.title}：${i.original_hours}h${
+            i.is_ai && i.original_hours !== i.optimized_hours
+              ? ` → ${i.optimized_hours}h`
+              : '（人間専管）'
+          }`
+      ),
+    ];
+    try {
+      await navigator.clipboard.writeText(lines.join('\n'));
+      setCopied(true);
+      toast.success('最適化結果をコピーしました', {
+        description: '案件の予算 / 見積や制作カードの工数見直しに貼り付けて反映してください',
+      });
+    } catch {
+      toast.error('コピーに失敗しました', { description: '手動で内容を控えてください' });
+    }
+  }
 
   async function handleOptimize() {
     if (running) return;
@@ -226,13 +252,29 @@ export function AiWorkOptimizerSection({ cardId }: { cardId: string }) {
         </ul>
       </div>
 
-      <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3">
-        <p className="text-xs text-amber-700">
-          隊長思想：「AI で出来ることは AI で。人間は判断と修正のみ」を数値で示す装置。
-          {data.summary.overall_reduction_rate >= 50
-            ? ' この案件は AI 化余地が大きい。粗利改善のチャンス'
-            : ' この案件は人間専管比率が高い。AI 削減余地は限定的、その分付加価値を価格に反映'}
+      <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 space-y-2">
+        <p className="text-xs text-amber-700 font-medium">
+          反映先：これは試算（シミュレーション）です。工数を自動では書き換えません。
         </p>
+        <p className="text-xs text-amber-700">
+          下のボタンで結果をコピーし、案件の予算 / 見積や制作カードの工数見直しに貼り付けて反映してください。
+          {data.summary.overall_reduction_rate >= 50
+            ? ' この案件は AI 化余地が大きい。粗利改善のチャンス。'
+            : ' この案件は人間専管比率が高い。AI 削減余地は限定的、その分付加価値を価格に反映。'}
+        </p>
+        <div className="pt-1">
+          <Button
+            type="button"
+            variant="secondary"
+            size="sm"
+            onClick={() => handleReflect(data)}
+          >
+            <span className="inline-flex items-center gap-1.5">
+              <ClipboardCheck className="w-3.5 h-3.5" />
+              {copied ? 'コピー済み' : '結果をコピーして反映'}
+            </span>
+          </Button>
+        </div>
       </div>
     </section>
   );

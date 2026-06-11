@@ -106,6 +106,11 @@ export function EmailDraftButton({
       body: draft.body,
     });
     const to = draft.to ?? '';
+    if (!to) {
+      toast.info('宛先メールアドレス未登録', {
+        description: '顧客にメールアドレスを登録するか、コピーして送信してください',
+      });
+    }
     window.location.href = `mailto:${to}?${params.toString()}`;
   }
 

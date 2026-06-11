@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Users, RotateCcw, Building2, User2, Trophy } from 'lucide-react';
+import { Users, RotateCcw, Building2, User2, Trophy, ClipboardCheck } from 'lucide-react';
 import { Button } from '@/components/ui/form';
 import { toast } from '@/components/ui/toaster';
 
@@ -54,6 +54,22 @@ function StarRating({ value, max = 5 }: { value: number; max?: number }) {
 export function AiAssignRecommendSection({ cardId }: { cardId: string }) {
   const [data, setData] = useState<RecommendResult | null>(null);
   const [running, setRunning] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  async function handleReflect(r: Resource, rank: number) {
+    const line = `【AI 推薦 担当者 ${rank}位】${r.name}${
+      r.type === 'outsource' ? '（外注）' : ''
+    } / score ${r.score}（稼働 ${r.load_rate}% / 速度 ${r.avg_speed_rate}）\n理由：${r.reason}`;
+    try {
+      await navigator.clipboard.writeText(line);
+      setCopiedId(r.id);
+      toast.success(`「${r.name}」をコピーしました`, {
+        description: '案件 / メンバー詳細の担当欄やコメントに貼り付けて反映してください',
+      });
+    } catch {
+      toast.error('コピーに失敗しました', { description: '手動で内容を控えてください' });
+    }
+  }
 
   async function handleRecommend() {
     if (running) return;
@@ -209,6 +225,20 @@ export function AiAssignRecommendSection({ cardId }: { cardId: string }) {
                   </div>
 
                   <p className="text-xs text-gray-700 mt-2 ml-1">→ {r.reason}</p>
+
+                  <div className="mt-3 ml-1">
+                    <Button
+                      type="button"
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleReflect(r, idx + 1)}
+                    >
+                      <span className="inline-flex items-center gap-1.5">
+                        <ClipboardCheck className="w-3.5 h-3.5" />
+                        {copiedId === r.id ? 'コピー済み' : 'この担当者で反映'}
+                      </span>
+                    </Button>
+                  </div>
                 </div>
               </div>
             </li>
@@ -216,9 +246,10 @@ export function AiAssignRecommendSection({ cardId }: { cardId: string }) {
         })}
       </ul>
 
-      <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3">
+      <div className="rounded-lg bg-blue-50 border border-blue-200 px-4 py-3 space-y-1">
+        <p className="text-xs text-blue-700 font-medium">反映先：この推薦はメモ用の参考値です（自動では割り当てません）。</p>
         <p className="text-xs text-blue-700">
-          AI 推薦は判断の参考です。最終アサインは案件 / メンバー詳細から手動で行います。
+          各候補の「この担当者で反映」を押すと内容がコピーされます。案件 / メンバー詳細の担当欄・コメントに貼り付けて確定してください。
           score は skill_match × 30 + 稼働 + 速度 + 品質 + 最安 のロジック合計。
         </p>
       </div>
