@@ -1,0 +1,70 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify:
+    name: 型チェック・Lint・テスト
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: 依存関係インストール
+        run: npm ci
+
+      - name: 型チェック
+        run: npm run type-check
+
+      - name: Lint
+        run: npm run lint
+
+      - name: コアリスUIルール確認
+        run: npm run lint:ui
+
+      - name: テスト実行
+        run: npm run test
+        env:
+          NODE_ENV: test
+
+  build:
+    name: ビルド確認
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    needs: verify
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Node.js セットアップ
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: package-lock.json
+
+      - name: 依存関係インストール
+        run: npm ci
+
+      - name: ビルド
+        run: npm run build
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL_CI }}
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET_CI }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY_CI }}
+          NEXT_PUBLIC_SENTRY_DSN: ''
+          SKIP_ENV_VALIDATION: 'true'
