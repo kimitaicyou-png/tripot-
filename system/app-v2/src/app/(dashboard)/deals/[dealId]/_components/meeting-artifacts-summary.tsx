@@ -43,7 +43,7 @@ export function MeetingArtifactsSummary({
     return (
       <div className="bg-gray-50 border border-gray-200 rounded-lg px-3 py-2.5 text-xs text-gray-600">
         <span className="inline-flex items-center gap-1.5">
-          <Sparkles className="w-3 h-3 text-gray-400" />
+          <Sparkles className="w-3 h-3 text-gray-500" />
           この議事録から生まれた成果物：まだなし（下のアクションで作れます）
         </span>
       </div>

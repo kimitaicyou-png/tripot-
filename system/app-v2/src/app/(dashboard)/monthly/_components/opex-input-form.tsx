@@ -109,7 +109,7 @@ export function OpexInputForm({
               編集
             </button>
           )}
-          <span className="text-[10px] text-gray-400">※ MF 接続後に自動化</span>
+          <span className="text-[10px] text-gray-500">※ MF 接続後に自動化</span>
         </>
       )}
     </div>

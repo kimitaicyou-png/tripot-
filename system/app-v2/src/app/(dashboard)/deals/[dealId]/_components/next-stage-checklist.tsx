@@ -103,7 +103,7 @@ export function NextStageChecklist({
                 {item.status === 'done' ? (
                   <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0 mt-0.5" />
                 ) : (
-                  <Circle className="w-4 h-4 text-gray-300 shrink-0 mt-0.5" />
+                  <Circle className="w-4 h-4 text-gray-500 shrink-0 mt-0.5" />
                 )}
                 <div className="flex-1 min-w-0">
                   <p

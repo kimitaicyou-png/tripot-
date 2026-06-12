@@ -40,7 +40,7 @@ function WeekCard({ label, amount, count, tone, hint }: CardProps) {
       </p>
       <p className="text-xs text-gray-600 mt-1">
         <span className="font-mono tabular-nums">{count}</span> 件{' '}
-        <span className="text-gray-400">／ {formatYen(amount)}</span>
+        <span className="text-gray-500">／ {formatYen(amount)}</span>
       </p>
       {hint && <p className="text-[10px] text-gray-500 mt-2">{hint}</p>}
     </section>

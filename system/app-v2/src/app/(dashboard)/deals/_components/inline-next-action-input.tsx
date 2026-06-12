@@ -126,7 +126,7 @@ export function InlineNextActionInput({
             : 'クリックで「次やること」を追加（いつ／誰が／何を）'
         }
         className={`inline-flex items-center gap-1.5 px-1.5 py-0.5 rounded text-xs hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900/20 active:scale-[0.98] max-w-[18rem] ${
-          hasValue ? 'text-gray-900' : 'text-gray-400'
+          hasValue ? 'text-gray-900' : 'text-gray-500'
         }`}
       >
         {hasValue ? (

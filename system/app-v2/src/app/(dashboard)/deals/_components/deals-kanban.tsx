@@ -68,7 +68,7 @@ function DealCard({
       }`}
     >
       <div className="flex items-start gap-1.5">
-        <GripVertical className="w-3 h-3 text-gray-300 shrink-0 mt-0.5" />
+        <GripVertical className="w-3 h-3 text-gray-500 shrink-0 mt-0.5" />
         <div className="flex-1 min-w-0">
           <p className="text-sm text-gray-900 font-medium leading-tight line-clamp-2">
             {deal.title}
@@ -286,7 +286,7 @@ export function DealsKanban({ deals: initialDeals }: { deals: DealItem[] }) {
 
                   <DroppableColumn stageKey={stageDef.key}>
                     {items.length === 0 ? (
-                      <p className="text-xs text-gray-400 text-center py-6">
+                      <p className="text-xs text-gray-500 text-center py-6">
                         （ここにドラッグ）
                       </p>
                     ) : (

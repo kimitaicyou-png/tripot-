@@ -86,7 +86,7 @@ export function InlineExpectedCloseInput({
       }}
       title={hasValue ? `受注予定日 ${savedValue}（クリックで編集）` : 'クリックで受注予定日を設定'}
       className={`inline-flex items-center gap-1 px-1.5 py-0.5 rounded text-xs font-mono tabular-nums hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-gray-900/20 active:scale-[0.98] ${
-        hasValue ? 'text-gray-900' : 'text-gray-400'
+        hasValue ? 'text-gray-900' : 'text-gray-500'
       }`}
     >
       <Calendar className="w-3 h-3 shrink-0 opacity-60" />

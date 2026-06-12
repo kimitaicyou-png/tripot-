@@ -10,7 +10,8 @@ check() {
   local label="$1"
   local pattern="$2"
   local hits
-  hits=$(grep -rn -E "$pattern" src/ 2>/dev/null --include="*.tsx" --include="*.ts" --include="*.css" || true)
+  # コメント行（// または * で始まる行）は除外してlint（コメント内の禁止語を誤検知しないため）
+  hits=$(grep -rn -E "$pattern" src/ 2>/dev/null --include="*.tsx" --include="*.ts" --include="*.css" | grep -Ev '^\S+:\s*(//|/\*|\*)' || true)
   if [ -n "$hits" ]; then
     echo ""
     echo "🚨 違反: $label"

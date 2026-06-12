@@ -147,32 +147,32 @@ export function WelcomeFirstSteps({
 
         <ol className="space-y-2.5 pl-0">
           <li className="flex items-center gap-3">
-            <span className="font-mono text-xs tabular-nums text-gray-400 w-12 shrink-0">毎日</span>
+            <span className="font-mono text-xs tabular-nums text-gray-500 w-12 shrink-0">毎日</span>
             <span className="text-sm text-gray-900">あなたの行動（電話・商談・議事録・タスク）</span>
           </li>
-          <li className="flex items-center gap-3 text-gray-400 pl-12">
+          <li className="flex items-center gap-3 text-gray-500 pl-12">
             <span className="text-xs">↓ 自動集計</span>
           </li>
           <li className="flex items-center gap-3">
-            <span className="font-mono text-xs tabular-nums text-gray-400 w-12 shrink-0">週次</span>
+            <span className="font-mono text-xs tabular-nums text-gray-500 w-12 shrink-0">週次</span>
             <Link href={'/weekly' as Route} className="text-sm text-gray-900 underline decoration-gray-300 hover:decoration-gray-900">
               週次レポート（会議準備ゼロ）
             </Link>
           </li>
-          <li className="flex items-center gap-3 text-gray-400 pl-12">
+          <li className="flex items-center gap-3 text-gray-500 pl-12">
             <span className="text-xs">↓ 自動集計</span>
           </li>
           <li className="flex items-center gap-3">
-            <span className="font-mono text-xs tabular-nums text-gray-400 w-12 shrink-0">月次</span>
+            <span className="font-mono text-xs tabular-nums text-gray-500 w-12 shrink-0">月次</span>
             <Link href={'/monthly' as Route} className="text-sm text-gray-900 underline decoration-gray-300 hover:decoration-gray-900">
               月次（粗利・予実）
             </Link>
           </li>
-          <li className="flex items-center gap-3 text-gray-400 pl-12">
+          <li className="flex items-center gap-3 text-gray-500 pl-12">
             <span className="text-xs">↓ 自動集計</span>
           </li>
           <li className="flex items-center gap-3">
-            <span className="font-mono text-xs tabular-nums text-gray-400 w-12 shrink-0">全社</span>
+            <span className="font-mono text-xs tabular-nums text-gray-500 w-12 shrink-0">全社</span>
             <span className="text-sm text-gray-900">コアリスHD 全体の数字 → PL / CF 予実</span>
           </li>
         </ol>

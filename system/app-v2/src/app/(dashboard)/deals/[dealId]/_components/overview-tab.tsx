@@ -281,8 +281,8 @@ export async function OverviewTab({ deal }: { deal: DealOverview }) {
               攻略カード ／ 失注フォーム ／ 目標（クリックで展開）
             </span>
           </span>
-          <span className="text-xs text-gray-400 group-open:hidden">▶</span>
-          <span className="text-xs text-gray-400 hidden group-open:inline">▼</span>
+          <span className="text-xs text-gray-500 group-open:hidden">▶</span>
+          <span className="text-xs text-gray-500 hidden group-open:inline">▼</span>
         </summary>
         <div className="px-6 py-4 space-y-6 border-t border-gray-100">
           <AttackSection dealId={dealId} />

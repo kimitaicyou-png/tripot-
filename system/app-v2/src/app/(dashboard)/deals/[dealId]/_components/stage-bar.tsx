@@ -70,9 +70,9 @@ export function StageBar({
         </span>
       ) : firstMissing ? (
         <span className="inline-flex items-center gap-1.5 text-xs text-gray-700 min-w-0">
-          <span className="text-gray-400">→</span>
+          <span className="text-gray-500">→</span>
           <span className="font-medium text-gray-900">「{nextLabel}」</span>
-          <span className="text-gray-400">に進むには</span>
+          <span className="text-gray-500">に進むには</span>
           <AlertCircle className="w-3 h-3 text-amber-600 shrink-0" />
           <span className="truncate">{firstMissing}</span>
         </span>

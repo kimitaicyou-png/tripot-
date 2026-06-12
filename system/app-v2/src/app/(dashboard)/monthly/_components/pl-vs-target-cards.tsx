@@ -107,7 +107,7 @@ export function PlVsTargetCards({
             <p className="text-xs uppercase tracking-widest text-gray-500 truncate">
               翌月 CF 見通し
             </p>
-            <p className="text-[10px] font-mono uppercase text-gray-400 shrink-0">加重</p>
+            <p className="text-[10px] font-mono uppercase text-gray-500 shrink-0">加重</p>
           </div>
           <p className="font-mono tabular-nums text-2xl text-gray-900 mb-1 truncate">
             {formatMan(cfForecast)}
@@ -124,7 +124,7 @@ export function PlVsTargetCards({
                 >
                   <span className="truncate">
                     {b.label}{' '}
-                    <span className="font-mono tabular-nums text-gray-400">
+                    <span className="font-mono tabular-nums text-gray-500">
                       ({Math.round(b.weight * 100)}%)
                     </span>
                   </span>

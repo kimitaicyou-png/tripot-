@@ -43,7 +43,7 @@ function StageRow({
     ? 'bg-gray-900 text-white border-gray-900'
     : isCurrent
       ? 'bg-white text-gray-900 border-gray-900 ring-4 ring-gray-900/10'
-      : 'bg-white text-gray-400 border-gray-200';
+      : 'bg-white text-gray-500 border-gray-200';
 
   const labelClass = isCurrent
     ? 'text-gray-900 font-semibold'
@@ -76,7 +76,7 @@ function StageRow({
                 ? 'bg-gray-900 text-white'
                 : isDone
                   ? 'bg-gray-100 text-gray-700'
-                  : 'bg-gray-50 text-gray-400'
+                  : 'bg-gray-50 text-gray-500'
             }`}
             title="CF 確度（このステージに到達した時点のキャッシュフロー予測加重）"
           >
@@ -90,7 +90,7 @@ function StageRow({
                 ? 'text-gray-700'
                 : isDone
                   ? 'text-gray-500'
-                  : 'text-gray-400'
+                  : 'text-gray-500'
             }`}
           >
             {stage.guidance}
@@ -134,7 +134,7 @@ export function StageStepper({ currentStage }: { currentStage: string }) {
     <section className="bg-white border border-gray-200 rounded-xl p-5">
       <div className="flex items-baseline justify-between mb-4">
         <h3 className="text-sm font-semibold text-gray-900">案件ステージ</h3>
-        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-400">
+        <p className="text-[10px] font-mono uppercase tracking-widest text-gray-500">
           毎日の行動が PL/CF まで自動で流れます
         </p>
       </div>

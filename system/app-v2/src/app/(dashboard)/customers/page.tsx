@@ -242,7 +242,7 @@ export default async function CustomersPage({
                       ← 前へ
                     </Link>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-300 border border-gray-100 rounded-lg">
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg">
                       ← 前へ
                     </span>
                   )}
@@ -257,7 +257,7 @@ export default async function CustomersPage({
                       次へ →
                     </Link>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-300 border border-gray-100 rounded-lg">
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg">
                       次へ →
                     </span>
                   )}
