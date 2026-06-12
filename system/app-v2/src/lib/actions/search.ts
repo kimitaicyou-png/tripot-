@@ -32,7 +32,8 @@ export type SearchHit = {
   href: string;
 };
 
-const LIMIT_PER_KIND = 5;
+// B2-3 fix: 表示件数を 10 に増やし、件数の切り捨てによる「件数表示 < 実件数」を緩和
+const LIMIT_PER_KIND = 10;
 
 function ilikeWrap(q: string): string {
   return `%${q.replace(/[\\%_]/g, '\\$&')}%`;
@@ -60,6 +61,7 @@ export async function globalSearch(query: string): Promise<SearchHit[]> {
     estimateRows,
     invoiceRows,
   ] = await Promise.all([
+    // B2-4 fix: 案件タイトルに加え、紐付き顧客名でも検索（Axis / ストック・トキ 等がヒットしない問題）
     db
       .select({
         id: deals.id,
@@ -73,7 +75,10 @@ export async function globalSearch(query: string): Promise<SearchHit[]> {
         and(
           eq(deals.company_id, companyId),
           isNull(deals.deleted_at),
-          sql`${deals.title} ILIKE ${pattern}`
+          or(
+            sql`${deals.title} ILIKE ${pattern}`,
+            sql`${customers.name} ILIKE ${pattern}`
+          )
         )
       )
       .limit(LIMIT_PER_KIND),

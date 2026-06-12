@@ -50,6 +50,7 @@ export default async function TeamPage() {
       )
       .groupBy(members.id, members.name, members.email, members.role, members.department)
       .orderBy(sql`SUM(${deals.amount}) DESC NULLS LAST`),
+    // B2-1 fix: email/visit/other を集計に含める（旧実装は call/meeting/proposal の 3 種のみ）
     db
       .select({
         member_id: actions.member_id,
@@ -57,6 +58,9 @@ export default async function TeamPage() {
         calls: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'call')::int`,
         meetings: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'meeting')::int`,
         proposals: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'proposal')::int`,
+        emails: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'email')::int`,
+        visits: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'visit')::int`,
+        others: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'other')::int`,
       })
       .from(actions)
       .where(
@@ -194,7 +198,7 @@ export default async function TeamPage() {
                           <FileText className="w-3 h-3" />
                           <span className="font-mono tabular-nums">{acts.proposals}</span>
                         </span>
-                        <span className="ml-auto text-gray-400 font-mono tabular-nums">
+                        <span className="ml-auto text-gray-500 font-mono tabular-nums">
                           7d 計 {acts.total}
                         </span>
                       </div>

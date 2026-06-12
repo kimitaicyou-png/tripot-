@@ -42,9 +42,14 @@ export default async function WeeklyPage({
       others: sql<number>`COALESCE(COUNT(${actions.id}) FILTER (WHERE ${actions.type} = 'other'), 0)::int`,
     })
     .from(members)
+    // B2-3 fix: actions の LEFT JOIN に company_id を追加（欠落時は他社 actions が混入し行動量が膨らむ）
     .leftJoin(
       actions,
-      and(eq(actions.member_id, members.id), gte(actions.occurred_at, weekStart))
+      and(
+        eq(actions.member_id, members.id),
+        eq(actions.company_id, session.user.company_id),
+        gte(actions.occurred_at, weekStart),
+      )
     )
     .where(
       and(

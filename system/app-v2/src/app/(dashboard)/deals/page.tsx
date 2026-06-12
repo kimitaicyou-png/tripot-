@@ -226,6 +226,27 @@ export default async function DealsListPage({
     .from(deals)
     .where(and(eq(deals.company_id, session.user.company_id), isNull(deals.deleted_at)))
     .then((r) => r[0]?.count ?? 0);
+
+  // B2-2 fix: ヨミ予測売上を全件（フィルタ・KANBAN_LIMIT 非適用）から計算し、月次/週次と整合させる
+  // フィルタ適用中はフィルタ範囲のヨミを別途表示するため、全件ヨミは常に保持
+  const allActiveDealsForForecast = await db
+    .select({
+      stage: deals.stage,
+      amount: deals.amount,
+      subjective_confidence: deals.subjective_confidence,
+    })
+    .from(deals)
+    .where(
+      and(
+        eq(deals.company_id, session.user.company_id),
+        isNull(deals.deleted_at),
+        sql`${deals.stage} NOT IN ('lost')`
+      )
+    );
+  const totalForecastAll = allActiveDealsForForecast.reduce(
+    (s, d) => s + getDealForecastAmount(d.amount, d.stage, d.subjective_confidence),
+    0,
+  );
   const isPartialList = (isKanban || isWeekGrid) && rows.length >= KANBAN_LIMIT && filteredTotal > KANBAN_LIMIT;
   const hasActiveFilter = Boolean(assignee) || Boolean(confidence) || period !== 'all';
 
@@ -390,10 +411,15 @@ export default async function DealsListPage({
           <>
             <section className="grid grid-cols-2 md:grid-cols-3 gap-4">
               <StatCard label="入金確定累計" value={formatYen(totalRevenue)} tone="up" big />
+              {/* B2-2 fix: 全件ヨミ（フィルタ非依存）を表示、フィルタ中はフィルタ範囲ヨミを sub に併記 */}
               <StatCard
                 label="ヨミ予測売上"
-                value={formatYen(totalForecast)}
-                sub={`総額 ${formatYen(totalPipelineRaw)}`}
+                value={formatYen(totalForecastAll)}
+                sub={
+                  hasActiveFilter
+                    ? `フィルタ内 ${formatYen(totalForecast)} ／ 総額 ${formatYen(totalPipelineRaw)}`
+                    : `総額 ${formatYen(totalPipelineRaw)}`
+                }
                 tone="accent"
                 big
               />
@@ -608,7 +634,7 @@ export default async function DealsListPage({
                       ← 前へ
                     </Link>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-300 border border-gray-100 rounded-lg">
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg">
                       ← 前へ
                     </span>
                   )}
@@ -632,7 +658,7 @@ export default async function DealsListPage({
                       次へ →
                     </Link>
                   ) : (
-                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-300 border border-gray-100 rounded-lg">
+                    <span className="inline-flex items-center gap-1 px-3 py-1.5 text-xs text-gray-500 border border-gray-200 rounded-lg">
                       次へ →
                     </span>
                   )}

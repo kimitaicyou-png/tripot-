@@ -83,8 +83,10 @@ export default async function SearchPage({
           />
         ) : (
           <div className="space-y-6">
+            {/* B2-3 fix: 各種 最大 10 件の上限があることを明示し、件数表示 ≠ 実件数 の誤解を防ぐ */}
             <p className="text-sm text-gray-700">
               <span className="font-mono text-gray-900">{hits.length}</span> 件ヒット
+              <span className="text-xs text-gray-500 ml-2">（各種 最大 10 件表示）</span>
             </p>
             {(['deal', 'customer', 'task', 'meeting', 'member'] as const).map((kind) => {
               const items = grouped[kind] ?? [];

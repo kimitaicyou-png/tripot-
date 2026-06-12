@@ -116,6 +116,7 @@ export default async function MonthlyDetailPage({
       ),
     );
 
+  // B2-5 fix: deals JOIN に company_id を追加（マルチテナント境界。欠落時は他社 deals が混入し合計が上部合計と不一致になる）
   const byCustomer = await db
     .select({
       id: customers.id,
@@ -128,6 +129,7 @@ export default async function MonthlyDetailPage({
       deals,
       and(
         eq(deals.customer_id, customers.id),
+        eq(deals.company_id, session.user.company_id),
         sql`${deals.stage} IN ('paid', 'invoiced')`,
         gte(deals.paid_at, monthStartIso),
         lte(deals.paid_at, monthEndIso),
@@ -139,6 +141,7 @@ export default async function MonthlyDetailPage({
     .having(sql`COUNT(${deals.id}) > 0`)
     .orderBy(desc(sql`SUM(${deals.amount})`));
 
+  // B2-5 fix: deals JOIN に company_id を追加（byAssignee も同様）
   const byAssignee = await db
     .select({
       id: members.id,
@@ -151,6 +154,7 @@ export default async function MonthlyDetailPage({
       deals,
       and(
         eq(deals.assignee_id, members.id),
+        eq(deals.company_id, session.user.company_id),
         sql`${deals.stage} IN ('paid', 'invoiced')`,
         gte(deals.paid_at, monthStartIso),
         lte(deals.paid_at, monthEndIso),

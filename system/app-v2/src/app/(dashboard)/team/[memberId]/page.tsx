@@ -97,12 +97,16 @@ export default async function TeamMemberDetailPage({
   weekStart.setDate(weekStart.getDate() - 6);
   weekStart.setHours(0, 0, 0, 0);
 
+  // B2-1 fix: email/visit/other を集計に含める（旧実装は call/meeting/proposal の 3 種のみ）
   const actionStats = await db
     .select({
       total: sql<number>`COUNT(*)::int`,
       calls: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'call')::int`,
       meetings: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'meeting')::int`,
       proposals: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'proposal')::int`,
+      emails: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'email')::int`,
+      visits: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'visit')::int`,
+      others: sql<number>`COUNT(*) FILTER (WHERE ${actions.type} = 'other')::int`,
     })
     .from(actions)
     .where(
@@ -194,6 +198,7 @@ export default async function TeamMemberDetailPage({
 
         <section className="bg-white border border-gray-200 rounded-xl p-6">
           <h3 className="text-sm font-medium text-gray-900 mb-3">行動量内訳（直近7日）</h3>
+          {/* B2-1 fix: 6 種全表示（旧: 3 種のみ）*/}
           <div className="grid grid-cols-3 gap-4 text-center">
             <div>
               <p className="text-xs text-gray-500">電話</p>
@@ -206,6 +211,18 @@ export default async function TeamMemberDetailPage({
             <div>
               <p className="text-xs text-gray-500">提案</p>
               <p className="font-mono tabular-nums text-2xl text-gray-900 mt-1">{actionStats?.proposals ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">メール</p>
+              <p className="font-mono tabular-nums text-2xl text-gray-900 mt-1">{actionStats?.emails ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">訪問</p>
+              <p className="font-mono tabular-nums text-2xl text-gray-900 mt-1">{actionStats?.visits ?? 0}</p>
+            </div>
+            <div>
+              <p className="text-xs text-gray-500">その他</p>
+              <p className="font-mono tabular-nums text-2xl text-gray-900 mt-1">{actionStats?.others ?? 0}</p>
             </div>
           </div>
         </section>

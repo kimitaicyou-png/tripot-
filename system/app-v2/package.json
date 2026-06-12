@@ -7,17 +7,19 @@
     "dev": "next dev --port 3100",
     "build": "next build",
     "start": "next start --port 3100",
-    "lint": "next lint",
+    "lint": "eslint src/ --max-warnings 20",
     "lint:ui": "bash scripts/coaris-ui-lint.sh",
     "type-check": "tsc --noEmit",
-    "verify": "npm run type-check && npm run lint && npm run lint:ui && npm run build",
+    "verify": "npm run type-check && npm run lint && npm run lint:ui && npm run audit && npm run build",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "drizzle-kit migrate",
     "db:push": "drizzle-kit push",
     "db:studio": "drizzle-kit studio",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:coverage": "vitest run --coverage"
+    "test:coverage": "vitest run --coverage",
+    "audit": "npm audit --audit-level=critical",
+    "audit:report": "npm audit --audit-level=high"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.82.0",

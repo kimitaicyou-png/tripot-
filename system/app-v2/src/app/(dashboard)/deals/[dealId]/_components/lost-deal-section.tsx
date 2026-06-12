@@ -17,7 +17,7 @@ export async function LostDealSection({
         <div>
           <p className="text-xs uppercase tracking-widest text-gray-500">失注として記録</p>
           <p className="text-sm text-gray-700 mt-1">
-            この案件が失注した場合、理由を記録すると stage='lost' に自動遷移し、後の学習データに使えます
+            この案件が失注した場合、理由を記録すると stage=&apos;lost&apos; に自動遷移し、後の学習データに使えます
           </p>
         </div>
         <LostDealForm dealId={dealId} initial={null} />
